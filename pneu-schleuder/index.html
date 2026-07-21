@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Pneu-Schleuder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { width:100%; height:100%; overflow:hidden; position:fixed; touch-action:none;
+    background:#7ec8e3; font-family:-apple-system, "Helvetica Neue", Arial, sans-serif; }
+  #game { display:block; width:100%; height:100%; }
+  .overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; background:rgba(20,40,60,.72); z-index:10;
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); color:#fff; text-align:center;
+    padding:20px; padding-top:env(safe-area-inset-top); }
+  .hidden { display:none !important; }
+  .title { font-size:min(13vw,64px); font-weight:900; letter-spacing:-1px;
+    color:#ffd23f; text-shadow:0 4px 0 #c47a00, 0 8px 18px rgba(0,0,0,.4); margin-bottom:8px; }
+  .subtitle { font-size:min(4.5vw,19px); opacity:.92; margin-bottom:28px; max-width:340px; line-height:1.4; }
+  .btn { background:linear-gradient(#ffd23f,#ffb300); color:#4a2c00; border:none;
+    font-size:20px; font-weight:800; padding:16px 40px; border-radius:16px;
+    box-shadow:0 5px 0 #c47a00, 0 8px 16px rgba(0,0,0,.35); margin:8px; cursor:pointer; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #c47a00; }
+  .btn.sec { background:linear-gradient(#e8eef2,#c3ccd4); color:#2b3a45; box-shadow:0 5px 0 #8d99a3, 0 8px 16px rgba(0,0,0,.3); }
+  .btn.sec:active { box-shadow:0 2px 0 #8d99a3; }
+  #levelGrid { display:grid; grid-template-columns:repeat(4, 66px); gap:12px;
+    margin:18px 0 24px; max-height:48vh; overflow-y:auto; padding:6px; touch-action:pan-y; }
+  .lvlBtn { width:66px; height:66px; border-radius:16px; border:none; font-size:21px; font-weight:900;
+    background:linear-gradient(#ffd23f,#ffb300); color:#4a2c00;
+    box-shadow:0 4px 0 #c47a00; cursor:pointer; }
+  .lvlBtn:active { transform:translateY(2px); box-shadow:0 2px 0 #c47a00; }
+  .lvlBtn.locked { background:#5a6a76; color:#9fb0bc; box-shadow:0 4px 0 #3d4952; }
+  .lvlBtn.endless { background:linear-gradient(#7bd88f,#3fae5c); color:#0d3a1c; box-shadow:0 4px 0 #2a7a41; }
+  .stars { font-size:52px; letter-spacing:8px; margin:10px 0 4px; }
+  .big { font-size:min(10vw,46px); font-weight:900; margin-bottom:6px; }
+  .scoreline { font-size:18px; opacity:.9; margin-bottom:22px; }
+  #hud { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between;
+    align-items:flex-start; padding:calc(env(safe-area-inset-top) + 10px) 14px 0; z-index:5;
+    pointer-events:none; font-weight:800; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.45); }
+  .hudbox { background:rgba(0,0,0,.28); border-radius:12px; padding:6px 12px; font-size:15px; }
+  #tiresHud { font-size:18px; letter-spacing:2px; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" class="hidden">
+  <div class="hudbox" id="levelHud">Level 1</div>
+  <div class="hudbox" id="tiresHud">🛞🛞🛞🛞</div>
+  <div class="hudbox" id="scoreHud">0</div>
+</div>
+
+<div id="startScreen" class="overlay">
+  <div class="title">🛞 PNEU-<br>SCHLEUDER</div>
+  <div class="subtitle">Zieh den Pneu mit dem Finger zurück, lass los – und räum alle 📸 Blitzer ab! Kisten und Pylonen fliegen mit.</div>
+  <button class="btn" id="startBtn">Los geht's!</button>
+  <button class="btn sec" id="menuOpenBtn">Level wählen</button>
+</div>
+
+<div id="menuScreen" class="overlay hidden">
+  <div class="big">Level wählen</div>
+  <div class="scoreline">Ab Level 13: Endlos-Modus 🎲</div>
+  <div id="levelGrid"></div>
+  <button class="btn sec" id="menuBackBtn">Zurück</button>
+</div>
+
+<div id="endScreen" class="overlay hidden">
+  <div class="big" id="endTitle">Level geschafft!</div>
+  <div class="stars" id="endStars">⭐⭐⭐</div>
+  <div class="scoreline" id="endScore">Punkte: 0</div>
+  <div>
+    <button class="btn sec" id="menuBtn">Menü</button>
+    <button class="btn sec" id="retryBtn">Nomal</button>
+    <button class="btn" id="nextBtn">Weiter ➜</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const { Engine, Bodies, Body, Composite, Events, Sleeping } = Matter;
+
+// ---------- Setup ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let cw = 0, ch = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+function resize() {
+  cw = window.innerWidth; ch = window.innerHeight;
+  canvas.width = cw * dpr; canvas.height = ch * dpr;
+  canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+}
+window.addEventListener('resize', resize); resize();
+
+const WORLD_W = 1700, WORLD_H = 760, GROUND_Y = 660;
+const SLING = { x: WORLD_W - 230, y: 545 };
+const MAX_DRAG = 130, POWER = 0.185;
+
+let engine, world;
+let tire = null, tireState = 'idle'; // idle | aiming | flight
+let tiresLeft = 0, score = 0, levelIdx = 0, bestUnlocked = 0;
+let breakables = [], blitzers = [], particles = [], flashes = [];
+let camX = 0, camTargetX = 0, scale = 1;
+let dragging = false, dragPos = null;
+let settleTimer = 0, flightTime = 0;
+let gameActive = false;
+
+// safe storage (fällt in claude.ai auf Memory zurück)
+const mem = {};
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return mem[k] ?? null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){ mem[k]=v; } }
+};
+bestUnlocked = parseInt(store.get('ps_unlocked') || '0');
+
+// ---------- Sound (WebAudio, klein & synthetisch) ----------
+let AC = null;
+function audio() { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); return AC; }
+function beep(freq, dur, type, vol, slide) {
+  try {
+    const ac = audio(); if (ac.state === 'suspended') ac.resume();
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, ac.currentTime + dur);
+    g.gain.value = vol || 0.12;
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime + dur);
+  } catch(e){}
+}
+const sfx = {
+  launch(){ beep(220, .25, 'sawtooth', .1, 700); },
+  hit(){ beep(140, .1, 'square', .09, 70); },
+  wood(){ beep(200, .12, 'triangle', .12, 90); },
+  blitz(){ beep(880, .3, 'square', .12, 220); beep(1400, .15, 'sine', .1); },
+  win(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.18,'triangle',.13),i*120)); },
+  lose(){ [400,340,280,200].forEach((f,i)=>setTimeout(()=>beep(f,.2,'sawtooth',.1),i*140)); }
+};
+
+// ---------- Level-Bausteine ----------
+// Spiegelung: Schleuder rechts, Hindernisse links (Rechtshänder-Modus)
+const MX = x => WORLD_W - x;
+function crate(x, y, s=56) {
+  return { body: Bodies.rectangle(MX(x), y, s, s, { friction:.6, restitution:.05, density:.0016 }),
+    kind:'crate', hp:45, maxHp:45, w:s, h:s };
+}
+function plank(x, y, w, h, angle=0) {
+  return { body: Bodies.rectangle(MX(x), y, w, h, { friction:.6, restitution:.05, density:.0014, angle:-angle }),
+    kind:'plank', hp:38, maxHp:38, w, h };
+}
+function stone(x, y, w, h) {
+  return { body: Bodies.rectangle(MX(x), y, w, h, { friction:.8, restitution:.02, density:.004 }),
+    kind:'stone', hp:120, maxHp:120, w, h };
+}
+function cone(x, y) {
+  return { body: Bodies.trapezoid(MX(x), y, 40, 46, .9, { friction:.5, restitution:.1, density:.0009 }),
+    kind:'cone', hp:18, maxHp:18, w:40, h:46 };
+}
+function blitzer(x, y) {
+  return { body: Bodies.rectangle(MX(x), y, 46, 60, { friction:.6, restitution:.05, density:.002 }),
+    kind:'blitzer', hp:30, maxHp:30, w:46, h:60 };
+}
+const G = GROUND_Y;
+
+const LEVELS = [
+  { tires: 4, parts: () => [
+      crate(1050, G-28), crate(1050, G-84),
+      blitzer(1050, G-142),
+      cone(940, G-23), cone(1160, G-23)
+  ]},
+  { tires: 4, parts: () => [
+      crate(1000, G-28), crate(1110, G-28),
+      plank(1055, G-70, 200, 18),
+      crate(1055, G-108), blitzer(1055, G-168),
+      cone(900, G-23), blitzer(1300, G-30), cone(1370, G-23)
+  ]},
+  { tires: 4, parts: () => [
+      stone(980, G-25, 40, 50), stone(1140, G-25, 40, 50),
+      plank(1060, G-60, 240, 18),
+      crate(1010, G-98), crate(1110, G-98),
+      plank(1060, G-136, 200, 18),
+      blitzer(1060, G-176),
+      cone(880, G-23), cone(1250, G-23), blitzer(1420, G-30)
+  ]},
+  { tires: 5, parts: () => [
+      crate(950, G-28), crate(950, G-84), blitzer(950, G-142),
+      stone(1200, G-30, 44, 60), stone(1330, G-30, 44, 60),
+      plank(1265, G-70, 220, 18),
+      crate(1265, G-108), blitzer(1265, G-168),
+      cone(1080, G-23), cone(1470, G-23)
+  ]},
+  { tires: 5, parts: () => [
+      stone(1000, G-35, 40, 70), stone(1180, G-35, 40, 70),
+      plank(1090, G-80, 280, 18),
+      blitzer(1030, G-120), crate(1150, G-118),
+      plank(1090, G-158, 220, 18),
+      crate(1090, G-196), blitzer(1090, G-256),
+      cone(880, G-23), cone(1290, G-23), blitzer(1450, G-30), cone(1520, G-23)
+  ]},
+  { tires: 6, parts: () => [
+      stone(950, G-35, 44, 70), stone(1090, G-35, 44, 70), stone(1230, G-35, 44, 70),
+      plank(1020, G-80, 220, 18), plank(1160, G-80, 220, 18),
+      crate(1020, G-118), blitzer(1090, G-120), crate(1160, G-118),
+      plank(1090, G-158, 300, 18),
+      stone(1030, G-198, 36, 60), stone(1150, G-198, 36, 60),
+      plank(1090, G-238, 200, 18),
+      blitzer(1090, G-278),
+      cone(850, G-23), cone(1340, G-23), blitzer(1480, G-30)
+  ]},
+  // Level 7: Kisten-Pyramide
+  { tires: 5, parts: () => [
+      crate(1000, G-28), crate(1060, G-28), crate(1120, G-28),
+      crate(1030, G-84), crate(1090, G-84),
+      crate(1060, G-140),
+      blitzer(1060, G-198),
+      cone(900, G-23), blitzer(1330, G-30), cone(1400, G-23), cone(1460, G-23)
+  ]},
+  // Level 8: Steinmauer schützt Blitzer
+  { tires: 5, parts: () => [
+      crate(960, G-28), crate(960, G-84), blitzer(960, G-142),
+      stone(1230, G-30, 44, 60), stone(1230, G-90, 44, 60), stone(1230, G-150, 44, 60),
+      blitzer(1330, G-30), cone(1400, G-23),
+      cone(870, G-23)
+  ]},
+  // Level 9: Breite Brücke, 3 Blitzer
+  { tires: 5, parts: () => [
+      stone(960, G-35, 40, 70), stone(1120, G-35, 40, 70), stone(1280, G-35, 40, 70),
+      plank(1040, G-80, 220, 18), plank(1200, G-80, 220, 18),
+      blitzer(1000, G-120), crate(1120, G-118), blitzer(1240, G-120),
+      plank(1120, G-158, 260, 18),
+      blitzer(1120, G-198),
+      cone(860, G-23), cone(1380, G-23)
+  ]},
+  // Level 10: Hoher Turm + Boden-Blitzer
+  { tires: 6, parts: () => [
+      stone(1010, G-35, 44, 70), stone(1130, G-35, 44, 70),
+      plank(1070, G-80, 220, 18),
+      stone(1020, G-125, 40, 70), stone(1120, G-125, 40, 70),
+      plank(1070, G-170, 200, 18),
+      crate(1070, G-208), blitzer(1070, G-268),
+      blitzer(1300, G-30), cone(1370, G-23),
+      blitzer(1470, G-30), cone(900, G-23)
+  ]},
+  // Level 11: Doppel-Pyramide
+  { tires: 6, parts: () => [
+      crate(940, G-28), crate(1000, G-28), crate(970, G-84), blitzer(970, G-142),
+      crate(1200, G-28), crate(1260, G-28), crate(1320, G-28),
+      crate(1230, G-84), crate(1290, G-84),
+      crate(1260, G-140), blitzer(1260, G-198),
+      cone(860, G-23), cone(1100, G-23), blitzer(1470, G-30)
+  ]},
+  // Level 12: Grosse Festung
+  { tires: 7, parts: () => [
+      stone(920, G-35, 44, 70), stone(1060, G-35, 44, 70), stone(1200, G-35, 44, 70), stone(1340, G-35, 44, 70),
+      plank(990, G-80, 220, 18), plank(1130, G-80, 220, 18), plank(1270, G-80, 220, 18),
+      blitzer(990, G-120), crate(1130, G-118), blitzer(1270, G-120),
+      plank(1130, G-158, 320, 18),
+      stone(1070, G-198, 36, 60), stone(1190, G-198, 36, 60),
+      plank(1130, G-238, 200, 18),
+      blitzer(1130, G-278),
+      cone(830, G-23), cone(1440, G-23), blitzer(1540, G-30)
+  ]}
+];
+
+// ---------- Endlos-Generator (ab Level 13, pro Levelnummer immer gleich) ----------
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function proceduralParts(i) {
+  const rnd = mulberry32(i * 98761 + 7);
+  const parts = [];
+  const towers = 2 + Math.floor(rnd() * 2) + (i % 4 === 0 ? 1 : 0); // 2-4 Türme
+  let x = 930;
+  for (let t = 0; t < towers && x < 1520; t++) {
+    const floors = 1 + Math.floor(rnd() * 3); // 1-3 Stockwerke
+    const half = 55 + Math.floor(rnd() * 25);
+    let topY = G;
+    for (let f = 0; f < floors; f++) {
+      const useStone = rnd() < Math.min(0.15 + (i - 12) * 0.02, 0.6);
+      const sh = useStone ? 60 : 56;
+      if (useStone) {
+        parts.push(stone(x - half, topY - sh/2, 40, sh));
+        parts.push(stone(x + half, topY - sh/2, 40, sh));
+      } else {
+        parts.push(crate(x - half, topY - 28));
+        parts.push(crate(x + half, topY - 28));
+      }
+      const plankY = topY - sh - 9;
+      parts.push(plank(x, plankY, half * 2 + 90, 18));
+      topY = plankY - 9;
+    }
+    if (rnd() < 0.85 || t === 0) {
+      parts.push(blitzer(x, topY - 30));
+    } else {
+      parts.push(crate(x, topY - 28));
+      parts.push(blitzer(x, topY - 86));
+    }
+    if (rnd() < 0.6) parts.push(cone(x - half - 65, G - 23));
+    x += 230 + Math.floor(rnd() * 120);
+  }
+  if (rnd() < 0.7) parts.push(blitzer(Math.min(x, 1540), G - 30));
+  return parts;
+}
+function getLevelDef(i) {
+  if (i < LEVELS.length) return LEVELS[i];
+  const nBlitzer = proceduralParts(i).filter(p => p.kind === 'blitzer').length;
+  return { tires: nBlitzer + 2, parts: () => proceduralParts(i) };
+}
+
+// ---------- Level laden ----------
+function loadLevel(i) {
+  levelIdx = i;
+  engine = Engine.create({ enableSleeping: true });
+  world = engine.world;
+  engine.gravity.y = 1;
+
+  const ground = Bodies.rectangle(WORLD_W/2, GROUND_Y+60, WORLD_W*2, 120, { isStatic:true, friction:.9 });
+  const wallL = Bodies.rectangle(-60, WORLD_H/2, 120, WORLD_H*2, { isStatic:true });
+  Composite.add(world, [ground, wallL]);
+
+  breakables = []; blitzers = []; particles = []; flashes = []; pendingRemove = [];
+  const def = getLevelDef(i);
+  for (const p of def.parts()) {
+    Composite.add(world, p.body);
+    p.body.plugin.info = p;
+    breakables.push(p);
+    if (p.kind === 'blitzer') blitzers.push(p);
+  }
+
+  tiresLeft = def.tires;
+  score = 0;
+  camX = WORLD_W; camTargetX = WORLD_W; // wird in draw() auf rechten Rand geklemmt
+  endScheduled = false; failTimer = 0; winTimer = 0;
+  tireState = 'idle'; flightTime = 0; settleTimer = 0;
+  spawnTire();
+
+  Events.on(engine, 'collisionStart', onCollision);
+  updateHud();
+}
+
+function spawnTire() {
+  if (tire) { Composite.remove(world, tire); tire = null; }
+  if (tiresLeft <= 0) return;
+  tire = Bodies.circle(SLING.x, SLING.y, 26, {
+    density:.004, friction:.7, restitution:.35, frictionAir:.008
+  });
+  tire.plugin.isTire = true;
+  Body.setStatic(tire, true);
+  Composite.add(world, tire);
+  tireState = 'idle';
+  camTargetX = WORLD_W; // rechts (wird geklemmt)
+}
+
+// ---------- Kollision & Schaden ----------
+function onCollision(ev) {
+  for (const pair of ev.pairs) {
+    const a = pair.bodyA, b = pair.bodyB;
+    const va = a.velocity, vb = b.velocity;
+    const relSpeed = Math.hypot(va.x - vb.x, va.y - vb.y);
+    if (relSpeed < 3) continue;
+    const impact = relSpeed * Math.min(a.mass, b.mass);
+    damage(a, impact, relSpeed); damage(b, impact, relSpeed);
+    if ((a.plugin.isTire || b.plugin.isTire) && relSpeed > 4) sfx.hit();
+  }
+}
+let pendingRemove = [];
+function damage(body, impact, speed) {
+  const info = body.plugin.info;
+  if (!info || info.dead || info.hp <= 0) return;
+  const dmg = impact * 1.4;
+  if (dmg < 4) return;
+  info.hp -= dmg;
+  if (info.kind === 'crate' || info.kind === 'plank') sfx.wood();
+  if (info.hp <= 0) {
+    // WICHTIG: nicht mitten im Physik-Update entfernen – nur vormerken
+    info.dead = true;
+    pendingRemove.push(info);
+  }
+}
+function processRemovals() {
+  if (!pendingRemove.length) return;
+  const list = pendingRemove; pendingRemove = [];
+  for (const info of list) destroyPart(info);
+}
+function wakeAll() {
+  for (const x of breakables) Sleeping.set(x.body, false);
+  if (tire) Sleeping.set(tire, false);
+}
+function destroyPart(info) {
+  info.hp = 0;
+  const p = info.body.position;
+  const colors = { crate:['#b5793a','#8a5a26'], plank:['#c98d4b','#9c6a30'],
+    stone:['#9aa4ad','#6f7a84'], cone:['#ff7a1a','#ffffff'], blitzer:['#7c8894','#2e6bd6'] };
+  spawnParticles(p.x, p.y, colors[info.kind] || ['#fff'], info.kind === 'blitzer' ? 26 : 14);
+  Composite.remove(world, info.body);
+  breakables = breakables.filter(x => x !== info);
+  // Alle schlafenden Teile aufwecken, sonst schweben sie in der Luft
+  wakeAll();
+  if (info.kind === 'blitzer') {
+    blitzers = blitzers.filter(x => x !== info);
+    score += 500;
+    flashes.push({ x:p.x, y:p.y, t:1 });
+    sfx.blitz();
+  } else {
+    score += info.kind === 'stone' ? 120 : 50;
+  }
+  updateHud();
+}
+function spawnParticles(x, y, colors, n) {
+  for (let i = 0; i < n; i++) {
+    particles.push({ x, y,
+      vx:(Math.random()-.5)*9, vy:-Math.random()*8-1,
+      s:4+Math.random()*6, c:colors[i % colors.length], t:1 });
+  }
+}
+
+// ---------- Eingabe ----------
+function getPos(e) {
+  const t = e.touches ? e.touches[0] : e;
+  return { x: t.clientX / scale + camX, y: t.clientY / scale };
+}
+function onDown(e) {
+  if (!gameActive || !tire || tireState === 'flight') return;
+  const p = getPos(e);
+  const d = Math.hypot(p.x - tire.position.x, p.y - tire.position.y);
+  if (d < 90) { dragging = true; tireState = 'aiming'; dragPos = p; }
+  e.preventDefault();
+}
+function onMove(e) {
+  if (!dragging) return;
+  dragPos = getPos(e);
+  let dx = dragPos.x - SLING.x, dy = dragPos.y - SLING.y;
+  const len = Math.hypot(dx, dy);
+  if (len > MAX_DRAG) { dx *= MAX_DRAG/len; dy *= MAX_DRAG/len; }
+  Body.setPosition(tire, { x: SLING.x + dx, y: SLING.y + dy });
+  e.preventDefault();
+}
+function onUp(e) {
+  if (!dragging) return;
+  dragging = false;
+  const dx = SLING.x - tire.position.x, dy = SLING.y - tire.position.y;
+  const len = Math.hypot(dx, dy);
+  if (len < 18) { // zu kurz gezogen → zurück
+    Body.setPosition(tire, { x: SLING.x, y: SLING.y });
+    tireState = 'idle'; return;
+  }
+  Body.setStatic(tire, false);
+  Sleeping.set(tire, false);
+  Body.setVelocity(tire, { x: dx * POWER, y: dy * POWER });
+  tireState = 'flight';
+  flightTime = 0; settleTimer = 0;
+  tiresLeft--;
+  sfx.launch();
+  updateHud();
+}
+canvas.addEventListener('touchstart', onDown, { passive:false });
+canvas.addEventListener('touchmove', onMove, { passive:false });
+canvas.addEventListener('touchend', onUp);
+canvas.addEventListener('mousedown', onDown);
+canvas.addEventListener('mousemove', onMove);
+canvas.addEventListener('mouseup', onUp);
+
+// ---------- Runden-Logik (zentral, jeden Frame) ----------
+let endScheduled = false, failTimer = 0, winTimer = 0;
+function checkGameState(dt) {
+  if (!gameActive || endScheduled) return;
+
+  // SIEG hat immer Vorrang: alle Blitzer weg → gewonnen
+  if (blitzers.length === 0 && pendingRemove.length === 0) {
+    winTimer += dt;
+    if (winTimer > 800) { endScheduled = true; endLevel(true); }
+    return;
+  }
+  winTimer = 0;
+
+  // Fliegender Pneu: Zug beenden, wenn er liegt, schläft oder raus ist
+  if (tireState === 'flight' && tire) {
+    flightTime += dt;
+    const sp = Math.hypot(tire.velocity.x, tire.velocity.y);
+    const out = tire.position.y > WORLD_H + 200 || tire.position.x > WORLD_W + 200 || tire.position.x < -200;
+    if (sp < 0.4 || tire.isSleeping) settleTimer += dt; else settleTimer = 0;
+    if (out || settleTimer > 1200 || flightTime > 6500) {
+      Composite.remove(world, tire); tire = null; tireState = 'idle';
+      wakeAll(); // Teile, die auf dem Pneu lagen, sollen runterfallen
+      if (tiresLeft > 0) spawnTire();
+    }
+  }
+
+  // NIEDERLAGE: kein Pneu mehr im Spiel, keiner übrig, Blitzer noch da
+  if (!tire && tiresLeft <= 0) {
+    failTimer += dt;
+    if (failTimer > 1600) { endScheduled = true; endLevel(false); }
+  } else {
+    failTimer = 0;
+  }
+}
+
+function endLevel(won) {
+  if (!gameActive) return;
+  gameActive = false;
+  const end = document.getElementById('endScreen');
+  const stars = won ? (tiresLeft >= 2 ? 3 : tiresLeft === 1 ? 2 : 1) : 0;
+  if (won) { score += tiresLeft * 200; sfx.win(); } else sfx.lose();
+  document.getElementById('endTitle').textContent = won ? 'Level geschafft! 🎉' : 'Alle Pneus verschossen 😅';
+  document.getElementById('endStars').textContent = won ? '⭐'.repeat(stars) + '☆'.repeat(3-stars) : '☆☆☆';
+  document.getElementById('endScore').textContent = 'Punkte: ' + score;
+  document.getElementById('nextBtn').classList.toggle('hidden', !won);
+  if (won && levelIdx === 11)
+    document.getElementById('endTitle').textContent = 'Alle 12 Levels geschafft – ab jetzt Endlos-Modus! 🏆';
+  if (won) { bestUnlocked = Math.max(bestUnlocked, levelIdx + 1); store.set('ps_unlocked', bestUnlocked); }
+  end.classList.remove('hidden');
+}
+
+function updateHud() {
+  document.getElementById('levelHud').textContent = 'Level ' + (levelIdx + 1) + ' · 📸 ' + blitzers.length;
+  document.getElementById('tiresHud').textContent = '🛞'.repeat(Math.max(tiresLeft, 0)) || '–';
+  document.getElementById('scoreHud').textContent = score;
+}
+
+// ---------- Rendering ----------
+function draw() {
+  scale = ch / WORLD_H;
+  const viewW = cw / scale;
+
+  // Kamera
+  if (tireState === 'flight' && tire) camTargetX = tire.position.x - viewW * 0.58;
+  const maxCam = Math.max(0, WORLD_W - viewW);
+  camTargetX = Math.max(0, Math.min(camTargetX, maxCam));
+  camX += (camTargetX - camX) * 0.08;
+  camX = Math.max(0, Math.min(camX, maxCam));
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cw, ch);
+
+  // Himmel
+  const sky = ctx.createLinearGradient(0, 0, 0, ch);
+  sky.addColorStop(0, '#8fd3f4'); sky.addColorStop(.7, '#cdeffd'); sky.addColorStop(1, '#e8f9ff');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, cw, ch);
+
+  ctx.save();
+  ctx.scale(scale, scale);
+
+  // Berge (Parallax)
+  drawHills(camX * 0.3, '#b8dcc8', 380);
+  drawHills(camX * 0.55, '#8fc9a8', 460);
+
+  ctx.translate(-camX, 0);
+
+  // Wolken
+  drawCloud(300, 120); drawCloud(750, 80); drawCloud(1250, 150);
+
+  // Boden + Strasse
+  ctx.fillStyle = '#6fae5e'; ctx.fillRect(-200, GROUND_Y, WORLD_W + 600, 40);
+  ctx.fillStyle = '#4b4f55'; ctx.fillRect(-200, GROUND_Y + 24, WORLD_W + 600, 120);
+  ctx.fillStyle = '#ffd23f';
+  for (let x = -100; x < WORLD_W + 300; x += 90) ctx.fillRect(x, GROUND_Y + 60, 45, 6);
+
+  // Schleuder (hinterer Ast)
+  drawSlingBack();
+
+  // Bodies
+  for (const b of breakables) drawPart(b);
+  if (tire) drawTire(tire);
+
+  // Gummiband + vorderer Ast
+  drawSlingFront();
+
+  // Flugbahn-Vorschau
+  if (dragging && tire) drawTrajectory();
+
+  // Partikel
+  for (const p of particles) {
+    ctx.globalAlpha = p.t;
+    ctx.fillStyle = p.c;
+    ctx.fillRect(p.x - p.s/2, p.y - p.s/2, p.s, p.s);
+  }
+  ctx.globalAlpha = 1;
+
+  // Blitzer-Flash
+  for (const f of flashes) {
+    ctx.globalAlpha = f.t * .8;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(f.x, f.y, (1 - f.t) * 120 + 30, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+function drawHills(offset, color, baseY) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(-100, WORLD_H);
+  for (let x = -100; x < WORLD_W + 400; x += 20) {
+    const y = baseY + Math.sin((x + offset * -1) * .004) * 60 + Math.sin((x + offset * -1) * .011) * 30;
+    ctx.lineTo(x - offset % 20, y);
+  }
+  ctx.lineTo(WORLD_W + 400, WORLD_H);
+  ctx.closePath(); ctx.fill();
+}
+function drawCloud(x, y) {
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  ctx.beginPath();
+  ctx.arc(x, y, 28, 0, 7); ctx.arc(x + 30, y - 12, 24, 0, 7); ctx.arc(x + 58, y, 26, 0, 7);
+  ctx.fill();
+}
+function drawSlingBack() {
+  ctx.strokeStyle = '#6b4423'; ctx.lineWidth = 14; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(SLING.x, GROUND_Y);
+  ctx.lineTo(SLING.x, SLING.y + 30);
+  ctx.lineTo(SLING.x - 22, SLING.y - 15);
+  ctx.stroke();
+  if (tire && tireState !== 'flight') {
+    ctx.strokeStyle = '#8a2b2b'; ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(SLING.x - 22, SLING.y - 15);
+    ctx.lineTo(tire.position.x, tire.position.y);
+    ctx.stroke();
+  }
+}
+function drawSlingFront() {
+  if (tire && tireState !== 'flight') {
+    ctx.strokeStyle = '#a83a3a'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(SLING.x + 22, SLING.y - 15);
+    ctx.lineTo(tire.position.x, tire.position.y);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = '#7a4f28'; ctx.lineWidth = 14; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(SLING.x, SLING.y + 30);
+  ctx.lineTo(SLING.x + 22, SLING.y - 15);
+  ctx.stroke();
+}
+function drawTrajectory() {
+  let x = tire.position.x, y = tire.position.y;
+  let vx = (SLING.x - x) * POWER, vy = (SLING.y - y) * POWER;
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  for (let i = 0; i < 40; i++) {
+    vx *= 0.992; vy = vy * 0.992 + 0.278;
+    x += vx; y += vy;
+    if (i % 3 === 0) { ctx.beginPath(); ctx.arc(x, y, 4.5 - i * 0.06, 0, 7); ctx.fill(); }
+    if (y > GROUND_Y) break;
+  }
+}
+function drawTire(b) {
+  ctx.save();
+  ctx.translate(b.position.x, b.position.y);
+  ctx.rotate(b.angle);
+  ctx.fillStyle = '#22262b';
+  ctx.beginPath(); ctx.arc(0, 0, 26, 0, 7); ctx.fill();
+  ctx.fillStyle = '#c8ced4';
+  ctx.beginPath(); ctx.arc(0, 0, 12, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#5a626b'; ctx.lineWidth = 3;
+  for (let i = 0; i < 5; i++) {
+    const a = i / 5 * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(Math.cos(a)*4, Math.sin(a)*4); ctx.lineTo(Math.cos(a)*11, Math.sin(a)*11); ctx.stroke();
+  }
+  ctx.strokeStyle = '#3a4148'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(0, 0, 21, 0, 7); ctx.stroke();
+  ctx.restore();
+}
+function drawPart(p) {
+  const b = p.body;
+  ctx.save();
+  ctx.translate(b.position.x, b.position.y);
+  ctx.rotate(b.angle);
+  const dmg = 1 - p.hp / p.maxHp;
+  if (p.kind === 'crate' || p.kind === 'plank') {
+    ctx.fillStyle = p.kind === 'crate' ? '#b5793a' : '#c98d4b';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 4);
+    ctx.strokeStyle = '#7a5222'; ctx.lineWidth = 3;
+    ctx.strokeRect(-p.w/2+2, -p.h/2+2, p.w-4, p.h-4);
+    if (p.kind === 'crate') {
+      ctx.beginPath();
+      ctx.moveTo(-p.w/2+4, -p.h/2+4); ctx.lineTo(p.w/2-4, p.h/2-4);
+      ctx.moveTo(p.w/2-4, -p.h/2+4); ctx.lineTo(-p.w/2+4, p.h/2-4);
+      ctx.stroke();
+    }
+  } else if (p.kind === 'stone') {
+    ctx.fillStyle = '#9aa4ad';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 3);
+    ctx.strokeStyle = '#6f7a84'; ctx.lineWidth = 2.5;
+    ctx.strokeRect(-p.w/2+2, -p.h/2+2, p.w-4, p.h-4);
+  } else if (p.kind === 'cone') {
+    ctx.fillStyle = '#ff7a1a';
+    ctx.beginPath();
+    ctx.moveTo(0, -23); ctx.lineTo(20, 23); ctx.lineTo(-20, 23); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fillRect(-12, -2, 24, 8);
+    ctx.fillStyle = '#e05f00'; ctx.fillRect(-22, 20, 44, 5);
+  } else if (p.kind === 'blitzer') {
+    ctx.fillStyle = '#7c8894';
+    rr(-23, -30, 46, 60, 6);
+    ctx.fillStyle = '#2b3239';
+    rr(-16, -22, 32, 22, 4);
+    ctx.fillStyle = '#2e6bd6';
+    ctx.beginPath(); ctx.arc(0, -11, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = '#9fc4ff';
+    ctx.beginPath(); ctx.arc(-3, -14, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e33';
+    ctx.beginPath(); ctx.arc(14, 8, 4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#5b6570'; ctx.fillRect(-23, 14, 46, 6);
+  }
+  // Risse bei Schaden
+  if (dmg > 0.35) {
+    ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-p.w*0.2, -p.h*0.3); ctx.lineTo(p.w*0.05, 0); ctx.lineTo(-p.w*0.15, p.h*0.3);
+    if (dmg > 0.7) { ctx.moveTo(p.w*0.25, -p.h*0.25); ctx.lineTo(p.w*0.1, p.h*0.2); }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath(); ctx.fill();
+}
+
+// ---------- Loop ----------
+let lastT = 0;
+function loop(t) {
+  requestAnimationFrame(loop); // zuerst planen → Loop überlebt Fehler
+  const dt = Math.min(t - lastT, 40); lastT = t;
+  try {
+    if (gameActive) {
+      Engine.update(engine, 1000/60);
+      processRemovals(); // Bodies erst NACH dem Physik-Schritt entfernen
+      checkGameState(dt);
+      for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vy += .35; p.t -= .02; }
+      particles = particles.filter(p => p.t > 0);
+      for (const f of flashes) f.t -= .04;
+      flashes = flashes.filter(f => f.t > 0);
+    }
+    if (engine) draw();
+  } catch(err) {
+    console.error(err);
+  }
+}
+requestAnimationFrame(loop);
+
+// ---------- Buttons & Menü ----------
+function hideOverlays() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('menuScreen').classList.add('hidden');
+  document.getElementById('endScreen').classList.add('hidden');
+}
+function startLevel(i) {
+  audio();
+  hideOverlays();
+  document.getElementById('hud').classList.remove('hidden');
+  loadLevel(i);
+  gameActive = true;
+}
+function buildMenu() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  const total = Math.max(12, bestUnlocked + 1); // wächst im Endlos-Modus mit
+  for (let i = 0; i < total; i++) {
+    const b = document.createElement('button');
+    b.className = 'lvlBtn' + (i > bestUnlocked ? ' locked' : (i >= 12 ? ' endless' : ''));
+    b.textContent = i > bestUnlocked ? '🔒' : (i + 1);
+    if (i <= bestUnlocked) b.addEventListener('click', () => startLevel(i));
+    grid.appendChild(b);
+  }
+}
+document.getElementById('startBtn').addEventListener('click', () => startLevel(bestUnlocked));
+document.getElementById('menuOpenBtn').addEventListener('click', () => {
+  buildMenu();
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('menuScreen').classList.remove('hidden');
+});
+document.getElementById('menuBackBtn').addEventListener('click', () => {
+  document.getElementById('menuScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+});
+document.getElementById('menuBtn').addEventListener('click', () => {
+  buildMenu();
+  document.getElementById('endScreen').classList.add('hidden');
+  document.getElementById('menuScreen').classList.remove('hidden');
+});
+document.getElementById('retryBtn').addEventListener('click', () => startLevel(levelIdx));
+document.getElementById('nextBtn').addEventListener('click', () => startLevel(levelIdx + 1));
+</script>
+</body>
+</html>
