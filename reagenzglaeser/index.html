@@ -8,38 +8,35 @@
   :root{
     --tw: 58px;          /* Glasbreite */
     --sh: 34px;          /* Höhe einer Farbschicht */
+    --head: 24px;        /* Luft über der vollen Flüssigkeit */
     --bg: #0f172a;
     --card: #1e293b;
     --line: #334155;
     --accent: #38bdf8;
     --text: #f1f5f9;
     --muted: #94a3b8;
+    /* Wellenform als Maske – erzeugt den flüssigen Rand oben */
+    --wave: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='34' height='9'><path d='M0,5 C 5,1.6 12,1.6 17,5 C 22,8.4 29,8.4 34,5 L34,9 L0,9 Z' fill='black'/></svg>");
   }
-  *{ box-sizing: border-box; }
+  *{ box-sizing:border-box; }
   html,body{ height:100%; }
   body{
     margin:0;
     font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     background: radial-gradient(1100px 700px at 50% -10%, #1b2a4a 0%, var(--bg) 60%);
-    color: var(--text);
+    color:var(--text);
     min-height:100%;
     display:flex; flex-direction:column; align-items:center;
     padding:14px 12px 28px;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color:transparent;
     user-select:none;
   }
   h1{ font-size:1.5rem; margin:2px 0 2px; letter-spacing:.3px; }
   .sub{ color:var(--muted); font-size:.8rem; margin:0 0 14px; }
 
   /* ---------- Statuszeile ---------- */
-  .stats{
-    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
-    margin-bottom:16px;
-  }
-  .stat{
-    background:var(--card); border:1px solid var(--line); border-radius:12px;
-    padding:7px 14px; min-width:78px; text-align:center;
-  }
+  .stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:16px; }
+  .stat{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:7px 14px; min-width:78px; text-align:center; }
   .stat b{ display:block; font-size:1.15rem; line-height:1.15; }
   .stat span{ font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
 
@@ -47,71 +44,121 @@
   .board{
     position:relative;
     display:flex; flex-wrap:wrap; justify-content:center;
-    gap: 66px 20px;
-    padding: 72px 6px 10px;
-    width:100%; max-width:760px;
+    gap:56px 22px;
+    padding:56px 6px 10px;
+    width:100%; max-width:780px;
     margin-bottom:16px;
   }
-  .tube{ position:relative; width:var(--tw); cursor:pointer; }
+  .fly{ position:absolute; inset:0; pointer-events:none; z-index:8; }
+  .fly.back{ z-index:0; }   /* Strahl fliesst hinter dem Glas – wirkt wie im Glas drin */
+
+  .tube{
+    position:relative; width:var(--tw); cursor:pointer;
+    transition:transform .24s cubic-bezier(.34,1.45,.5,1);
+  }
+  .tube.sel{ transform:translateY(-18px); }
+  .tube.flying{ transition:transform .32s cubic-bezier(.42,0,.25,1); z-index:9; }
+
   .glass{
     position:relative;
-    width:var(--tw); height:calc(var(--sh) * 4);
-    border:3px solid rgba(226,232,240,.32);
+    width:var(--tw); height:calc(var(--sh)*4 + var(--head));
+    border:3px solid rgba(226,232,240,.34);
     border-radius:8px 8px 27px 27px;
-    background:rgba(255,255,255,.045);
-    display:flex; flex-direction:column-reverse;
+    background:linear-gradient(100deg, rgba(255,255,255,.10), rgba(148,197,255,.045) 45%, rgba(255,255,255,.02));
     overflow:hidden;
-    box-shadow: 0 8px 16px rgba(0,0,0,.42), inset -7px 0 12px -7px rgba(0,0,0,.55);
-    transition: transform .18s, border-color .2s, box-shadow .2s;
+    box-shadow:0 9px 18px rgba(0,0,0,.45), inset -8px 0 14px -8px rgba(0,0,0,.6), inset 8px 0 12px -9px rgba(255,255,255,.5);
+    transition:border-color .2s, box-shadow .2s;
   }
-  .glass::after{  /* Glanzstreifen */
-    content:""; position:absolute; left:7px; top:6px; bottom:12px; width:7px;
-    border-radius:6px;
-    background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.06));
-    pointer-events:none;
+  .glass::after{ /* Glanzstreifen auf dem Glas */
+    content:""; position:absolute; left:7px; top:7px; bottom:14px; width:7px; border-radius:6px;
+    background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.05));
+    pointer-events:none; z-index:3;
   }
-  .tube.sel .glass{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(56,189,248,.3), 0 8px 18px rgba(0,0,0,.45); transform:translateY(-4px); }
-  .tube.done .glass{ border-color:rgba(74,222,128,.75); box-shadow:0 0 14px rgba(74,222,128,.35), 0 8px 16px rgba(0,0,0,.4); }
-  .tube.shake .glass{ animation:shake .32s; }
+  .glass::before{ /* zweiter, schmaler Reflex rechts */
+    content:""; position:absolute; right:8px; top:16px; bottom:24px; width:3px; border-radius:4px;
+    background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
+    pointer-events:none; z-index:3;
+  }
+  .tube.sel .glass{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(56,189,248,.32), 0 10px 20px rgba(0,0,0,.45); }
+  .tube.done .glass{ border-color:rgba(74,222,128,.75); box-shadow:0 0 16px rgba(74,222,128,.35), 0 9px 18px rgba(0,0,0,.4); }
+  .tube.shake{ animation:shake .34s; }
   @keyframes shake{
-    0%,100%{ transform:translateX(0); }
-    20%{ transform:translateX(-6px); } 40%{ transform:translateX(6px); }
-    60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
+    0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-6px); }
+    40%{ transform:translateX(6px); } 60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); }
   }
-  .check{
-    position:absolute; top:-30px; left:0; width:100%; text-align:center;
-    font-size:1.1rem; opacity:0; transition:opacity .25s;
-  }
+  .check{ position:absolute; top:-30px; left:0; width:100%; text-align:center; font-size:1.1rem; opacity:0; transition:opacity .25s; }
   .tube.done .check{ opacity:1; }
 
-  .seg{
-    height:var(--sh); width:100%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:.85rem; font-weight:700; color:rgba(0,0,0,.45);
-    text-shadow:0 1px 0 rgba(255,255,255,.25);
-    box-shadow: inset 0 -8px 12px -8px rgba(0,0,0,.5), inset 0 6px 10px -8px rgba(255,255,255,.65);
+  /* ---------- Flüssigkeit ---------- */
+  .liquid{ position:absolute; left:0; right:0; bottom:0; display:flex; flex-direction:column-reverse; z-index:1; }
+  .unit{
+    position:relative; width:100%; height:var(--sh);
+    transition:height .40s cubic-bezier(.4,0,.3,1);
   }
-  .seg.sym{ }
-  body:not(.symbols) .seg{ color:transparent; text-shadow:none; }
-  .seg.top{ border-radius:5px 5px 0 0; }
-  .seg.landing{ animation:landing .28s ease-out; }
-  @keyframes landing{
-    0%{ transform:translateY(-26px) scaleY(.6); opacity:.5; }
-    70%{ transform:translateY(2px) scaleY(1.06); }
-    100%{ transform:translateY(0) scaleY(1); }
+  .unit .body{
+    position:absolute; inset:0;
+    box-shadow: inset 0 -10px 14px -10px rgba(0,0,0,.55), inset 0 8px 12px -9px rgba(255,255,255,.75);
+  }
+  .unit .sym{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:.85rem; font-weight:700; color:rgba(0,0,0,.42); text-shadow:0 1px 0 rgba(255,255,255,.3);
+  }
+  body:not(.symbols) .unit .sym{ display:none; }
+  /* wellige Oberfläche der obersten Schicht */
+  .surface{
+    position:absolute; left:-34px; right:-34px; top:-7px; height:9px;
+    -webkit-mask-image:var(--wave); mask-image:var(--wave);
+    -webkit-mask-size:34px 9px; mask-size:34px 9px;
+    -webkit-mask-repeat:repeat-x; mask-repeat:repeat-x;
+    animation:waveMove 2.4s linear infinite;
+    z-index:2;
+  }
+  .surface.slow{ animation-duration:3.7s; animation-direction:reverse; opacity:.5; top:-5px; }
+  @keyframes waveMove{ from{ transform:translateX(0); } to{ transform:translateX(34px); } }
+
+  .bubble{
+    position:absolute; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.9), rgba(255,255,255,.15));
+    opacity:0; z-index:2; pointer-events:none;
+    animation:bubbleUp 1.1s ease-out forwards;
+  }
+  @keyframes bubbleUp{
+    0%{ opacity:0; transform:translateY(0) scale(.5); }
+    25%{ opacity:.85; }
+    100%{ opacity:0; transform:translateY(-46px) scale(1.15); }
   }
 
-  /* schwebender Block (angehobene Flüssigkeit) */
-  .floater{
-    position:absolute; width:var(--tw);
-    display:flex; flex-direction:column-reverse;
-    border-radius:6px; overflow:hidden;
-    outline:2px solid rgba(15,23,42,.85);
-    box-shadow:0 10px 22px rgba(0,0,0,.65), 0 0 0 3px rgba(56,189,248,.28);
-    transition: left .34s cubic-bezier(.4,0,.2,1), top .34s cubic-bezier(.4,0,.2,1), opacity .18s, transform .18s;
-    pointer-events:none; z-index:5;
+  /* ---------- Giess-Strahl ---------- */
+  .stream{
+    position:absolute; width:11px; z-index:8; pointer-events:none;
+    border-radius:5px 5px 6px 6px;
+    overflow:hidden;
+    transform-origin:top center; transform:scaleY(0);
+    transition:transform .16s ease-out, opacity .18s;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));
+    opacity:.96;
   }
-  .floater.drop{ transform:translateY(26px) scaleY(.55); opacity:0; }
+  .stream.on{ transform:scaleY(1); }
+  .stream.off{ opacity:0; transform:scaleY(.25); }
+  .stream .flow{
+    position:absolute; inset:-30px 0;
+    background:repeating-linear-gradient(180deg,
+      rgba(255,255,255,.26) 0 4px,
+      rgba(255,255,255,.06) 4px 9px,
+      rgba(255,255,255,0) 9px 21px);
+    animation:streamFlow .42s linear infinite;
+  }
+  @keyframes streamFlow{ from{ transform:translateY(0); } to{ transform:translateY(21px); } }
+
+  .drop{
+    position:absolute; width:5px; height:5px; border-radius:50%;
+    z-index:9; pointer-events:none;
+    animation:dropFly .5s ease-out forwards;
+  }
+  @keyframes dropFly{
+    0%{ opacity:.95; transform:translate(0,0) scale(1); }
+    100%{ opacity:0; transform:translate(var(--dx), var(--dy)) scale(.4); }
+  }
 
   /* ---------- Knöpfe ---------- */
   .controls{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; max-width:620px; }
@@ -128,27 +175,15 @@
   button.small{ font-size:.82rem; padding:9px 13px; }
 
   /* ---------- Anleitung ---------- */
-  details{
-    margin-top:18px; max-width:560px; width:100%;
-    background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 16px;
-  }
+  details{ margin-top:18px; max-width:560px; width:100%; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 16px; }
   summary{ cursor:pointer; font-weight:600; }
   details p, details li{ color:#cbd5e1; font-size:.9rem; line-height:1.5; }
   details ul{ padding-left:20px; margin:8px 0 0; }
 
-  /* ---------- Sieg-Overlay ---------- */
-  .overlay{
-    position:fixed; inset:0; z-index:20;
-    background:rgba(8,14,28,.82); backdrop-filter:blur(4px);
-    display:flex; align-items:center; justify-content:center; padding:20px;
-  }
+  /* ---------- Sieg ---------- */
+  .overlay{ position:fixed; inset:0; z-index:20; background:rgba(8,14,28,.82); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; }
   .overlay.hidden{ display:none; }
-  .card{
-    background:var(--card); border:2px solid var(--line); border-radius:20px;
-    padding:26px 28px; text-align:center; max-width:340px; width:100%;
-    box-shadow:0 20px 50px rgba(0,0,0,.55);
-    animation:pop .3s ease-out;
-  }
+  .card{ background:var(--card); border:2px solid var(--line); border-radius:20px; padding:26px 28px; text-align:center; max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.55); animation:pop .3s ease-out; }
   @keyframes pop{ from{ transform:scale(.85); opacity:0; } to{ transform:scale(1); opacity:1; } }
   .card h2{ margin:0 0 6px; font-size:1.5rem; }
   .card p{ color:var(--muted); margin:0 0 18px; font-size:.95rem; }
@@ -156,9 +191,12 @@
   #confetti{ position:fixed; inset:0; z-index:25; pointer-events:none; }
 
   @media (max-width:560px){
-    .board{ gap:54px 14px; padding-top:60px; }
+    .board{ gap:48px 15px; padding-top:50px; }
     h1{ font-size:1.25rem; }
     .stat{ min-width:66px; padding:6px 10px; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .surface, .stream{ animation:none; }
   }
 </style>
 </head>
@@ -174,7 +212,7 @@
     <div class="stat"><b id="s-best">–</b><span>Rekord</span></div>
   </div>
 
-  <div class="board" id="board"></div>
+  <div class="board" id="board"><div class="fly back" id="flyBack"></div><div class="fly" id="fly"></div></div>
 
   <div class="controls">
     <button id="b-undo">↩︎ Rückgängig</button>
@@ -188,9 +226,9 @@
   <details>
     <summary>So wird gespielt</summary>
     <ul>
-      <li>Auf ein Glas tippen → die oberste Farbschicht wird angehoben.</li>
-      <li>Auf ein zweites Glas tippen → die Farbe wird hineingegossen.</li>
-      <li>Giessen geht nur in ein <b>leeres</b> Glas oder auf die <b>gleiche Farbe</b> – und nur, solange oben Platz ist.</li>
+      <li>Auf ein Glas tippen → es hebt sich an.</li>
+      <li>Auf ein zweites Glas tippen → das erste Glas neigt sich darüber und schenkt ein.</li>
+      <li>Eingeschenkt wird nur in ein <b>leeres</b> Glas oder auf die <b>gleiche Farbe</b> – und nur, solange oben Platz ist.</li>
       <li>Es fliessen immer alle gleichfarbigen Schichten aufs Mal, die noch Platz haben.</li>
       <li>Geschafft, wenn jedes Glas leer oder mit vier gleichen Schichten gefüllt ist.</li>
       <li>Steckengeblieben? <b>Rückgängig</b>, <b>Neustart</b> oder einmal pro Level ein <b>Extra-Glas</b>.</li>
@@ -213,14 +251,15 @@
 
 <script>
 /* =========================================================
-   Reagenzgläser – Farbsortier-Puzzle
+   Reagenzgläser – Farbsortier-Puzzle mit echtem Giess-Effekt
    Alles in einer Datei, ohne Bibliotheken.
    ========================================================= */
 
 const CAP = 4;            // Schichten pro Glas
-const LIFT = 10;          // wie hoch der angehobene Block über dem Glasrand schwebt
 const EMPTY_TUBES = 2;    // leere Gläser zu Beginn
 const MAX_COLORS = 12;
+const FLY_MS  = 320;      // Glas fliegt zum Ziel / zurück
+const POUR_MS = 500;      // Dauer des Einschenkens
 
 const COLORS = [
   { c:'#ef4444', s:'●' }, { c:'#3b82f6', s:'▲' }, { c:'#22c55e', s:'■' },
@@ -229,21 +268,24 @@ const COLORS = [
   { c:'#e2e8f0', s:'♥' }, { c:'#92400e', s:'♣' }, { c:'#64748b', s:'♦' }
 ];
 
-/* ---------- Spiel-Logik (rein, ohne DOM) ---------- */
-
-function shuffle(a){
-  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
+/* ---------- Farbhilfen ---------- */
+function shade(hex, pct){
+  const n = parseInt(hex.slice(1),16);
+  const f = v => Math.max(0, Math.min(255, Math.round(v + (pct>0 ? (255-v) : v) * pct/100)));
+  return '#' + [f(n>>16), f((n>>8)&255), f(n&255)].map(v=>v.toString(16).padStart(2,'0')).join('');
 }
+function liquidFill(i){
+  const c = COLORS[i].c;
+  return `linear-gradient(96deg, ${shade(c,26)} 0%, ${c} 32%, ${shade(c,-14)} 78%, ${shade(c,-26)} 100%)`;
+}
+
+/* ---------- Spiel-Logik (rein, ohne DOM) ---------- */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function clone(tubes){ return tubes.map(t=>t.slice()); }
 function encode(tubes){ return tubes.map(t=>t.join(',')).sort().join('|'); }
-
-function isSolved(tubes){
-  return tubes.every(t => t.length===0 || (t.length===CAP && t.every(c=>c===t[0])));
-}
+function isSolved(tubes){ return tubes.every(t => t.length===0 || (t.length===CAP && t.every(c=>c===t[0]))); }
 function isDone(t){ return t.length===CAP && t.every(c=>c===t[0]); }
 
-/* Zug erlaubt? (Spielregel) */
 function legal(tubes,i,j){
   if(i===j) return false;
   const a=tubes[i], b=tubes[j];
@@ -252,14 +294,12 @@ function legal(tubes,i,j){
   if(b.length>0 && b[b.length-1]!==a[a.length-1]) return false;
   return true;
 }
-/* zusätzlich für den Löser: sinnlose Züge weglassen */
 function useful(tubes,i,j){
   if(!legal(tubes,i,j)) return false;
   const a=tubes[i];
-  if(tubes[j].length===0 && a.every(c=>c===a[0])) return false; // einfarbiges Glas in leeres Glas
+  if(tubes[j].length===0 && a.every(c=>c===a[0])) return false;
   return true;
 }
-/* wie viele Schichten fliessen? */
 function pourCount(tubes,i,j){
   const a=tubes[i], b=tubes[j];
   const color=a[a.length-1];
@@ -275,15 +315,12 @@ function applyPour(tubes,i,j){
   for(let k=0;k<n;k++) out[j].push(color);
   return out;
 }
-/* oberster gleichfarbiger Block */
 function topBlock(t){
   if(!t.length) return 0;
   const color=t[t.length-1]; let n=0, k=t.length-1;
   while(k>=0 && t[k]===color){ n++; k--; }
   return n;
 }
-
-/* Tiefensuche: ist der Zustand lösbar? */
 function solvable(tubes, limit=150000){
   const seen=new Set([encode(tubes)]);
   const stack=[tubes];
@@ -297,7 +334,6 @@ function solvable(tubes, limit=150000){
       if(!cur[i].length || isDone(cur[i])) continue;
       for(let j=0;j<cur.length;j++){
         if(!useful(cur,i,j)) continue;
-        // Züge auf gleiche Farbe bevorzugen (werden zuletzt gepusht = zuerst geprüft)
         moves.push({ i, j, good: cur[j].length>0 });
       }
     }
@@ -310,8 +346,6 @@ function solvable(tubes, limit=150000){
   }
   return false;
 }
-
-/* Level erzeugen – garantiert lösbar */
 function makeLevel(colors){
   for(let pass=0; pass<2; pass++){
     for(let attempt=0; attempt<400; attempt++){
@@ -321,12 +355,10 @@ function makeLevel(colors){
       const tubes=[];
       for(let i=0;i<colors;i++) tubes.push(units.slice(i*CAP,(i+1)*CAP));
       for(let i=0;i<EMPTY_TUBES;i++) tubes.push([]);
-      // im ersten Durchgang keine schon fertigen Gläser zulassen
       if(pass===0 && tubes.some(isDone)) continue;
       if(solvable(tubes)) return tubes;
     }
   }
-  // Notfall (praktisch nie): einfacher Rückwärts-Aufbau
   const tubes=[];
   for(let c=0;c<colors;c++) tubes.push(Array(CAP).fill(c));
   for(let i=0;i<EMPTY_TUBES;i++) tubes.push([]);
@@ -341,7 +373,6 @@ function makeLevel(colors){
 }
 
 /* ---------- Zustand ---------- */
-
 const store = {
   read(){ try{ return JSON.parse(localStorage.getItem('reagenz.v1')) || {}; }catch(e){ return {}; } },
   write(o){ try{ localStorage.setItem('reagenz.v1', JSON.stringify(o)); }catch(e){} }
@@ -354,83 +385,82 @@ if(saved.symbols === undefined) saved.symbols = true;
 
 let state = { level: saved.level, tubes: [], start: [], moves: 0, jokerUsed: false, t0: 0 };
 let history = [];
-let sel = null;      // { tube, count, color }
+let sel = null;      // Index des angehobenen Glases
 let busy = false;
 let timer = null;
 
-/* ---------- DOM ---------- */
-
 const board = document.getElementById('board');
+const fly = document.getElementById('fly');
+const flyBack = document.getElementById('flyBack');
 const overlay = document.getElementById('overlay');
-let floater = null;
 let tubeEls = [];
 
 function colorsForLevel(l){ return Math.min(MAX_COLORS, 3 + (l-1)); }
+function cssPx(name){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)); }
+function segH(){ return cssPx('--sh'); }
+function tubeW(){ return cssPx('--tw'); }
+function headroom(){ return cssPx('--head'); }
 
 function setSizes(){
   const small = window.innerWidth < 560;
-  document.documentElement.style.setProperty('--tw', (small?46:58)+'px');
-  document.documentElement.style.setProperty('--sh', (small?29:34)+'px');
-}
-function segH(){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sh')); }
-
-function newGame(level, keepStart){
-  clearInterval(timer);
-  state.level = level;
-  state.tubes = keepStart ? clone(state.start) : makeLevel(colorsForLevel(level));
-  state.start = clone(state.tubes);
-  state.moves = 0;
-  state.jokerUsed = false;
-  state.t0 = Date.now();
-  history = [];
-  sel = null; busy = false;
-  overlay.classList.add('hidden');
-  timer = setInterval(updateStats, 250);
-  render(); updateStats();
+  document.documentElement.style.setProperty('--tw', (small?48:58)+'px');
+  document.documentElement.style.setProperty('--sh', (small?30:34)+'px');
 }
 
-function makeSeg(colorIdx, isTop){
-  const d = document.createElement('div');
-  d.className = 'seg' + (isTop ? ' top' : '');
-  const col = COLORS[colorIdx];
-  d.style.background = `linear-gradient(180deg, ${col.c}, ${shade(col.c,-18)})`;
-  d.textContent = col.s;
-  return d;
+/* ---------- Aufbau ---------- */
+function makeUnit(colorIdx, isTop, height){
+  const u = document.createElement('div');
+  u.className = 'unit';
+  if(height !== undefined) u.style.height = height + 'px';
+  const body = document.createElement('div');
+  body.className = 'body';
+  body.style.background = liquidFill(colorIdx);
+  u.appendChild(body);
+  const sym = document.createElement('div');
+  sym.className = 'sym';
+  sym.textContent = COLORS[colorIdx].s;
+  u.appendChild(sym);
+  if(isTop) addSurface(u, colorIdx);
+  return u;
 }
-function shade(hex, pct){
-  const n = parseInt(hex.slice(1),16);
-  const f = (v)=> Math.max(0, Math.min(255, Math.round(v + v*pct/100)));
-  return '#' + [f(n>>16), f((n>>8)&255), f(n&255)].map(v=>v.toString(16).padStart(2,'0')).join('');
+function addSurface(unit, colorIdx){
+  const c = COLORS[colorIdx].c;
+  const s1 = document.createElement('div');
+  s1.className = 'surface';
+  s1.style.background = `linear-gradient(180deg, ${shade(c,34)}, ${shade(c,8)})`;
+  const s2 = document.createElement('div');
+  s2.className = 'surface slow';
+  s2.style.background = shade(c,45);
+  unit.appendChild(s2);
+  unit.appendChild(s1);
 }
+function clearSurfaces(el){ el.querySelectorAll('.surface').forEach(s=>s.remove()); }
 
-function render(landed){
-  board.innerHTML = '';
+function render(){
+  tubeEls.forEach(el=>el.remove());
   tubeEls = [];
   state.tubes.forEach((tube, idx)=>{
     const el = document.createElement('div');
     el.className = 'tube';
-    if(sel && sel.tube===idx) el.classList.add('sel');
+    if(sel === idx) el.classList.add('sel');
     if(isDone(tube)) el.classList.add('done');
-
-    const glass = document.createElement('div');
-    glass.className = 'glass';
-    const visible = (sel && sel.tube===idx) ? tube.slice(0, tube.length - sel.count) : tube;
-    visible.forEach((c,i)=>{
-      const seg = makeSeg(c, i===visible.length-1);
-      if(landed && landed.tube===idx && i >= visible.length - landed.count) seg.classList.add('landing');
-      glass.appendChild(seg);
-    });
 
     const check = document.createElement('div');
     check.className = 'check'; check.textContent = '✅';
-
     el.appendChild(check);
+
+    const glass = document.createElement('div');
+    glass.className = 'glass';
+    const liquid = document.createElement('div');
+    liquid.className = 'liquid';
+    tube.forEach((c,i)=> liquid.appendChild(makeUnit(c, i===tube.length-1)));
+    glass.appendChild(liquid);
     el.appendChild(glass);
+
     el.addEventListener('click', ()=> onTube(idx));
     board.appendChild(el);
     tubeEls.push(el);
   });
-  if(floater) board.appendChild(floater);
 }
 
 function updateStats(){
@@ -444,109 +474,189 @@ function updateStats(){
   document.getElementById('b-joker').disabled = state.jokerUsed || busy;
 }
 
-/* ---------- Interaktion ---------- */
+function newGame(level, keepStart){
+  clearInterval(timer);
+  state.level = level;
+  state.tubes = keepStart ? clone(state.start) : makeLevel(colorsForLevel(level));
+  state.start = clone(state.tubes);
+  state.moves = 0;
+  state.jokerUsed = false;
+  state.t0 = Date.now();
+  history = [];
+  sel = null; busy = false;
+  fly.innerHTML = '';
+  flyBack.innerHTML = '';
+  overlay.classList.add('hidden');
+  timer = setInterval(updateStats, 250);
+  render(); updateStats();
+}
 
+/* ---------- Interaktion ---------- */
 function onTube(idx){
   if(busy) return;
   audioReady();
-  if(!sel){
-    if(!state.tubes[idx].length || isDone(state.tubes[idx])){ shake(idx); beep(180,.08,'square',.05); return; }
-    pickUp(idx);
-  } else if(sel.tube === idx){
-    putBack();
-  } else if(legal(state.tubes, sel.tube, idx)){
-    doPour(sel.tube, idx);
+  if(sel === null){
+    if(!state.tubes[idx].length || isDone(state.tubes[idx])){ shake(idx); errSound(); return; }
+    sel = idx;
+    tubeEls[idx].classList.add('sel');
+    tick();
+  } else if(sel === idx){
+    tubeEls[idx].classList.remove('sel');
+    sel = null;
+    tick(300);
+  } else if(legal(state.tubes, sel, idx)){
+    doPour(sel, idx);
   } else {
-    shake(idx); beep(180,.08,'square',.05);
+    shake(idx); errSound();
   }
-}
-
-function pickUp(idx){
-  const tube = state.tubes[idx];
-  const count = topBlock(tube);
-  sel = { tube: idx, count, color: tube[tube.length-1] };
-  const SH = segH();
-
-  floater = document.createElement('div');
-  floater.className = 'floater';
-  for(let k=0;k<count;k++) floater.appendChild(makeSeg(sel.color, k===count-1));
-
-  render();
-  const el = tubeEls[idx];
-  const startTop = el.offsetTop + (CAP - tube.length) * SH;
-  floater.style.left = el.offsetLeft + 'px';
-  floater.style.top  = startTop + 'px';
-  floater.style.transition = 'none';
-  board.appendChild(floater);
-  floater.getBoundingClientRect();  // Layout erzwingen
-  floater.style.transition = '';
-  floater.style.top = (el.offsetTop - count*SH - LIFT) + 'px';
-  beep(520,.06,'sine',.05);
-  updateStats();
-}
-
-function putBack(){
-  if(!sel || !floater) return;
-  busy = true;
-  const SH = segH();
-  const el = tubeEls[sel.tube];
-  const tube = state.tubes[sel.tube];
-  const f = floater;
-  f.style.top = (el.offsetTop + (CAP - tube.length)*SH) + 'px';
-  beep(300,.05,'sine',.04);
-  setTimeout(()=>{
-    f.remove();
-    if(floater === f) floater = null;
-    sel = null; busy = false;
-    render(); updateStats();
-  }, 340);
-}
-
-function doPour(from, to){
-  busy = true;
-  history.push({ tubes: clone(state.tubes), moves: state.moves, jokerUsed: state.jokerUsed });
-  const SH = segH();
-  const count = sel.count;
-  const f = floater;
-  const el = tubeEls[to];
-  f.style.left = el.offsetLeft + 'px';
-  f.style.top  = (el.offsetTop - count*SH - LIFT) + 'px';
-
-  setTimeout(()=>{
-    f.classList.add('drop');
-    beep(660,.09,'triangle',.06);
-    setTimeout(()=>{
-      const n = pourCount(state.tubes, from, to);
-      state.tubes = applyPour(state.tubes, from, to);
-      state.moves++;
-      f.remove();
-      if(floater === f) floater = null;
-      sel = null;
-      render({ tube: to, count: n });
-      busy = false;
-      updateStats();
-      if(isSolved(state.tubes)) setTimeout(win, 330);
-    }, 190);
-  }, 350);
 }
 
 function shake(idx){
   const el = tubeEls[idx];
-  el.classList.remove('shake');
-  void el.offsetWidth;
-  el.classList.add('shake');
-  setTimeout(()=> el.classList.remove('shake'), 340);
+  el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+  setTimeout(()=> el.classList.remove('shake'), 360);
+}
+
+/* Das Herzstück: Glas kippt über das Ziel und schenkt ein */
+function doPour(from, to){
+  busy = true;
+  updateStats();
+  history.push({ tubes: clone(state.tubes), moves: state.moves, jokerUsed: state.jokerUsed });
+
+  const SH = segH(), TW = tubeW();
+  const srcEl = tubeEls[from], dstEl = tubeEls[to];
+  const n = pourCount(state.tubes, from, to);
+  const srcLen = state.tubes[from].length;
+  const dstLen = state.tubes[to].length;
+  const color = state.tubes[from][srcLen-1];
+
+  // Klon des Glases, das kippt – das Original bleibt als Platzhalter stehen
+  const gl = srcEl.cloneNode(true);
+  gl.classList.remove('sel', 'shake');
+  gl.classList.add('flying');
+  gl.style.position = 'absolute';
+  gl.style.left = srcEl.offsetLeft + 'px';
+  gl.style.top  = srcEl.offsetTop + 'px';
+  gl.style.transformOrigin = '50% 0';
+  fly.appendChild(gl);
+  srcEl.style.visibility = 'hidden';
+
+  // Zielpunkt: Mündung des kippenden Glases knapp über dem Ziel
+  const dir = (srcEl.offsetLeft <= dstEl.offsetLeft) ? 1 : -1;
+  const mouthX = dstEl.offsetLeft + TW/2 - dir*TW*0.10;
+  const mouthY = dstEl.offsetTop - 24;
+  const dx = mouthX - (srcEl.offsetLeft + TW/2);
+  const dy = mouthY - srcEl.offsetTop;
+  const angle = dir * 58;
+
+  requestAnimationFrame(()=>{ gl.style.transform = `translate(${dx}px, ${dy}px) rotate(${angle}deg)`; });
+
+  setTimeout(()=>{
+    // Oberfläche der Flüssigkeit im Ziel (Startniveau)
+    const surfaceY = dstEl.offsetTop + headroom() + (CAP - dstLen)*SH;
+    const stream = makeStream(mouthX, mouthY + 8, Math.max(14, surfaceY - mouthY - 8), color);
+    flyBack.appendChild(stream);
+    requestAnimationFrame(()=> stream.classList.add('on'));
+    pourSound(POUR_MS/1000);
+
+    // Quelle leert sich
+    const units = gl.querySelectorAll('.unit');
+    if(srcLen - n - 1 >= 0){
+      clearSurfaces(units[srcLen-1]);
+      addSurface(units[srcLen-n-1], state.tubes[from][srcLen-n-1]);
+    }
+    for(let k=0;k<n;k++){
+      const u = units[srcLen-1-k];
+      if(u){ u.style.height = '0px'; }
+    }
+
+    // Ziel füllt sich
+    const dstLiquid = dstEl.querySelector('.liquid');
+    clearSurfaces(dstLiquid);
+    const fresh = [];
+    for(let k=0;k<n;k++){
+      const u = makeUnit(color, k===n-1, 0);
+      dstLiquid.appendChild(u);
+      fresh.push(u);
+    }
+    requestAnimationFrame(()=> fresh.forEach(u=> u.style.height = SH+'px'));
+    splash(mouthX, surfaceY, color);
+    bubbles(dstEl, dstLen, n);
+
+    setTimeout(()=>{
+      stream.classList.add('off');
+      setTimeout(()=> stream.remove(), 220);
+      gl.style.transform = 'translate(0px, 0px) rotate(0deg)';
+      setTimeout(()=>{
+        gl.remove();
+        srcEl.style.visibility = '';
+        state.tubes = applyPour(state.tubes, from, to);
+        state.moves++;
+        sel = null;
+        render();
+        busy = false;
+        updateStats();
+        if(isSolved(state.tubes)) setTimeout(win, 300);
+      }, FLY_MS);
+    }, POUR_MS);
+  }, FLY_MS);
+}
+
+function makeStream(x, top, height, colorIdx){
+  const c = COLORS[colorIdx].c;
+  const s = document.createElement('div');
+  s.className = 'stream';
+  s.style.left = (x - 5.5) + 'px';
+  s.style.top = top + 'px';
+  s.style.height = height + 'px';
+  // runder Wasserstrahl: hell in der Mitte, dunkel an den Rändern
+  s.style.background = `linear-gradient(90deg, ${shade(c,-30)} 0%, ${c} 22%, ${shade(c,42)} 46%, ${c} 70%, ${shade(c,-32)} 100%)`;
+  const flow = document.createElement('div');
+  flow.className = 'flow';
+  s.appendChild(flow);
+  return s;
+}
+
+function splash(x, y, colorIdx){
+  const c = COLORS[colorIdx].c;
+  for(let k=0;k<6;k++){
+    const d = document.createElement('div');
+    d.className = 'drop';
+    d.style.left = (x - 3) + 'px';
+    d.style.top = (y - 4) + 'px';
+    d.style.background = shade(c, 18);
+    d.style.setProperty('--dx', ((Math.random()-.5)*46).toFixed(1)+'px');
+    d.style.setProperty('--dy', (-14 - Math.random()*20).toFixed(1)+'px');
+    d.style.animationDelay = (Math.random()*.25).toFixed(2)+'s';
+    fly.appendChild(d);
+    setTimeout(()=> d.remove(), 900);
+  }
+}
+
+function bubbles(dstEl, dstLen, n){
+  const liquid = dstEl.querySelector('.liquid');
+  const SH = segH();
+  for(let k=0;k<5;k++){
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 4 + Math.random()*5;
+    b.style.width = size+'px'; b.style.height = size+'px';
+    b.style.left = (8 + Math.random()*(tubeW()-24))+'px';
+    b.style.bottom = (Math.max(0,dstLen-1)*SH + Math.random()*SH)+'px';
+    b.style.animationDelay = (.1 + Math.random()*.5).toFixed(2)+'s';
+    liquid.appendChild(b);
+    setTimeout(()=> b.remove(), 1900);
+  }
 }
 
 function undo(){
   if(busy || !history.length) return;
   audioReady();
-  if(sel){ putBack(); return; }
+  if(sel !== null){ tubeEls[sel].classList.remove('sel'); sel = null; }
   const h = history.pop();
   state.tubes = h.tubes; state.moves = h.moves; state.jokerUsed = h.jokerUsed;
-  sel = null;
   render(); updateStats();
-  beep(240,.06,'sine',.04);
+  tick(240);
 }
 
 function joker(){
@@ -556,13 +666,11 @@ function joker(){
   state.tubes.push([]);
   state.jokerUsed = true;
   sel = null;
-  if(floater){ floater.remove(); floater=null; }
   render(); updateStats();
-  beep(430,.09,'sine',.05);
+  tick(430);
 }
 
 /* ---------- Sieg ---------- */
-
 function win(){
   clearInterval(timer);
   const sec = Math.floor((Date.now()-state.t0)/1000);
@@ -574,15 +682,12 @@ function win(){
   }
   saved.level = Math.max(saved.level, Math.min(state.level+1, 99));
   store.write(saved);
-
   document.getElementById('win-title').textContent = rekord ? '🏆 Neuer Rekord!' : '🎉 Geschafft!';
   document.getElementById('win-text').textContent =
     `Level ${state.level} in ${state.moves} Zügen · ${zeit}` + (state.jokerUsed ? ' · mit Extra-Glas' : '');
   overlay.classList.remove('hidden');
   confetti();
-  beep(523,.12,'sine',.06);
-  setTimeout(()=>beep(659,.12,'sine',.06), 130);
-  setTimeout(()=>beep(784,.2,'sine',.06), 260);
+  fanfare();
 }
 
 /* ---------- Konfetti ---------- */
@@ -611,7 +716,7 @@ function confetti(){
   })(t0);
 }
 
-/* ---------- Ton ---------- */
+/* ---------- Ton (echtes Wasser-Rauschen) ---------- */
 let actx = null;
 function audioReady(){
   if(!actx && saved.sound){
@@ -619,14 +724,75 @@ function audioReady(){
   }
   if(actx && actx.state === 'suspended') actx.resume();
 }
-function beep(freq, dur, type='sine', vol=.06){
+function noiseBuffer(dur){
+  const len = Math.max(1, Math.floor(actx.sampleRate * dur));
+  const buf = actx.createBuffer(1, len, actx.sampleRate);
+  const d = buf.getChannelData(0);
+  let last = 0;
+  for(let i=0;i<len;i++){ const w = Math.random()*2-1; last = (last + .04*w)/1.04; d[i] = last*3.2; }
+  return buf;
+}
+/* Plätschern: gefiltertes Rauschen mit wanderndem Filter */
+function pourSound(dur){
   if(!saved.sound || !actx) return;
+  const t = actx.currentTime;
+  const src = actx.createBufferSource(); src.buffer = noiseBuffer(dur+.15);
+  const bp = actx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value = 1.6;
+  bp.frequency.setValueAtTime(620, t);
+  bp.frequency.linearRampToValueAtTime(1600, t+dur*.6);
+  bp.frequency.linearRampToValueAtTime(900, t+dur);
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(.16, t+.07);
+  g.gain.setValueAtTime(.16, t+dur*.75);
+  g.gain.exponentialRampToValueAtTime(.0001, t+dur+.12);
+  src.connect(bp); bp.connect(g); g.connect(actx.destination);
+  src.start(t); src.stop(t+dur+.15);
+  // ein paar Blubser
+  for(let k=0;k<3;k++) setTimeout(()=> bloop(), 90 + k*(dur*1000/3.4) + Math.random()*90);
+}
+/* Blubs-Tropfen: Sinus mit fallender Tonhöhe */
+function bloop(){
+  if(!saved.sound || !actx) return;
+  const t = actx.currentTime;
   const o = actx.createOscillator(), g = actx.createGain();
-  o.type = type; o.frequency.value = freq;
-  g.gain.setValueAtTime(vol, actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(420 + Math.random()*260, t);
+  o.frequency.exponentialRampToValueAtTime(120, t+.13);
+  g.gain.setValueAtTime(.09, t);
+  g.gain.exponentialRampToValueAtTime(.0001, t+.15);
   o.connect(g); g.connect(actx.destination);
-  o.start(); o.stop(actx.currentTime + dur);
+  o.start(t); o.stop(t+.16);
+}
+function tick(freq){
+  if(!saved.sound || !actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type='sine'; o.frequency.value = freq || 520;
+  g.gain.setValueAtTime(.05, t);
+  g.gain.exponentialRampToValueAtTime(.0001, t+.07);
+  o.connect(g); g.connect(actx.destination);
+  o.start(t); o.stop(t+.08);
+}
+function errSound(){
+  if(!saved.sound || !actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type='square'; o.frequency.value = 170;
+  g.gain.setValueAtTime(.05, t);
+  g.gain.exponentialRampToValueAtTime(.0001, t+.09);
+  o.connect(g); g.connect(actx.destination);
+  o.start(t); o.stop(t+.1);
+}
+function fanfare(){
+  [523,659,784].forEach((f,i)=> setTimeout(()=>{
+    if(!saved.sound || !actx) return;
+    const t = actx.currentTime;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type='sine'; o.frequency.value=f;
+    g.gain.setValueAtTime(.07, t); g.gain.exponentialRampToValueAtTime(.0001, t+.22);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+.24);
+  }, i*130));
 }
 
 /* ---------- Knöpfe & Tastatur ---------- */
@@ -644,11 +810,11 @@ function refreshToggles(){
   bSym.textContent = saved.symbols ? '🔣 Symbole an' : '🔣 Symbole aus';
   document.body.classList.toggle('symbols', saved.symbols);
 }
-bSound.onclick = ()=>{ saved.sound = !saved.sound; store.write(saved); refreshToggles(); if(saved.sound){ audioReady(); beep(600,.08); } };
+bSound.onclick = ()=>{ saved.sound = !saved.sound; store.write(saved); refreshToggles(); if(saved.sound){ audioReady(); tick(600); } };
 bSym.onclick = ()=>{ saved.symbols = !saved.symbols; store.write(saved); refreshToggles(); };
 
 document.addEventListener('keydown', e=>{
-  if(e.key === 'Escape' && sel && !busy) putBack();
+  if(e.key === 'Escape' && sel !== null && !busy){ tubeEls[sel].classList.remove('sel'); sel = null; }
   else if(e.key.toLowerCase() === 'u') undo();
   else if(e.key.toLowerCase() === 'n' && !busy) newGame(state.level, false);
 });
@@ -657,9 +823,9 @@ let rt;
 window.addEventListener('resize', ()=>{
   clearTimeout(rt);
   rt = setTimeout(()=>{
-    if(busy) return;              // während einer Animation nicht dazwischenfunken
+    if(busy) return;
     setSizes();
-    if(sel){ if(floater){ floater.remove(); floater=null; } sel=null; }
+    sel = null;
     render();
     if(!overlay.classList.contains('hidden')){ cv.width=window.innerWidth; cv.height=window.innerHeight; }
   }, 150);
