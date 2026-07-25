@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🧱 Block Blast – KMF</title>
+<style>
+  :root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --line:#334155;
+    --accent:#38bdf8;
+    --text:#f1f5f9;
+    --muted:#94a3b8;
+    --cell:40px;
+    --gap:4px;
+    --pad:6px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background:radial-gradient(1100px 700px at 50% -10%, #1b2a4a 0%, var(--bg) 60%);
+    color:var(--text);
+    min-height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding:56px 12px 24px;   /* oben Platz für den Knopf «Spiele» */
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    overflow-x:hidden;
+  }
+  h1{ font-size:1.5rem; margin:2px 0 2px; letter-spacing:.3px; }
+  .sub{ color:var(--muted); font-size:.8rem; margin:0 0 12px; text-align:center; }
+
+  /* ---------- Statuszeile ---------- */
+  .stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+  .stat{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 15px; min-width:82px; text-align:center; }
+  .stat b{ display:block; font-size:1.15rem; line-height:1.15; font-variant-numeric:tabular-nums; }
+  .stat span{ font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+  .stat.hot b{ color:#facc15; }
+  .stat.hot{ border-color:#facc15; box-shadow:0 0 14px rgba(250,204,21,.25); }
+
+  /* ---------- Spielfeld ---------- */
+  .stage{ position:relative; }
+  .board{
+    position:relative;
+    display:grid;
+    grid-template-columns:repeat(8, var(--cell));
+    grid-template-rows:repeat(8, var(--cell));
+    gap:var(--gap);
+    padding:var(--pad);
+    background:linear-gradient(160deg, #2b3446 0%, #232c3c 45%, #1d2534 100%);
+    border:3px solid #475569;
+    border-radius:14px;
+    box-shadow:0 18px 40px rgba(0,0,0,.5), inset 0 0 60px rgba(0,0,0,.35);
+    touch-action:none;
+  }
+  .cell{
+    border-radius:7px;
+    background:rgba(255,255,255,.055);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    position:relative;
+    transition:background-color .12s ease, box-shadow .12s ease;
+  }
+  .cell.full{
+    background:var(--c, #3b82f6);
+    box-shadow:
+      inset 0 3px 0 rgba(255,255,255,.34),
+      inset 0 -4px 0 rgba(0,0,0,.26),
+      0 2px 5px rgba(0,0,0,.35);
+  }
+  .cell.ghost-ok{
+    background:rgba(255,255,255,.20);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.45);
+  }
+  .cell.ghost-bad{
+    background:rgba(239,68,68,.28);
+    box-shadow:inset 0 0 0 2px rgba(239,68,68,.7);
+  }
+  .cell.ghost-line{
+    background:rgba(250,204,21,.40) !important;
+    box-shadow:inset 0 0 0 2px rgba(250,204,21,.9), 0 0 12px rgba(250,204,21,.5) !important;
+  }
+  .cell.blast{ animation:blast .34s ease-out forwards; z-index:3; }
+  @keyframes blast{
+    0%{ transform:scale(1); filter:brightness(1); }
+    35%{ transform:scale(1.28); filter:brightness(2.4); border-radius:9px; }
+    100%{ transform:scale(0); filter:brightness(3); }
+  }
+  .cell.drop{ animation:drop .22s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes drop{ 0%{ transform:scale(.55); } 100%{ transform:scale(1); } }
+
+  /* ---------- Vorrat (3 Blöcke) ---------- */
+  .tray{
+    display:grid; grid-template-columns:repeat(3, 1fr);
+    gap:8px; margin-top:14px;
+    width:calc(8 * var(--cell) + 7 * var(--gap) + 2 * var(--pad) + 6px);
+    max-width:100%;
+  }
+  .slot{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    min-height:calc(var(--cell) * 2.7);
+    display:flex; align-items:center; justify-content:center;
+    padding:6px; touch-action:none;
+    transition:opacity .2s, transform .12s, border-color .2s;
+  }
+  .slot.empty{ opacity:.32; }
+  .slot.taken{ opacity:.25; transform:scale(.94); }
+  .slot.dead{ border-color:rgba(239,68,68,.55); }
+  .piece{ display:grid; gap:3px; cursor:grab; }
+  .piece .pc{
+    width:var(--tc); height:var(--tc); border-radius:5px;
+    background:var(--c);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.34),
+      inset 0 -3px 0 rgba(0,0,0,.26),
+      0 2px 4px rgba(0,0,0,.35);
+  }
+  .piece .pc.void{ background:transparent; box-shadow:none; }
+
+  /* schwebender Block beim Ziehen */
+  #drag{
+    position:fixed; left:0; top:0; z-index:50; pointer-events:none;
+    display:grid; gap:var(--gap);
+    filter:drop-shadow(0 12px 18px rgba(0,0,0,.55));
+    will-change:transform;
+  }
+  #drag .pc{
+    width:var(--cell); height:var(--cell); border-radius:7px;
+    background:var(--c);
+    box-shadow:
+      inset 0 3px 0 rgba(255,255,255,.34),
+      inset 0 -4px 0 rgba(0,0,0,.26),
+      0 2px 5px rgba(0,0,0,.35);
+  }
+  #drag .pc.void{ background:transparent; box-shadow:none; }
+  #drag.hidden{ display:none; }
+
+  /* Punkte-Popup */
+  .pop{
+    position:fixed; z-index:60; pointer-events:none;
+    font-weight:900; font-size:1.5rem; color:#facc15;
+    text-shadow:0 2px 10px rgba(0,0,0,.8);
+    animation:popUp .95s ease-out forwards;
+  }
+  .pop.small{ font-size:1.05rem; color:#e2e8f0; }
+  @keyframes popUp{
+    0%{ transform:translate(-50%,-50%) scale(.6); opacity:0; }
+    22%{ transform:translate(-50%,-60%) scale(1.15); opacity:1; }
+    100%{ transform:translate(-50%,-160%) scale(1); opacity:0; }
+  }
+
+  /* ---------- Knöpfe ---------- */
+  .controls{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin-top:14px; max-width:520px; }
+  button{
+    font:inherit; font-weight:600; font-size:.92rem;
+    background:var(--card); color:var(--text);
+    border:2px solid var(--line); border-radius:13px;
+    padding:11px 16px; cursor:pointer;
+    transition:border-color .18s, transform .1s, opacity .2s;
+  }
+  button:hover{ border-color:var(--accent); }
+  button:active{ transform:scale(.96); }
+  button:disabled{ opacity:.4; cursor:default; }
+  button.primary{ background:var(--accent); color:#082032; border-color:var(--accent); }
+
+  details{ margin-top:16px; max-width:520px; width:100%; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 16px; }
+  details summary{ cursor:pointer; font-weight:600; }
+  details ul{ margin:10px 0 2px; padding-left:20px; color:var(--muted); font-size:.88rem; line-height:1.6; }
+
+  /* ---------- Overlay ---------- */
+  .overlay{ position:fixed; inset:0; z-index:80; background:rgba(8,14,28,.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .overlay.hidden{ display:none; }
+  .card{ background:var(--card); border:2px solid var(--line); border-radius:20px; padding:26px 28px; text-align:center; max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.55); animation:pop .3s ease-out; }
+  @keyframes pop{ 0%{ transform:scale(.85); opacity:0; } 100%{ transform:scale(1); opacity:1; } }
+  .card h2{ margin:0 0 6px; font-size:1.5rem; }
+  .card p{ color:var(--muted); margin:0 0 16px; font-size:.92rem; }
+  .card .big{ font-size:2.6rem; font-weight:900; color:var(--accent); line-height:1.1; margin:6px 0 2px; font-variant-numeric:tabular-nums; }
+  .card .rec{ color:#facc15; font-weight:700; font-size:.95rem; margin-bottom:14px; }
+
+  @media (max-width:430px){
+    h1{ font-size:1.3rem; }
+    .stat{ min-width:72px; padding:5px 11px; }
+    .stat b{ font-size:1rem; }
+    button{ padding:10px 13px; font-size:.88rem; }
+  }
+
+  /* ---------- Zurück zur Spiele-Auswahl ---------- */
+  .kmf-back{
+    position:fixed; z-index:9999;
+    top:calc(env(safe-area-inset-top, 0px) + 10px);
+    left:calc(env(safe-area-inset-left, 0px) + 10px);
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 13px; border-radius:14px;
+    font:700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color:#f1f5f9; text-decoration:none; white-space:nowrap;
+    background:rgba(15,23,42,.72);
+    border:1.5px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .kmf-back:active{ transform:scale(.94); }
+  .sound-btn{
+    position:fixed; z-index:9999;
+    top:calc(env(safe-area-inset-top, 0px) + 10px);
+    right:calc(env(safe-area-inset-right, 0px) + 10px);
+    padding:9px 12px; border-radius:14px; font-size:1rem;
+    background:rgba(15,23,42,.72); border:1.5px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+</style>
+</head>
+<body>
+
+  <a href="../" class="kmf-back" aria-label="Zurück zur Spiele-Auswahl">🎮 Spiele</a>
+  <button class="sound-btn" id="b-sound" aria-label="Ton ein/aus">🔊</button>
+
+  <h1>🧱 Block Blast</h1>
+  <p class="sub">Blöcke ins Feld ziehen – volle Reihen und Spalten lösen sich auf.</p>
+
+  <div class="stats">
+    <div class="stat"><b id="s-score">0</b><span>Punkte</span></div>
+    <div class="stat" id="w-combo"><b id="s-combo">0×</b><span>Combo</span></div>
+    <div class="stat"><b id="s-best">0</b><span>Rekord</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="tray" id="tray">
+    <div class="slot" data-slot="0"></div>
+    <div class="slot" data-slot="1"></div>
+    <div class="slot" data-slot="2"></div>
+  </div>
+
+  <div class="controls">
+    <button id="b-undo">↩︎ Rückgängig</button>
+    <button id="b-new">🔄 Neues Spiel</button>
+  </div>
+
+  <details>
+    <summary>So wird gespielt</summary>
+    <ul>
+      <li>Ziehe einen der drei Blöcke ins 8×8-Feld. Der Block muss vollständig auf freie Felder passen.</li>
+      <li>Ist eine <b>Reihe</b> oder <b>Spalte</b> komplett voll, löst sie sich auf und gibt Punkte.</li>
+      <li>Mehrere Linien auf einmal geben deutlich mehr Punkte – und mehrere Züge hintereinander mit Auflösung bauen eine <b>Combo</b> auf.</li>
+      <li>Erst wenn alle drei Blöcke gesetzt sind, kommen drei neue.</li>
+      <li>Passt kein einziger Block mehr ins Feld, ist das Spiel zu Ende.</li>
+      <li>Der Spielstand wird automatisch gespeichert – du kannst jederzeit weitermachen.</li>
+    </ul>
+  </details>
+
+  <div id="drag" class="hidden"></div>
+
+  <div class="overlay hidden" id="ov">
+    <div class="card">
+      <h2 id="ov-title">Spiel zu Ende</h2>
+      <p id="ov-text">Kein Block passt mehr ins Feld.</p>
+      <div class="big" id="ov-score">0</div>
+      <div class="rec" id="ov-rec">&nbsp;</div>
+      <button class="primary" id="ov-new">Nochmal spielen</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  const N = 8;                       // Feldgröße 8×8
+  const KEY_BEST  = "kmfBlockBlast.best";
+  const KEY_STATE = "kmfBlockBlast.state";
+  const KEY_SND   = "kmfBlockBlast.sound";
+
+  const FARBEN = ["#3b82f6","#22c55e","#ef4444","#f59e0b","#a855f7","#06b6d4","#ec4899","#f97316"];
+
+  /* ---------- Formen ----------
+     Jede Form ist eine Liste von [zeile, spalte].
+     gewicht = wie häufig die Form gezogen wird (kleine Formen etwas öfter). */
+  const FORMEN = [
+    { g:7,  z:[[0,0]] },                                              // Einzelstein
+    { g:9,  z:[[0,0],[0,1]] },                                        // 2 waagrecht
+    { g:9,  z:[[0,0],[1,0]] },                                        // 2 senkrecht
+    { g:8,  z:[[0,0],[0,1],[0,2]] },                                  // 3 waagrecht
+    { g:8,  z:[[0,0],[1,0],[2,0]] },                                  // 3 senkrecht
+    { g:6,  z:[[0,0],[0,1],[0,2],[0,3]] },                            // 4 waagrecht
+    { g:6,  z:[[0,0],[1,0],[2,0],[3,0]] },                            // 4 senkrecht
+    { g:3,  z:[[0,0],[0,1],[0,2],[0,3],[0,4]] },                      // 5 waagrecht
+    { g:3,  z:[[0,0],[1,0],[2,0],[3,0],[4,0]] },                      // 5 senkrecht
+    { g:8,  z:[[0,0],[0,1],[1,0],[1,1]] },                            // Quadrat 2×2
+    { g:2,  z:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]] }, // Quadrat 3×3
+    { g:4,  z:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]] },                // 2×3
+    { g:4,  z:[[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]] },                // 3×2
+    // kleine Ecken (3 Felder)
+    { g:6,  z:[[0,0],[0,1],[1,0]] },
+    { g:6,  z:[[0,0],[0,1],[1,1]] },
+    { g:6,  z:[[0,0],[1,0],[1,1]] },
+    { g:6,  z:[[0,1],[1,0],[1,1]] },
+    // große Ecken (5 Felder)
+    { g:4,  z:[[0,0],[1,0],[2,0],[2,1],[2,2]] },
+    { g:4,  z:[[0,0],[0,1],[0,2],[1,0],[2,0]] },
+    { g:4,  z:[[0,0],[0,1],[0,2],[1,2],[2,2]] },
+    { g:4,  z:[[0,2],[1,2],[2,0],[2,1],[2,2]] },
+    // L / J (4 Felder)
+    { g:4,  z:[[0,0],[1,0],[2,0],[2,1]] },
+    { g:4,  z:[[0,1],[1,1],[2,0],[2,1]] },
+    { g:4,  z:[[0,0],[0,1],[1,0],[2,0]] },
+    { g:4,  z:[[0,0],[0,1],[1,1],[2,1]] },
+    // T (4 Felder)
+    { g:4,  z:[[0,0],[0,1],[0,2],[1,1]] },
+    { g:4,  z:[[0,1],[1,0],[1,1],[1,2]] },
+    { g:4,  z:[[0,0],[1,0],[1,1],[2,0]] },
+    { g:4,  z:[[0,1],[1,0],[1,1],[2,1]] },
+    // S / Z (4 Felder)
+    { g:3,  z:[[0,1],[0,2],[1,0],[1,1]] },
+    { g:3,  z:[[0,0],[0,1],[1,1],[1,2]] },
+    { g:3,  z:[[0,0],[1,0],[1,1],[2,1]] },
+    { g:3,  z:[[0,1],[1,0],[1,1],[2,0]] }
+  ];
+
+  // Formen einmalig vermessen (Breite/Höhe) und Ziehtopf aufbauen
+  FORMEN.forEach((f, i) => {
+    f.id = i;
+    f.h = Math.max(...f.z.map(c => c[0])) + 1;
+    f.w = Math.max(...f.z.map(c => c[1])) + 1;
+  });
+  const TOPF = [];
+  FORMEN.forEach(f => { for (let i = 0; i < f.g; i++) TOPF.push(f.id); });
+
+  /* ---------- Spielzustand ---------- */
+  let feld   = [];      // feld[r][c] = null oder Farbe
+  let vorrat = [];      // 3 Einträge: {formId, farbe} oder null
+  let punkte = 0;
+  let combo  = 0;
+  let rekord = +(localStorage.getItem(KEY_BEST) || 0);
+  let ton    = localStorage.getItem(KEY_SND) !== "0";
+  let vorher = null;    // Schnappschuss für «Rückgängig»
+  let vorbei = false;
+  let sperre = false;   // während Animationen keine Eingabe
+
+  const $ = id => document.getElementById(id);
+  const elBoard = $("board");
+  const elTray  = $("tray");
+  const elDrag  = $("drag");
+
+  /* ---------- Feld aufbauen ---------- */
+  const zellen = [];
+  for (let r = 0; r < N; r++){
+    zellen[r] = [];
+    for (let c = 0; c < N; c++){
+      const d = document.createElement("div");
+      d.className = "cell";
+      elBoard.appendChild(d);
+      zellen[r][c] = d;
+    }
+  }
+
+  function leeresFeld(){
+    return Array.from({length:N}, () => Array(N).fill(null));
+  }
+
+  function zeichneFeld(){
+    for (let r = 0; r < N; r++){
+      for (let c = 0; c < N; c++){
+        const d = zellen[r][c], f = feld[r][c];
+        d.classList.toggle("full", !!f);
+        d.style.setProperty("--c", f || "transparent");
+      }
+    }
+  }
+
+  /* ---------- Zellgröße an den Bildschirm anpassen ---------- */
+  function passeGroesseAn(){
+    const breite = Math.min(window.innerWidth - 24, 460);
+    // 8 Zellen + 7 Lücken + 2× Rand + Rahmen
+    const cell = Math.floor((breite - 7*4 - 2*6 - 6) / N);
+    const hoehe = window.innerHeight;
+    // Feld darf höchstens rund 58 % der Höhe belegen, damit Vorrat und Knöpfe Platz haben
+    const maxAusHoehe = Math.floor((hoehe * 0.56 - 7*4 - 2*6) / N);
+    const c = Math.max(26, Math.min(cell, maxAusHoehe, 52));
+    document.documentElement.style.setProperty("--cell", c + "px");
+    document.documentElement.style.setProperty("--tc", Math.round(c * 0.56) + "px");
+  }
+
+  /* ---------- Töne ---------- */
+  let ac = null;
+  function ton_(freq, dauer, typ, lautst){
+    if (!ton) return;
+    try{
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = typ || "sine";
+      o.frequency.setValueAtTime(freq, ac.currentTime);
+      g.gain.setValueAtTime(lautst || 0.07, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dauer);
+      o.connect(g); g.connect(ac.destination);
+      o.start(); o.stop(ac.currentTime + dauer);
+    }catch(e){ /* Ton ist nur Beiwerk */ }
+  }
+  const tonSetzen = () => ton_(320, .09, "triangle", .05);
+  const tonLoesen = n => {
+    for (let i = 0; i < n; i++){
+      setTimeout(() => ton_(520 + i*160, .18, "square", .05), i * 70);
+    }
+  };
+  const tonEnde = () => { ton_(220, .3, "sawtooth", .06); setTimeout(()=>ton_(160,.45,"sawtooth",.06), 160); };
+
+  /* ---------- Vorrat ---------- */
+  function zieheForm(){
+    const id = TOPF[Math.floor(Math.random() * TOPF.length)];
+    return { formId:id, farbe:FARBEN[Math.floor(Math.random() * FARBEN.length)] };
+  }
+
+  function neuerVorrat(){
+    // Bis zu 40 Versuche: mindestens ein Block der drei muss ins aktuelle Feld passen.
+    for (let versuch = 0; versuch < 40; versuch++){
+      const drei = [zieheForm(), zieheForm(), zieheForm()];
+      if (drei.some(s => passtIrgendwo(FORMEN[s.formId]))) return drei;
+    }
+    return [zieheForm(), zieheForm(), zieheForm()];
+  }
+
+  function zeichneVorrat(){
+    [...elTray.children].forEach((slot, i) => {
+      slot.innerHTML = "";
+      slot.className = "slot";
+      const s = vorrat[i];
+      if (!s){ slot.classList.add("empty"); return; }
+      const f = FORMEN[s.formId];
+      if (!passtIrgendwo(f)) slot.classList.add("dead");
+      const p = document.createElement("div");
+      p.className = "piece";
+      p.style.gridTemplateColumns = `repeat(${f.w}, var(--tc))`;
+      p.style.gridTemplateRows    = `repeat(${f.h}, var(--tc))`;
+      const belegt = new Set(f.z.map(z => z[0] + ":" + z[1]));
+      for (let r = 0; r < f.h; r++){
+        for (let c = 0; c < f.w; c++){
+          const d = document.createElement("div");
+          d.className = "pc" + (belegt.has(r + ":" + c) ? "" : " void");
+          d.style.setProperty("--c", s.farbe);
+          p.appendChild(d);
+        }
+      }
+      slot.appendChild(p);
+    });
+  }
+
+  /* ---------- Regeln ---------- */
+  function passt(form, r0, c0){
+    for (const [r, c] of form.z){
+      const r1 = r0 + r, c1 = c0 + c;
+      if (r1 < 0 || c1 < 0 || r1 >= N || c1 >= N) return false;
+      if (feld[r1][c1]) return false;
+    }
+    return true;
+  }
+
+  function passtIrgendwo(form){
+    for (let r = 0; r <= N - form.h; r++)
+      for (let c = 0; c <= N - form.w; c++)
+        if (passt(form, r, c)) return true;
+    return false;
+  }
+
+  function nochZuege(){
+    return vorrat.some(s => s && passtIrgendwo(FORMEN[s.formId]));
+  }
+
+  /* Volle Reihen/Spalten eines beliebigen Feldes */
+  function volleLinienVon(test){
+    const reihen = [], spalten = [];
+    for (let r = 0; r < N; r++) if (test[r].every(Boolean)) reihen.push(r);
+    for (let c = 0; c < N; c++){
+      let voll = true;
+      for (let r = 0; r < N; r++) if (!test[r][c]){ voll = false; break; }
+      if (voll) spalten.push(c);
+    }
+    return { reihen, spalten };
+  }
+
+  /* Welche Reihen/Spalten wären nach dem Setzen voll? (nur Vorschau) */
+  function volleLinien(form, r0, c0){
+    const test = feld.map(z => z.slice());
+    for (const [r, c] of form.z) test[r0 + r][c0 + c] = 1;
+    return volleLinienVon(test);
+  }
+
+  /* ---------- Ziehen ---------- */
+  let zug = null;   // {slot, form, farbe, zeigerX, zeigerY, touch}
+
+  function baueDragBlock(form, farbe){
+    elDrag.innerHTML = "";
+    elDrag.style.gridTemplateColumns = `repeat(${form.w}, var(--cell))`;
+    elDrag.style.gridTemplateRows    = `repeat(${form.h}, var(--cell))`;
+    const belegt = new Set(form.z.map(z => z[0] + ":" + z[1]));
+    for (let r = 0; r < form.h; r++){
+      for (let c = 0; c < form.w; c++){
+        const d = document.createElement("div");
+        d.className = "pc" + (belegt.has(r + ":" + c) ? "" : " void");
+        d.style.setProperty("--c", farbe);
+        elDrag.appendChild(d);
+      }
+    }
+    elDrag.classList.remove("hidden");
+  }
+
+  function zellgroesse(){
+    const cs = getComputedStyle(document.documentElement);
+    return {
+      cell: parseFloat(cs.getPropertyValue("--cell")),
+      gap:  parseFloat(cs.getPropertyValue("--gap")),
+      pad:  parseFloat(cs.getPropertyValue("--pad"))
+    };
+  }
+
+  function zielFeld(){
+    // linke obere Ecke des schwebenden Blocks → Rasterposition
+    const { cell, gap, pad } = zellgroesse();
+    const b = elBoard.getBoundingClientRect();
+    const rect = elDrag.getBoundingClientRect();
+    const c0 = Math.round((rect.left - b.left - pad) / (cell + gap));
+    const r0 = Math.round((rect.top  - b.top  - pad) / (cell + gap));
+    return { r0, c0 };
+  }
+
+  function ghostWeg(){
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c < N; c++)
+        zellen[r][c].classList.remove("ghost-ok","ghost-bad","ghost-line");
+  }
+
+  function zeigeGhost(){
+    ghostWeg();
+    if (!zug) return;
+    const { r0, c0 } = zielFeld();
+    const form = zug.form;
+    // außerhalb des Feldes → gar keine Vorschau
+    if (r0 < -1 || c0 < -1 || r0 > N || c0 > N) return;
+    const ok = passt(form, r0, c0);
+    if (!ok){
+      for (const [r, c] of form.z){
+        const r1 = r0 + r, c1 = c0 + c;
+        if (r1 >= 0 && c1 >= 0 && r1 < N && c1 < N && !feld[r1][c1])
+          zellen[r1][c1].classList.add("ghost-bad");
+      }
+      return;
+    }
+    for (const [r, c] of form.z) zellen[r0 + r][c0 + c].classList.add("ghost-ok");
+    const { reihen, spalten } = volleLinien(form, r0, c0);
+    reihen.forEach(r  => { for (let c = 0; c < N; c++) zellen[r][c].classList.add("ghost-line"); });
+    spalten.forEach(c => { for (let r = 0; r < N; r++) zellen[r][c].classList.add("ghost-line"); });
+  }
+
+  function bewegeDrag(x, y){
+    const { cell, gap } = zellgroesse();
+    const w = zug.form.w * cell + (zug.form.w - 1) * gap;
+    const h = zug.form.h * cell + (zug.form.h - 1) * gap;
+    const hub = zug.touch ? cell * 1.25 : cell * 0.25;
+    elDrag.style.transform = `translate(${x - w/2}px, ${y - h/2 - hub}px)`;
+  }
+
+  function starteZug(e){
+    if (sperre || vorbei) return;
+    const slotEl = e.target.closest(".slot");
+    if (!slotEl) return;
+    const i = +slotEl.dataset.slot;
+    const s = vorrat[i];
+    if (!s) return;
+    e.preventDefault();
+    zug = {
+      slot: i,
+      form: FORMEN[s.formId],
+      farbe: s.farbe,
+      touch: e.pointerType !== "mouse"
+    };
+    slotEl.classList.add("taken");
+    baueDragBlock(zug.form, zug.farbe);
+    bewegeDrag(e.clientX, e.clientY);
+    zeigeGhost();
+    try{ slotEl.setPointerCapture(e.pointerId); }catch(err){ /* nicht überall vorhanden */ }
+  }
+
+  function bewegeZug(e){
+    if (!zug) return;
+    e.preventDefault();
+    bewegeDrag(e.clientX, e.clientY);
+    zeigeGhost();
+  }
+
+  function endeZug(e){
+    if (!zug) return;
+    const { r0, c0 } = zielFeld();
+    const form = zug.form, slot = zug.slot, farbe = zug.farbe;
+    const gueltig = passt(form, r0, c0);
+    zug = null;
+    elDrag.classList.add("hidden");
+    ghostWeg();
+    if (gueltig) setze(slot, form, farbe, r0, c0);
+    else zeichneVorrat();   // Block hüpft zurück in den Vorrat
+  }
+
+  // Aufnehmen nur im Vorrat, Bewegen und Loslassen überall auf der Seite –
+  // sonst geht der Zug verloren, sobald der Finger den Vorrat verlässt.
+  elTray.addEventListener("pointerdown", starteZug);
+  window.addEventListener("pointermove", bewegeZug, { passive:false });
+  window.addEventListener("pointerup", endeZug);
+  window.addEventListener("pointercancel", endeZug);
+
+  /* ---------- Setzen und Auflösen ---------- */
+  function schnappschuss(){
+    vorher = {
+      feld: feld.map(z => z.slice()),
+      vorrat: vorrat.map(s => s ? {...s} : null),
+      punkte, combo
+    };
+    $("b-undo").disabled = false;
+  }
+
+  function setze(slot, form, farbe, r0, c0){
+    schnappschuss();
+    sperre = true;
+
+    for (const [r, c] of form.z){
+      feld[r0 + r][c0 + c] = farbe;
+      const d = zellen[r0 + r][c0 + c];
+      d.classList.add("full","drop");
+      d.style.setProperty("--c", farbe);
+      setTimeout(() => d.classList.remove("drop"), 240);
+    }
+    vorrat[slot] = null;
+    zeichneVorrat();
+    tonSetzen();
+
+    punkte += form.z.length;
+
+    const { reihen, spalten } = volleLinienVon(feld);
+    const anzahl = reihen.length + spalten.length;
+
+    if (anzahl > 0){
+      combo++;
+      const mult   = Math.min(1 + (combo - 1) * 0.5, 3);
+      const gewinn = Math.round(anzahl * anzahl * 10 * mult);
+      punkte += gewinn;
+      tonLoesen(anzahl);
+
+      // Zellen aufleuchten lassen und danach räumen
+      const raus = new Set();
+      reihen.forEach(r  => { for (let c = 0; c < N; c++) raus.add(r + ":" + c); });
+      spalten.forEach(c => { for (let r = 0; r < N; r++) raus.add(r + ":" + c); });
+      raus.forEach(k => {
+        const [r, c] = k.split(":").map(Number);
+        zellen[r][c].classList.add("blast");
+      });
+
+      const b = elBoard.getBoundingClientRect();
+      popup(b.left + b.width/2, b.top + b.height/2, "+" + gewinn);
+      if (anzahl > 1 || combo > 1){
+        const txt = anzahl > 1 ? (anzahl + " Linien!") : ("Combo ×" + combo);
+        popup(b.left + b.width/2, b.top + b.height/2 + 40, txt, true);
+      }
+
+      setTimeout(() => {
+        raus.forEach(k => {
+          const [r, c] = k.split(":").map(Number);
+          feld[r][c] = null;
+          zellen[r][c].classList.remove("blast");
+        });
+        zeichneFeld();
+        nachZug();
+      }, 350);
+    } else {
+      combo = 0;
+      nachZug();
+    }
+    aktualisiere();
+  }
+
+  function nachZug(){
+    if (vorrat.every(s => !s)) vorrat = neuerVorrat();
+    zeichneVorrat();
+    aktualisiere();
+    speichere();
+    sperre = false;
+    if (!nochZuege()) ende();
+  }
+
+  function popup(x, y, text, klein){
+    const d = document.createElement("div");
+    d.className = "pop" + (klein ? " small" : "");
+    d.textContent = text;
+    d.style.left = x + "px";
+    d.style.top  = y + "px";
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 1000);
+  }
+
+  /* ---------- Anzeige ---------- */
+  function aktualisiere(){
+    $("s-score").textContent = punkte;
+    $("s-combo").textContent = combo + "×";
+    $("w-combo").classList.toggle("hot", combo > 1);
+    if (punkte > rekord){
+      rekord = punkte;
+      localStorage.setItem(KEY_BEST, rekord);
+    }
+    $("s-best").textContent = rekord;
+  }
+
+  /* ---------- Spielende ---------- */
+  function ende(){
+    vorbei = true;
+    tonEnde();
+    const neuerRekord = punkte >= rekord && punkte > 0;
+    $("ov-title").textContent = "Spiel zu Ende";
+    $("ov-text").textContent  = "Kein Block passt mehr ins Feld.";
+    $("ov-score").textContent = punkte;
+    $("ov-rec").textContent   = neuerRekord ? "🏆 Neuer Rekord!" : "Rekord: " + rekord;
+    $("ov").classList.remove("hidden");
+    localStorage.removeItem(KEY_STATE);
+  }
+
+  /* ---------- Speichern / Laden ---------- */
+  function speichere(){
+    if (vorbei) return;
+    try{
+      localStorage.setItem(KEY_STATE, JSON.stringify({ feld, vorrat, punkte, combo }));
+    }catch(e){ /* voller Speicher ist kein Beinbruch */ }
+  }
+
+  function lade(){
+    try{
+      const s = JSON.parse(localStorage.getItem(KEY_STATE) || "null");
+      if (!s || !Array.isArray(s.feld) || s.feld.length !== N) return false;
+      if (!Array.isArray(s.vorrat) || s.vorrat.length !== 3) return false;
+      feld   = s.feld;
+      vorrat = s.vorrat;
+      punkte = s.punkte || 0;
+      combo  = s.combo || 0;
+      return true;
+    }catch(e){ return false; }
+  }
+
+  /* ---------- Start / Neustart ---------- */
+  function neuesSpiel(){
+    feld   = leeresFeld();
+    vorrat = neuerVorrat();
+    punkte = 0;
+    combo  = 0;
+    vorbei = false;
+    sperre = false;
+    vorher = null;
+    $("b-undo").disabled = true;
+    $("ov").classList.add("hidden");
+    zeichneFeld();
+    zeichneVorrat();
+    aktualisiere();
+    localStorage.removeItem(KEY_STATE);
+  }
+
+  $("b-new").addEventListener("click", () => {
+    if (punkte > 0 && !vorbei && !confirm("Neues Spiel starten? Der aktuelle Stand geht verloren.")) return;
+    neuesSpiel();
+  });
+  $("ov-new").addEventListener("click", neuesSpiel);
+
+  $("b-undo").addEventListener("click", () => {
+    if (!vorher || sperre) return;
+    feld   = vorher.feld;
+    vorrat = vorher.vorrat;
+    punkte = vorher.punkte;
+    combo  = vorher.combo;
+    vorher = null;
+    vorbei = false;
+    $("b-undo").disabled = true;
+    $("ov").classList.add("hidden");
+    zeichneFeld();
+    zeichneVorrat();
+    aktualisiere();
+    speichere();
+  });
+
+  $("b-sound").addEventListener("click", () => {
+    ton = !ton;
+    localStorage.setItem(KEY_SND, ton ? "1" : "0");
+    $("b-sound").textContent = ton ? "🔊" : "🔇";
+    if (ton) tonSetzen();
+  });
+  $("b-sound").textContent = ton ? "🔊" : "🔇";
+
+  window.addEventListener("resize", passeGroesseAn);
+  window.addEventListener("orientationchange", () => setTimeout(passeGroesseAn, 200));
+
+  passeGroesseAn();
+  if (lade()){
+    zeichneFeld();
+    zeichneVorrat();
+    aktualisiere();
+    $("b-undo").disabled = true;
+    if (!nochZuege()) ende();
+  } else {
+    neuesSpiel();
+  }
+})();
+</script>
+</body>
+</html>
