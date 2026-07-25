@@ -39,6 +39,28 @@
   }
   a.game:hover { border-color: #38bdf8; transform: scale(1.02); }
   a.game span { display: block; font-size: 0.85rem; font-weight: 400; color: #94a3b8; margin-top: 6px; }
+
+  /* ---------- Aktualisieren ---------- */
+  .aktbox { width: 100%; max-width: 420px; margin: 26px 0 4px; text-align: center; }
+  button.akt {
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    background: #1e293b;
+    color: #f1f5f9;
+    border: 2px solid #38bdf8;
+    border-radius: 14px;
+    padding: 13px 20px;
+    width: 100%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  button.akt:active { transform: scale(0.97); }
+  button.akt:disabled { opacity: 0.55; cursor: default; }
+  p.hinweis { color: #94a3b8; font-size: 0.8rem; line-height: 1.5; margin: 10px 0 0; }
+  p.hinweis b { color: #4ade80; font-weight: 600; }
+  p.stand { color: #64748b; font-size: 0.74rem; margin: 6px 0 0; }
 </style>
 </head>
 <body>
@@ -52,5 +74,62 @@
   <a class="game" href="block-blast/">🧱 Block Blast<span>Blöcke setzen, Reihen und Spalten wegsprengen</span></a>
   <a class="game" href="berg-racer/">🏔️ Berg-Racer<span>Auto, Motorrad, LKW oder Anhänger-Zug – wie weit kommst du?</span></a>
   <a class="game" href="loch-sauger/">🕳️ Loch-Sauger<span>Schluck alles mit dem Loch – Aufträge erfüllen, Loch wächst</span></a>
+
+  <div class="aktbox">
+    <button class="akt" id="b-akt">🔄 Aktualisieren</button>
+    <p class="hinweis">Holt neue Spiele und Verbesserungen vom Server.<br><b>Spielstände und Rekorde bleiben erhalten.</b></p>
+    <p class="stand" id="stand">&nbsp;</p>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* Merker, wann zuletzt aktualisiert wurde. Nur dieser eine Eintrag wird
+     geschrieben – die Spielstände der einzelnen Spiele bleiben unberührt. */
+  const KEY = "kmfSpiele.aktualisiert";
+  const knopf = document.getElementById("b-akt");
+  const stand = document.getElementById("stand");
+
+  const marke = localStorage.getItem(KEY) || "";
+
+  /* Spiele-Links dieselbe Frische-Marke mitgeben, damit auch die
+     Unterseiten neu vom Server geladen werden und nicht aus dem Cache. */
+  if (marke){
+    for (const a of document.querySelectorAll("a.game")){
+      a.href += (a.href.indexOf("?") < 0 ? "?" : "&") + "v=" + encodeURIComponent(marke);
+    }
+    const d = new Date(Number(marke));
+    if (!isNaN(d.getTime())){
+      stand.textContent = "Zuletzt aktualisiert: " +
+        d.toLocaleDateString("de-CH", { day:"2-digit", month:"2-digit", year:"numeric" }) +
+        ", " + d.toLocaleTimeString("de-CH", { hour:"2-digit", minute:"2-digit" });
+    }
+  }
+
+  knopf.addEventListener("click", async () => {
+    knopf.disabled = true;
+    knopf.textContent = "⏳ Wird geladen …";
+    const neu = String(Date.now());
+    try{
+      localStorage.setItem(KEY, neu);          /* nur der Merker, nichts sonst */
+    }catch(e){ /* Speicher gesperrt – Neuladen klappt trotzdem */ }
+    try{
+      /* Zwischenspeicher des Browsers leeren – Spielstände liegen im
+         localStorage und sind davon nicht betroffen. */
+      if (window.caches && caches.keys){
+        const namen = await caches.keys();
+        await Promise.all(namen.map(n => caches.delete(n)));
+      }
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+    }catch(e){ /* nicht schlimm, wir laden gleich sowieso neu */ }
+    /* mit neuer Marke neu laden – so umgeht der Browser seinen Cache */
+    location.replace(location.origin + location.pathname + "?v=" + neu);
+  });
+})();
+</script>
 </body>
 </html>
