@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🚢 Schiffe versenken – KMF</title>
+<style>
+  :root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --line:#334155;
+    --accent:#38bdf8;
+    --text:#f1f5f9;
+    --muted:#94a3b8;
+    --cell:clamp(23px, calc((100vw - 52px) / 11), 34px);
+    --lbl:calc(var(--cell) * 0.78);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background:radial-gradient(1100px 700px at 50% -10%, #1b2a4a 0%, var(--bg) 60%);
+    color:var(--text);
+    min-height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding:56px 12px 28px;   /* oben Platz für den Knopf «Spiele» */
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  h1{ font-size:1.5rem; margin:2px 0 2px; letter-spacing:.3px; }
+  .sub{ color:var(--muted); font-size:.8rem; margin:0 0 12px; text-align:center; }
+
+  /* ---------- Schwierigkeit ---------- */
+  .seg{ display:flex; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:3px; margin-bottom:10px; }
+  .seg button{
+    border:none; background:transparent; color:var(--muted);
+    font:inherit; font-weight:600; font-size:.85rem;
+    padding:8px 15px; border-radius:10px; cursor:pointer; transition:background .18s, color .18s;
+  }
+  .seg button.on{ background:var(--accent); color:#0b1220; }
+
+  /* ---------- Statuszeile ---------- */
+  .stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+  .stat{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 13px; min-width:74px; text-align:center; }
+  .stat b{ display:block; font-size:1.1rem; line-height:1.15; }
+  .stat span{ font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+
+  .msg{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:8px 16px; font-size:.9rem; margin-bottom:12px; text-align:center;
+    min-height:38px; display:flex; align-items:center; gap:8px; max-width:520px;
+  }
+  .msg b{ color:var(--accent); }
+
+  /* ---------- Spielfelder ---------- */
+  .boards{ display:flex; flex-wrap:wrap; gap:22px; justify-content:center; align-items:flex-start; }
+  .bw{ display:flex; flex-direction:column; align-items:center; }
+  .boards.placing .bw-me{ order:-1; }
+  .bw h2{ font-size:.95rem; margin:0 0 6px; letter-spacing:.4px; }
+  .bw h2 small{ display:block; font-weight:400; font-size:.68rem; color:var(--muted); letter-spacing:.3px; margin-top:2px; }
+
+  .gridwrap{ position:relative; }
+  .grid{
+    display:grid;
+    grid-template-columns:var(--lbl) repeat(10, var(--cell));
+    grid-auto-rows:var(--cell);
+    gap:2px;
+    background:rgba(15,23,42,.5);
+    border:3px solid #475569;
+    border-radius:10px;
+    padding:3px;
+    box-shadow:0 14px 34px rgba(0,0,0,.5), inset 0 0 50px rgba(0,0,0,.3);
+  }
+  .grid .lbl{
+    display:flex; align-items:center; justify-content:center;
+    font-size:.6rem; font-weight:700; color:var(--muted); letter-spacing:.5px;
+    height:var(--lbl);
+  }
+  .grid .lbl.col{ height:var(--lbl); }
+  .grid > .lbl:not(.col){ height:var(--cell); }
+  .grid .head{ height:var(--lbl); }
+
+  .cell{
+    position:relative;
+    border-radius:4px;
+    background:linear-gradient(160deg, #1d3a5c 0%, #16304d 55%, #122943 100%);
+    box-shadow:inset 0 0 0 1px rgba(148,163,184,.14);
+    display:flex; align-items:center; justify-content:center;
+    font-size:calc(var(--cell) * 0.6); line-height:1;
+    overflow:hidden;
+  }
+  .cell::after{ /* leichte Wellen */
+    content:""; position:absolute; inset:0; opacity:.35; pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.10) 1px, transparent 1px);
+    background-size:6px 6px;
+  }
+
+  /* eigene Schiffe – das Minus-Aussen schliesst die Lücke zwischen den Feldern,
+     damit ein Schiff wie ein Rumpf wirkt und nicht wie einzelne Kästchen */
+  .cell.sh{ background:linear-gradient(180deg,#94a3b8,#64748b); box-shadow:inset 0 0 0 1px rgba(255,255,255,.28); margin:-1px; z-index:2; }
+  .cell.sh.hor.capA{ border-top-left-radius:48%; border-bottom-left-radius:48%; }
+  .cell.sh.hor.capB{ border-top-right-radius:48%; border-bottom-right-radius:48%; }
+  .cell.sh.ver.capA{ border-top-left-radius:48%; border-top-right-radius:48%; }
+  .cell.sh.ver.capB{ border-bottom-left-radius:48%; border-bottom-right-radius:48%; }
+  .cell.sh.sunkship{ background:linear-gradient(180deg,#b91c1c,#7f1d1d); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); }
+
+  .cell.miss{ background:linear-gradient(160deg,#16304d,#102336); }
+  .cell.miss .dot{ width:26%; height:26%; border-radius:50%; background:rgba(226,232,240,.55); }
+  .cell.hit{ background:linear-gradient(180deg,#ea580c,#9a3412); }
+  .cell.hit.sunkship{ background:linear-gradient(180deg,#b91c1c,#7f1d1d); }
+  .cell.last{ box-shadow:inset 0 0 0 2px #facc15; }
+
+  /* Zielen auf dem Gegnerfeld */
+  .grid.aim .cell.open{ cursor:crosshair; }
+  .grid.aim .cell.open:hover{ background:linear-gradient(160deg,#27568a,#1d4370); box-shadow:inset 0 0 0 1px var(--accent); }
+
+  /* Vorschau beim Aufstellen */
+  .cell.ok{ background:linear-gradient(180deg,#4ade80,#16a34a); }
+  .cell.bad{ background:linear-gradient(180deg,#f87171,#b91c1c); }
+  .grid.place .cell{ cursor:pointer; }
+
+  /* Sperr-Schleier */
+  .veil{
+    position:absolute; inset:0; z-index:6; border-radius:10px;
+    background:rgba(10,17,32,.72); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-size:.82rem; font-weight:600; color:#cbd5e1; padding:14px; line-height:1.4;
+  }
+  .veil.hidden{ display:none; }
+
+  /* ---------- Flottenliste ---------- */
+  .fleet{ display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:9px; max-width:calc(var(--cell)*10 + var(--lbl) + 30px); }
+  .ship{
+    display:flex; align-items:center; gap:6px;
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:5px 9px; font-size:.72rem; font-weight:600;
+    transition:border-color .18s, opacity .25s;
+  }
+  .ship .pips{ display:flex; gap:2px; }
+  .ship .pips i{ width:6px; height:9px; border-radius:2px; background:#94a3b8; display:block; }
+  .ship.sel{ border-color:var(--accent); }
+  .ship.done{ color:var(--muted); }
+  .ship.done .pips i{ background:#475569; }
+  .ship.gone{ opacity:.45; text-decoration:line-through; }
+  .ship.gone .pips i{ background:#b91c1c; }
+  .ship.clickable{ cursor:pointer; }
+
+  /* ---------- Knöpfe ---------- */
+  .controls{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; max-width:620px; margin-top:16px; }
+  button{
+    font:inherit; font-weight:600; font-size:.92rem;
+    background:var(--card); color:var(--text);
+    border:2px solid var(--line); border-radius:13px;
+    padding:11px 16px; cursor:pointer;
+    transition:border-color .18s, transform .1s, opacity .2s;
+  }
+  button:hover:not(:disabled){ border-color:var(--accent); }
+  button:active:not(:disabled){ transform:scale(.96); }
+  button:disabled{ opacity:.35; cursor:default; }
+  button.small{ font-size:.82rem; padding:9px 13px; }
+  button.go{ background:linear-gradient(180deg,#22c55e,#15803d); border-color:#16a34a; color:#f0fdf4; }
+  button.go:hover:not(:disabled){ border-color:#86efac; }
+
+  /* ---------- Anleitung ---------- */
+  details{ margin-top:16px; max-width:560px; width:100%; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 16px; }
+  summary{ cursor:pointer; font-weight:600; }
+  details p, details li{ color:#cbd5e1; font-size:.9rem; line-height:1.5; }
+  details ul{ padding-left:20px; margin:8px 0 0; }
+
+  /* ---------- Overlay ---------- */
+  .overlay{ position:fixed; inset:0; z-index:20; background:rgba(8,14,28,.82); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .overlay.hidden{ display:none; }
+  .card{ background:var(--card); border:2px solid var(--line); border-radius:20px; padding:26px 28px; text-align:center; max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.55); animation:pop .3s ease-out; }
+  @keyframes pop{ from{ transform:scale(.85); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .card h2{ margin:0 0 6px; font-size:1.5rem; }
+  .card p{ color:var(--muted); margin:0 0 16px; font-size:.95rem; }
+  .card .row{ display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
+  #confetti{ position:fixed; inset:0; z-index:25; pointer-events:none; }
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(16px);
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:10px 16px; font-size:.88rem; opacity:0; pointer-events:none;
+    transition:opacity .25s, transform .25s; z-index:30;
+  }
+  .toast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:560px){
+    h1{ font-size:1.22rem; }
+    .stats{ gap:5px; }
+    .stat{ min-width:0; padding:5px 8px; }
+    .stat b{ font-size:.95rem; }
+    .stat span{ font-size:.58rem; letter-spacing:.3px; }
+    button{ padding:10px 13px; font-size:.88rem; }
+    .boards{ gap:16px; }
+  }
+  @media (min-width:900px){
+    :root{ --cell:32px; }
+  }
+
+  /* ---------- Zurück zur Spiele-Auswahl ---------- */
+  .kmf-back{
+    position:fixed; z-index:9999;
+    top:calc(env(safe-area-inset-top, 0px) + 10px);
+    left:calc(env(safe-area-inset-left, 0px) + 10px);
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 13px; border-radius:14px;
+    font:700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color:#f1f5f9; text-decoration:none; white-space:nowrap;
+    background:rgba(15,23,42,.72);
+    border:1.5px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .kmf-back:active{ transform:scale(.94); }
+</style>
+</head>
+<body>
+
+  <a href="../" class="kmf-back" aria-label="Zurück zur Spiele-Auswahl">🎮 Spiele</a>
+
+  <h1>🚢 Schiffe versenken</h1>
+  <p class="sub">Stell deine Flotte auf und versenke den Computer – bevor er dich versenkt.</p>
+
+  <div class="seg" id="seg">
+    <button data-d="0">Einfach</button>
+    <button data-d="1" class="on">Normal</button>
+    <button data-d="2">Profi</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="s-shots">0</b><span>Schüsse</span></div>
+    <div class="stat"><b id="s-acc">–</b><span>Trefferquote</span></div>
+    <div class="stat"><b id="s-fe">5</b><span>Gegner-Flotte</span></div>
+    <div class="stat"><b id="s-fp">5</b><span>Deine Flotte</span></div>
+    <div class="stat"><b id="s-best">–</b><span>Rekord</span></div>
+  </div>
+
+  <div class="msg" id="msg">Stell deine Flotte auf.</div>
+
+  <div class="boards placing" id="boards">
+    <div class="bw bw-enemy">
+      <h2>🎯 Gegner<small>Hier schiesst du hin</small></h2>
+      <div class="gridwrap">
+        <div class="grid" id="grid-enemy"></div>
+        <div class="veil" id="veil-enemy">Zuerst deine eigene Flotte aufstellen …</div>
+      </div>
+      <div class="fleet" id="fleet-enemy"></div>
+    </div>
+
+    <div class="bw bw-me">
+      <h2>⚓️ Deine Flotte<small>Hier schiesst der Computer hin</small></h2>
+      <div class="gridwrap">
+        <div class="grid" id="grid-me"></div>
+      </div>
+      <div class="fleet" id="fleet-me"></div>
+    </div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button id="b-rotate">🔄 Drehen: waagrecht</button>
+    <button id="b-random">🎲 Zufällig</button>
+    <button id="b-clear" class="small">🧹 Löschen</button>
+    <button id="b-start" class="go">⚓️ Los geht's!</button>
+    <button id="b-new" class="small" style="display:none">↺ Neues Spiel</button>
+    <button id="b-sound" class="small">🔊 Ton</button>
+  </div>
+
+  <details>
+    <summary>So wird gespielt</summary>
+    <ul>
+      <li>Beide haben die gleiche Flotte: <b>Schlachtschiff (5)</b>, <b>Kreuzer (4)</b>, <b>Zerstörer (3)</b>, <b>U-Boot (3)</b> und <b>Schnellboot (2)</b>.</li>
+      <li><b>Aufstellen:</b> Schiff in der Liste wählen, mit <b>Drehen</b> die Richtung festlegen und auf ein Feld tippen. Ein bereits gesetztes Schiff antippen holt es zurück. Oder einfach <b>Zufällig</b> drücken.</li>
+      <li>Schiffe dürfen sich <b>nicht berühren</b> – auch nicht über Eck.</li>
+      <li><b>Schiessen:</b> auf ein Feld im Gegnerfeld tippen. Ein <b>Treffer</b> bedeutet: du bist gleich nochmals dran. Daneben – der Computer kommt.</li>
+      <li>Ist ein Schiff versenkt, wird das Wasser rundherum automatisch markiert – dort kann keines mehr liegen.</li>
+      <li>Wer zuerst alle fünf Schiffe des Gegners versenkt, gewinnt. Der <b>Rekord</b> zählt, mit wie wenig Schüssen du das schaffst.</li>
+      <li>Tastatur: <b>R</b> = Drehen, <b>Z</b> = Zufällig, <b>Enter</b> = Start.</li>
+    </ul>
+  </details>
+
+  <div class="overlay hidden" id="overlay">
+    <div class="card">
+      <h2 id="ov-title">🎉 Gewonnen!</h2>
+      <p id="ov-text"></p>
+      <div class="row">
+        <button id="b-again" class="go">Nochmal spielen</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+  <div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Schiffe versenken – gegen den Computer
+   KMFahrschule GmbH. Alles in einer Datei, ohne Bibliotheken.
+   ========================================================= */
+
+const N = 10;                                   // Felder pro Seite
+const FLEET = [                                 // Name, Länge
+  { n:'Schlachtschiff', len:5 },
+  { n:'Kreuzer',        len:4 },
+  { n:'Zerstörer',      len:3 },
+  { n:'U-Boot',         len:3 },
+  { n:'Schnellboot',    len:2 },
+];
+const UNKNOWN = 0, MISS = 1, HIT = 2;           // Zustand eines beschossenen Feldes
+const DIFF = ['Einfach', 'Normal', 'Profi'];
+
+/* ---------- kleine Helfer fürs Raster ---------- */
+const rowOf = i => (i / N) | 0;
+const colOf = i => i % N;
+const idx   = (r, c) => r * N + c;
+const onBoard = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+
+function neighbours(i, diagonal){
+  const r = rowOf(i), c = colOf(i), out = [];
+  for(let dr = -1; dr <= 1; dr++){
+    for(let dc = -1; dc <= 1; dc++){
+      if(!dr && !dc) continue;
+      if(!diagonal && dr && dc) continue;
+      if(onBoard(r + dr, c + dc)) out.push(idx(r + dr, c + dc));
+    }
+  }
+  return out;
+}
+const rint = n => (Math.random() * n) | 0;
+const pick = a => a[rint(a.length)];
+
+/* ---------- eine Spielseite (Feld, Flotte, Beschuss) ---------- */
+function newSide(){
+  return {
+    board: new Int8Array(N * N).fill(-1),       // -1 = Wasser, sonst Schiffs-Nummer
+    state: new Int8Array(N * N),                // was der Gegner hier schon getroffen hat
+    ships: FLEET.map((s, i) => ({ id:i, n:s.n, len:s.len, cells:[], dir:0, hits:0, sunk:false })),
+    last: -1,                                   // zuletzt beschossenes Feld
+  };
+}
+
+/* Felder, die ein Schiff ab (r,c) belegen würde. dir: 0 = waagrecht, 1 = senkrecht */
+function shipCells(r, c, len, dir){
+  const out = [];
+  for(let k = 0; k < len; k++){
+    const rr = dir ? r + k : r, cc = dir ? c : c + k;
+    if(!onBoard(rr, cc)) return null;
+    out.push(idx(rr, cc));
+  }
+  return out;
+}
+
+/* Passt das Schiff hierhin? Schiffe dürfen sich nicht berühren – auch nicht über Eck. */
+function fits(side, cells, ownId){
+  if(!cells) return false;
+  for(const i of cells){
+    const here = side.board[i];
+    if(here !== -1 && here !== ownId) return false;
+    for(const nb of neighbours(i, true)){
+      const there = side.board[nb];
+      if(there !== -1 && there !== ownId && !cells.includes(nb)) return false;
+    }
+  }
+  return true;
+}
+
+function placeShip(side, ship, cells, dir){
+  removeShip(side, ship);
+  ship.cells = cells.slice();
+  ship.dir = dir;
+  for(const i of cells) side.board[i] = ship.id;
+}
+function removeShip(side, ship){
+  for(const i of ship.cells) side.board[i] = -1;
+  ship.cells = [];
+}
+
+/* Zufällige, gültige Aufstellung der ganzen Flotte */
+function randomFleet(side){
+  for(let versuch = 0; versuch < 200; versuch++){
+    side.board.fill(-1);
+    side.ships.forEach(s => { s.cells = []; });
+    let ok = true;
+    for(const ship of side.ships){
+      let gesetzt = false;
+      for(let t = 0; t < 400 && !gesetzt; t++){
+        const dir = rint(2), r = rint(N), c = rint(N);
+        const cells = shipCells(r, c, ship.len, dir);
+        if(fits(side, cells, ship.id)){ placeShip(side, ship, cells, dir); gesetzt = true; }
+      }
+      if(!gesetzt){ ok = false; break; }
+    }
+    if(ok) return true;
+  }
+  return false;
+}
+
+/* ---------- Schuss abgeben ---------- */
+function fire(side, i){
+  if(side.state[i] !== UNKNOWN) return null;
+  side.last = i;
+  const id = side.board[i];
+  if(id < 0){ side.state[i] = MISS; return { r:'miss' }; }
+  side.state[i] = HIT;
+  const ship = side.ships[id];
+  ship.hits++;
+  if(ship.hits >= ship.len){
+    ship.sunk = true;
+    // Rund um ein versenktes Schiff ist garantiert Wasser – wird gleich mitmarkiert.
+    for(const c of ship.cells){
+      for(const nb of neighbours(c, true)){
+        if(side.state[nb] === UNKNOWN) side.state[nb] = MISS;
+      }
+    }
+    return { r:'sunk', ship };
+  }
+  return { r:'hit', ship };
+}
+const alive = side => side.ships.filter(s => !s.sunk).length;
+
+/* =========================================================
+   Der Computer-Gegner
+   ========================================================= */
+
+/* Felder, auf denen sicher kein Schiff mehr liegen kann:
+   Wasser, bereits versenkte Schiffe und alles, was einen Treffer diagonal berührt
+   (denn zwei Schiffe dürfen sich nicht berühren). */
+function blockedMap(side){
+  const blocked = new Uint8Array(N * N);
+  for(let i = 0; i < N * N; i++){
+    if(side.state[i] === MISS) blocked[i] = 1;
+  }
+  for(const s of side.ships){
+    if(s.sunk) for(const c of s.cells) blocked[c] = 1;
+  }
+  for(let i = 0; i < N * N; i++){
+    if(side.state[i] !== HIT) continue;
+    const r = rowOf(i), c = colOf(i);
+    for(const [dr, dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]){
+      if(onBoard(r + dr, c + dc)) blocked[idx(r + dr, c + dc)] = 1;
+    }
+  }
+  return blocked;
+}
+
+/* Treffer, deren Schiff noch nicht versenkt ist – hier muss es weitergehen. */
+function openHits(side){
+  const out = [];
+  for(let i = 0; i < N * N; i++){
+    if(side.state[i] === HIT && !side.ships[side.board[i]].sunk) out.push(i);
+  }
+  return out;
+}
+
+/* Zusammenhängende Trefferkette rund um einen offenen Treffer */
+function hitCluster(side, start, offen){
+  const set = new Set(offen), seen = new Set([start]), stack = [start], out = [start];
+  while(stack.length){
+    const i = stack.pop();
+    for(const nb of neighbours(i, false)){
+      if(set.has(nb) && !seen.has(nb)){ seen.add(nb); stack.push(nb); out.push(nb); }
+    }
+  }
+  return out;
+}
+
+/* Nachschuss-Kandidaten rund um eine Trefferkette */
+function clusterTargets(side, cluster, blocked){
+  const frei = i => i >= 0 && side.state[i] === UNKNOWN && !blocked[i];
+  const out = [];
+  if(cluster.length >= 2){
+    // Richtung ist bekannt – nur noch die beiden Enden verlängern.
+    const waagrecht = rowOf(cluster[0]) === rowOf(cluster[1]);
+    const sortiert = cluster.slice().sort((a, b) => waagrecht ? colOf(a) - colOf(b) : rowOf(a) - rowOf(b));
+    const ende = [sortiert[0], sortiert[sortiert.length - 1]];
+    const schritt = waagrecht ? [[0,-1],[0,1]] : [[-1,0],[1,0]];
+    ende.forEach((e, k) => {
+      let r = rowOf(e) + schritt[k][0], c = colOf(e) + schritt[k][1];
+      while(onBoard(r, c) && side.state[idx(r, c)] === HIT){ r += schritt[k][0]; c += schritt[k][1]; }
+      if(onBoard(r, c) && frei(idx(r, c))) out.push(idx(r, c));
+    });
+  } else {
+    for(const nb of neighbours(cluster[0], false)) if(frei(nb)) out.push(nb);
+  }
+  return out;
+}
+
+/* Wahrscheinlichkeitskarte: wo passen die restlichen Schiffe am häufigsten hin? */
+function densityMap(side, blocked){
+  const w = new Float64Array(N * N);
+  const lens = side.ships.filter(s => !s.sunk).map(s => s.len);
+  const istTreffer = i => side.state[i] === HIT && !side.ships[side.board[i]].sunk;
+  for(const len of lens){
+    for(let r = 0; r < N; r++){
+      for(let c = 0; c < N; c++){
+        for(const dir of [0, 1]){
+          const cells = shipCells(r, c, len, dir);
+          if(!cells) continue;
+          let treffer = 0, gut = true;
+          for(const i of cells){
+            if(blocked[i]){ gut = false; break; }
+            if(istTreffer(i)) treffer++;
+          }
+          if(!gut) continue;
+          const gewicht = Math.pow(14, treffer);      // Lage, die bekannte Treffer erklärt, ist viel wahrscheinlicher
+          for(const i of cells) if(side.state[i] === UNKNOWN) w[i] += gewicht;
+        }
+      }
+    }
+  }
+  return w;
+}
+
+/* Welches Feld nimmt der Computer als Nächstes? */
+function aiChoose(side, level){
+  const frei = [];
+  for(let i = 0; i < N * N; i++) if(side.state[i] === UNKNOWN) frei.push(i);
+  if(!frei.length) return -1;
+
+  if(level === 0) return pick(frei);                 // Einfach: rein zufällig
+
+  const blocked = blockedMap(side);
+  const offen = openHits(side);
+
+  if(offen.length){
+    const cluster = hitCluster(side, offen[0], offen);
+    const ziele = clusterTargets(side, cluster, blocked);
+    if(ziele.length){
+      if(level === 1) return pick(ziele);
+      // Profi wählt unter den Kandidaten den wahrscheinlichsten.
+      const w = densityMap(side, blocked);
+      return ziele.reduce((a, b) => (w[b] > w[a] ? b : a));
+    }
+  }
+
+  if(level === 2){
+    const w = densityMap(side, blocked);
+    let best = -1, bw = -1;
+    for(const i of frei){ if(w[i] > bw){ bw = w[i]; best = i; } }
+    if(best >= 0 && bw > 0) return best;
+    return pick(frei);
+  }
+
+  // Normal: Suchmuster im Schachbrett – kein Schiff ist kürzer als zwei Felder.
+  const muster = frei.filter(i => (rowOf(i) + colOf(i)) % 2 === 0 && !blocked[i]);
+  if(muster.length) return pick(muster);
+  const rest = frei.filter(i => !blocked[i]);
+  return pick(rest.length ? rest : frei);
+}
+
+/* =========================================================
+   Spielzustand + Oberfläche
+   ========================================================= */
+
+const G = {
+  me: newSide(),
+  enemy: newSide(),
+  phase: 'place',        // 'place' | 'battle' | 'over'
+  diff: 1,
+  dir: 0,                // Richtung beim Aufstellen
+  sel: 0,                // gewähltes Schiff beim Aufstellen
+  shots: 0,
+  hits: 0,
+  busy: false,           // Computer ist am Zug
+  sound: true,
+};
+
+const $ = id => document.getElementById(id);
+const elEnemy = $('grid-enemy'), elMe = $('grid-me');
+const cellsEnemy = [], cellsMe = [];
+
+/* ---------- Raster aufbauen ---------- */
+function buildGrid(el, store, seite){
+  el.innerHTML = '';
+  const ecke = document.createElement('div');
+  ecke.className = 'lbl col head';
+  el.appendChild(ecke);
+  for(let c = 0; c < N; c++){
+    const d = document.createElement('div');
+    d.className = 'lbl col head';
+    d.textContent = c + 1;
+    el.appendChild(d);
+  }
+  for(let r = 0; r < N; r++){
+    const rl = document.createElement('div');
+    rl.className = 'lbl';
+    rl.textContent = String.fromCharCode(65 + r);
+    el.appendChild(rl);
+    for(let c = 0; c < N; c++){
+      const d = document.createElement('div');
+      d.className = 'cell';
+      d.dataset.i = idx(r, c);
+      d.dataset.seite = seite;
+      el.appendChild(d);
+      store[idx(r, c)] = d;
+    }
+  }
+}
+buildGrid(elEnemy, cellsEnemy, 'enemy');
+buildGrid(elMe, cellsMe, 'me');
+
+const feldName = i => String.fromCharCode(65 + rowOf(i)) + (colOf(i) + 1);
+
+/* ---------- Zeichnen ---------- */
+function paintSide(side, cells, zeigeSchiffe){
+  for(let i = 0; i < N * N; i++){
+    const el = cells[i], st = side.state[i], id = side.board[i];
+    const ship = id >= 0 ? side.ships[id] : null;
+    const sichtbar = ship && (zeigeSchiffe || ship.sunk);
+    let cls = 'cell';
+    if(sichtbar){
+      cls += ' sh ' + (ship.dir ? 'ver' : 'hor');
+      const pos = ship.cells.indexOf(i);
+      if(pos === 0) cls += ' capA';
+      if(pos === ship.cells.length - 1) cls += ' capB';
+      if(ship.sunk) cls += ' sunkship';
+    }
+    if(st === MISS) cls += ' miss';
+    if(st === HIT)  cls += ' hit';
+    if(i === side.last && G.phase !== 'place') cls += ' last';
+    el.className = cls;
+    el.innerHTML = st === MISS ? '<span class="dot"></span>'
+                 : st === HIT  ? (ship && ship.sunk ? '☠️' : '💥')
+                 : '';
+    el.classList.toggle('open', st === UNKNOWN);
+  }
+}
+
+function paintFleet(el, side, klickbar){
+  el.innerHTML = '';
+  side.ships.forEach(s => {
+    const d = document.createElement('div');
+    const gesetzt = s.cells.length > 0;
+    d.className = 'ship' + (s.sunk ? ' gone' : '') + (klickbar && gesetzt ? ' done' : '')
+                + (klickbar && G.sel === s.id && !gesetzt ? ' sel' : '') + (klickbar ? ' clickable' : '');
+    d.innerHTML = '<span>' + s.n + '</span><span class="pips">' + '<i></i>'.repeat(s.len) + '</span>';
+    if(klickbar){
+      d.onclick = () => {
+        if(G.phase !== 'place') return;
+        if(s.cells.length){ removeShip(G.me, s); }
+        G.sel = s.id;
+        blip(520, .05);
+        render();
+      };
+    }
+    el.appendChild(d);
+  });
+}
+
+function render(){
+  paintSide(G.enemy, cellsEnemy, G.phase === 'over');
+  paintSide(G.me, cellsMe, true);
+  paintFleet($('fleet-enemy'), G.enemy, false);
+  paintFleet($('fleet-me'), G.me, G.phase === 'place');
+
+  elEnemy.classList.toggle('aim', G.phase === 'battle' && !G.busy);
+  elMe.classList.toggle('place', G.phase === 'place');
+  $('veil-enemy').classList.toggle('hidden', G.phase !== 'place');
+  $('boards').classList.toggle('placing', G.phase === 'place');
+
+  $('s-shots').textContent = G.shots;
+  $('s-acc').textContent = G.shots ? Math.round(G.hits / G.shots * 100) + '%' : '–';
+  $('s-fe').textContent = alive(G.enemy);
+  $('s-fp').textContent = alive(G.me);
+  $('s-best').textContent = bestOf(G.diff) || '–';
+
+  const platziert = G.me.ships.every(s => s.cells.length);
+  $('b-start').disabled = !platziert;
+  $('b-rotate').textContent = '🔄 Drehen: ' + (G.dir ? 'senkrecht' : 'waagrecht');
+  $('b-sound').textContent = G.sound ? '🔊 Ton' : '🔇 Ton';
+
+  const imSpiel = G.phase === 'place';
+  ['b-rotate','b-random','b-clear','b-start'].forEach(id => $(id).style.display = imSpiel ? '' : 'none');
+  $('b-new').style.display = imSpiel ? 'none' : '';
+}
+
+function say(html){ $('msg').innerHTML = html; }
+
+/* ---------- Vorschau beim Aufstellen ---------- */
+function preview(i){
+  if(G.phase !== 'place') return;
+  clearPreview();
+  const ship = G.me.ships[G.sel];
+  if(!ship || ship.cells.length) return;
+  const cells = shipCells(rowOf(i), colOf(i), ship.len, G.dir);
+  const ok = fits(G.me, cells, ship.id);
+  (cells || [i]).forEach(c => cellsMe[c] && cellsMe[c].classList.add(ok ? 'ok' : 'bad'));
+}
+function clearPreview(){
+  for(const el of cellsMe) el.classList.remove('ok', 'bad');
+}
+
+/* ---------- Eingaben ---------- */
+elMe.addEventListener('pointerover', e => {
+  const c = e.target.closest('.cell');
+  if(c && G.phase === 'place') preview(+c.dataset.i);
+});
+elMe.addEventListener('pointerleave', clearPreview);
+
+elMe.addEventListener('click', e => {
+  const c = e.target.closest('.cell');
+  if(!c || G.phase !== 'place') return;
+  const i = +c.dataset.i;
+  const drauf = G.me.board[i];
+  if(drauf >= 0){                                  // gesetztes Schiff wieder aufnehmen
+    removeShip(G.me, G.me.ships[drauf]);
+    G.sel = drauf;
+    blip(400, .05);
+    render();
+    return;
+  }
+  let ship = G.me.ships[G.sel];
+  if(!ship || ship.cells.length) ship = G.me.ships.find(s => !s.cells.length);
+  if(!ship){ toast('Alle Schiffe stehen schon.'); return; }
+  G.sel = ship.id;
+  const cells = shipCells(rowOf(i), colOf(i), ship.len, G.dir);
+  if(!fits(G.me, cells, ship.id)){
+    toast(ship.n + ': da passt es nicht hin – Schiffe dürfen sich nicht berühren.');
+    blip(180, .08, 'square');
+    return;
+  }
+  placeShip(G.me, ship, cells, G.dir);
+  blip(660, .05);
+  const naechstes = G.me.ships.find(s => !s.cells.length);
+  G.sel = naechstes ? naechstes.id : -1;
+  clearPreview();
+  render();
+  say(naechstes ? 'Weiter mit dem <b>' + naechstes.n + '</b>.' : 'Flotte steht – <b>Los geht\'s!</b>');
+});
+
+elEnemy.addEventListener('click', e => {
+  const c = e.target.closest('.cell');
+  if(!c || G.phase !== 'battle' || G.busy) return;
+  spielerSchuss(+c.dataset.i);
+});
+
+$('b-rotate').onclick = () => { G.dir ^= 1; blip(480, .04); render(); };
+$('b-random').onclick = () => {
+  randomFleet(G.me);
+  G.sel = -1;
+  blip(700, .06);
+  say('Flotte zufällig verteilt – <b>Los geht\'s!</b>');
+  render();
+};
+$('b-clear').onclick = () => {
+  G.me.ships.forEach(s => removeShip(G.me, s));
+  G.sel = 0;
+  say('Stell deine Flotte auf.');
+  render();
+};
+$('b-start').onclick = starteSchlacht;
+$('b-new').onclick = neuesSpiel;
+$('b-again').onclick = () => { $('overlay').classList.add('hidden'); neuesSpiel(); };
+$('b-sound').onclick = () => { G.sound = !G.sound; store('kmf-schiffe-ton', G.sound ? '1' : '0'); render(); };
+
+$('seg').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  G.diff = +b.dataset.d;
+  store('kmf-schiffe-diff', String(G.diff));
+  [...$('seg').children].forEach(x => x.classList.toggle('on', x === b));
+  if(G.phase === 'battle'){ toast('Neue Stufe gilt ab dem nächsten Spiel.'); }
+  render();
+});
+
+document.addEventListener('keydown', e => {
+  if(G.phase !== 'place') return;
+  const k = e.key.toLowerCase();
+  if(k === 'r'){ $('b-rotate').click(); }
+  if(k === 'z'){ $('b-random').click(); }
+  if(e.key === 'Enter' && !$('b-start').disabled){ starteSchlacht(); }
+});
+
+/* ---------- Spielablauf ---------- */
+function starteSchlacht(){
+  if(!G.me.ships.every(s => s.cells.length)) return;
+  randomFleet(G.enemy);
+  G.phase = 'battle';
+  G.busy = false;
+  clearPreview();
+  say('Du bist dran – tipp ins <b>Gegnerfeld</b>.');
+  jingle([440, 554, 659], .09);
+  render();
+}
+
+function spielerSchuss(i){
+  const res = fire(G.enemy, i);
+  if(!res){ toast('Auf ' + feldName(i) + ' hast du schon geschossen.'); return; }
+  G.shots++;
+  if(res.r !== 'miss') G.hits++;
+  render();
+
+  if(res.r === 'sunk'){
+    boom(); setTimeout(() => jingle([392, 330, 262], .12), 180);
+    say('💥 <b>' + res.ship.n + '</b> versenkt! Du bist nochmals dran.');
+  } else if(res.r === 'hit'){
+    boom();
+    say('💥 Treffer auf ' + feldName(i) + ' – du bist nochmals dran.');
+  } else {
+    splash();
+    say('💧 Daneben auf ' + feldName(i) + ' – der Computer ist dran.');
+  }
+
+  if(!alive(G.enemy)){ ende(true); return; }
+  if(res.r === 'miss'){
+    G.busy = true;
+    render();
+    setTimeout(computerZug, 700);
+  }
+}
+
+function computerZug(){
+  if(G.phase !== 'battle') return;
+  const i = aiChoose(G.me, G.diff);
+  if(i < 0){ G.busy = false; render(); return; }
+  const res = fire(G.me, i);
+  render();
+
+  if(res.r === 'sunk'){
+    boom(); setTimeout(() => jingle([330, 262, 196], .12), 180);
+    say('☠️ Der Computer versenkt dein <b>' + res.ship.n + '</b> (' + feldName(i) + ') – und schiesst weiter.');
+  } else if(res.r === 'hit'){
+    boom();
+    say('💥 Der Computer trifft auf ' + feldName(i) + ' – und schiesst weiter.');
+  } else {
+    splash();
+    say('💧 Der Computer schiesst daneben (' + feldName(i) + ') – du bist dran.');
+  }
+
+  if(!alive(G.me)){ ende(false); return; }
+  if(res.r === 'miss'){ G.busy = false; render(); }
+  else setTimeout(computerZug, 750);
+}
+
+function ende(gewonnen){
+  G.phase = 'over';
+  G.busy = false;
+  render();
+  const ov = $('overlay');
+  if(gewonnen){
+    const rekord = bestOf(G.diff);
+    const neu = !rekord || G.shots < rekord;
+    if(neu) store('kmf-schiffe-best-' + G.diff, String(G.shots));
+    $('ov-title').textContent = '🎉 Gewonnen!';
+    $('ov-text').innerHTML = 'Du hast die gegnerische Flotte mit <b>' + G.shots + ' Schüssen</b> versenkt ('
+      + Math.round(G.hits / G.shots * 100) + '% Treffer, Stufe ' + DIFF[G.diff] + ').'
+      + (neu ? '<br><b>Neuer Rekord!</b>' : '<br>Dein Rekord: ' + rekord + ' Schüsse.');
+    say('🏆 <b>Gewonnen!</b> Alle gegnerischen Schiffe versenkt.');
+    jingle([523, 659, 784, 1047], .12);
+    konfetti();
+  } else {
+    $('ov-title').textContent = '💀 Versenkt!';
+    $('ov-text').innerHTML = 'Der Computer (Stufe ' + DIFF[G.diff] + ') hat deine Flotte versenkt. '
+      + 'Du kamst auf ' + G.shots + ' Schüsse. Nochmal?';
+    say('💀 <b>Verloren</b> – deine Flotte ist versenkt.');
+    jingle([392, 330, 262, 196], .16);
+  }
+  setTimeout(() => { $('overlay').classList.remove('hidden'); }, 700);
+  render();
+}
+
+function neuesSpiel(){
+  const meineAufstellung = G.me.ships.map(s => ({ cells:s.cells.slice(), dir:s.dir }));
+  G.me = newSide();
+  G.enemy = newSide();
+  G.phase = 'place';
+  G.shots = 0; G.hits = 0; G.busy = false; G.sel = 0;
+  // Die letzte Aufstellung bleibt stehen – man kann sie einfach übernehmen oder ändern.
+  meineAufstellung.forEach((a, k) => {
+    if(a.cells.length) placeShip(G.me, G.me.ships[k], a.cells, a.dir);
+  });
+  $('overlay').classList.add('hidden');
+  const cv = $('confetti');
+  cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
+  say(G.me.ships.every(s => s.cells.length)
+      ? 'Deine alte Aufstellung steht noch – <b>Los geht\'s!</b>'
+      : 'Stell deine Flotte auf.');
+  render();
+}
+
+/* ---------- Rekorde & Einstellungen ---------- */
+function store(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function bestOf(d){ const v = +load('kmf-schiffe-best-' + d); return v > 0 ? v : 0; }
+
+/* ---------- Ton ---------- */
+let AC = null;
+function ac(){
+  if(!G.sound) return null;
+  if(!AC){ try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; } }
+  if(AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function blip(freq, dur, type){
+  const a = ac(); if(!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'sine'; o.frequency.value = freq;
+  g.gain.setValueAtTime(.0001, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(.18, a.currentTime + .01);
+  g.gain.exponentialRampToValueAtTime(.0001, a.currentTime + dur);
+  o.connect(g).connect(a.destination);
+  o.start(); o.stop(a.currentTime + dur + .02);
+}
+function jingle(freqs, step){
+  freqs.forEach((f, k) => setTimeout(() => blip(f, .16, 'triangle'), k * step * 1000));
+}
+function noise(dur, freq, q, vol){
+  const a = ac(); if(!a) return;
+  const len = Math.floor(a.sampleRate * dur);
+  const buf = a.createBuffer(1, len, a.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const src = a.createBufferSource(); src.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq; f.Q.value = q;
+  const g = a.createGain(); g.gain.value = vol;
+  src.connect(f).connect(g).connect(a.destination);
+  src.start();
+}
+function splash(){ noise(.28, 1400, 1, .18); blip(330, .07, 'sine'); }
+function boom(){ noise(.5, 300, 2, .35); blip(90, .25, 'sawtooth'); }
+
+/* ---------- Konfetti ---------- */
+function konfetti(){
+  const cv = $('confetti'), ctx = cv.getContext('2d');
+  const W = cv.width = innerWidth, H = cv.height = innerHeight;
+  const farben = ['#38bdf8','#4ade80','#facc15','#f472b6','#f87171','#a78bfa'];
+  const teile = Array.from({ length: 140 }, () => ({
+    x: Math.random() * W, y: -20 - Math.random() * H * .5,
+    vx: (Math.random() - .5) * 2.4, vy: 2 + Math.random() * 3.6,
+    s: 4 + Math.random() * 7, rot: Math.random() * 6.28, vr: (Math.random() - .5) * .3,
+    c: pick(farben),
+  }));
+  const start = performance.now();
+  (function frame(t){
+    const dt = t - start;
+    ctx.clearRect(0, 0, W, H);
+    for(const p of teile){
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vy += .03;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c;
+      ctx.globalAlpha = Math.max(0, 1 - dt / 4200);
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .6);
+      ctx.restore();
+    }
+    if(dt < 4200) requestAnimationFrame(frame);
+    else ctx.clearRect(0, 0, W, H);
+  })(start);
+}
+
+/* ---------- Hinweis-Blase ---------- */
+let toastT = null;
+function toast(text){
+  const el = $('toast');
+  el.textContent = text;
+  el.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('on'), 1900);
+}
+
+/* ---------- Start ---------- */
+(function init(){
+  const d = load('kmf-schiffe-diff');
+  if(d !== null && +d >= 0 && +d <= 2){ G.diff = +d; }
+  [...$('seg').children].forEach(b => b.classList.toggle('on', +b.dataset.d === G.diff));
+  if(load('kmf-schiffe-ton') === '0') G.sound = false;
+  render();
+})();
+
+/* =========================================================
+   Selbsttest – läuft nur mit ?test=1 in der Adresszeile
+   ========================================================= */
+if(location.search.includes('test=1')){
+  const log = [];
+  const pruefe = (name, ok) => log.push((ok ? '✅ ' : '❌ ') + name);
+
+  // Zufallsflotte ist immer gültig und berührungsfrei
+  let allesGut = true;
+  for(let t = 0; t < 300; t++){
+    const s = newSide();
+    if(!randomFleet(s)){ allesGut = false; break; }
+    const belegt = s.ships.reduce((a, x) => a + x.cells.length, 0);
+    if(belegt !== 17){ allesGut = false; break; }
+    for(const sh of s.ships){
+      for(const c of sh.cells){
+        for(const nb of neighbours(c, true)){
+          const id = s.board[nb];
+          if(id !== -1 && id !== sh.id){ allesGut = false; }
+        }
+      }
+    }
+  }
+  pruefe('300 Zufallsflotten gültig und berührungsfrei', allesGut);
+
+  // Ein Schiff lässt sich versenken, Wasser rundherum wird markiert
+  const s = newSide();
+  placeShip(s, s.ships[4], shipCells(0, 0, 2, 0), 0);
+  fire(s, 0);
+  const vorher = s.state[1];
+  const r = fire(s, 1);
+  pruefe('Schnellboot versenkt', r.r === 'sunk' && s.ships[4].sunk);
+  pruefe('Wasser rundherum markiert', s.state[idx(0, 2)] === MISS && s.state[idx(1, 1)] === MISS);
+  pruefe('Zweiter Schuss aufs gleiche Feld zählt nicht', fire(s, 0) === null && vorher === UNKNOWN);
+
+  // Der Profi findet eine ganze Flotte in vernünftig vielen Zügen
+  let summe = 0, spiele = 25;
+  for(let g = 0; g < spiele; g++){
+    const ziel = newSide();
+    randomFleet(ziel);
+    let z = 0;
+    while(alive(ziel) && z < 100){ fire(ziel, aiChoose(ziel, 2)); z++; }
+    summe += z;
+  }
+  const schnitt = summe / spiele;
+  pruefe('Profi braucht im Schnitt < 55 Züge (ist: ' + schnitt.toFixed(1) + ')', schnitt < 55);
+
+  // Normal ist besser als reiner Zufall
+  const mittel = lvl => {
+    let s2 = 0;
+    for(let g = 0; g < 25; g++){
+      const ziel = newSide(); randomFleet(ziel);
+      let z = 0;
+      while(alive(ziel) && z < 100){ fire(ziel, aiChoose(ziel, lvl)); z++; }
+      s2 += z;
+    }
+    return s2 / 25;
+  };
+  const mNormal = mittel(1), mEinfach = mittel(0);
+  pruefe('Normal (' + mNormal.toFixed(1) + ') schlägt Einfach (' + mEinfach.toFixed(1) + ')', mNormal < mEinfach);
+
+  console.log('%cSelbsttest Schiffe versenken', 'font-weight:bold');
+  log.forEach(l => console.log(l));
+  say(log.join('<br>'));
+}
+</script>
+</body>
+</html>
