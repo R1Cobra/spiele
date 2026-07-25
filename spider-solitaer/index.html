@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🕷️ Spider Solitär</title>
+<style>
+  :root{
+    --gap: 4px;
+    --cw: min(calc((100vw - 52px)/10), 66px);   /* Kartenbreite */
+    --ch: calc(var(--cw)*1.46);                 /* Kartenhöhe */
+    --ofDown: calc(var(--ch)*0.19);             /* Überlappung verdeckte Karte */
+    --ofUp:   calc(var(--ch)*0.33);             /* Überlappung offene Karte */
+    --bg: #0f172a;
+    --card: #1e293b;
+    --line: #334155;
+    --accent: #38bdf8;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --felt1: #0b3d2e;
+    --felt2: #072a20;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: radial-gradient(1100px 700px at 50% -10%, #1b2a4a 0%, var(--bg) 60%);
+    color:var(--text);
+    min-height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding:54px 8px 28px;      /* oben Platz für den Knopf «Spiele» */
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  h1{ font-size:1.5rem; margin:2px 0 2px; letter-spacing:.3px; }
+  .sub{ color:var(--muted); font-size:.8rem; margin:0 0 14px; text-align:center; }
+
+  /* ---------- Statuszeile ---------- */
+  .stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:12px; }
+  .stat{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:7px 14px; min-width:78px; text-align:center; }
+  .stat b{ display:block; font-size:1.15rem; line-height:1.15; }
+  .stat span{ font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+
+  /* ---------- Knöpfe ---------- */
+  .row{ display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+  button{
+    font-family:inherit; font-size:.95rem; font-weight:600;
+    padding:11px 16px; border-radius:13px; cursor:pointer;
+    border:2px solid var(--line); background:var(--card); color:var(--text);
+    transition:border-color .18s, transform .08s, opacity .18s;
+  }
+  button:hover:not(:disabled){ border-color:var(--accent); }
+  button:active:not(:disabled){ transform:scale(.96); }
+  button:disabled{ opacity:.35; cursor:default; }
+  button.small{ font-size:.82rem; padding:9px 13px; }
+  button.go{ background:linear-gradient(180deg,#22c55e,#15803d); border-color:#16a34a; color:#f0fdf4; }
+  button.go:hover:not(:disabled){ border-color:#86efac; }
+
+  /* ---------- Tisch ---------- */
+  .table{
+    position:relative;
+    width:100%;
+    max-width:calc(var(--cw)*10 + var(--gap)*9 + 16px);
+    background:linear-gradient(160deg, var(--felt1), var(--felt2));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:16px;
+    padding:10px 8px 14px;
+    box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .board{
+    display:grid;
+    grid-template-columns:repeat(10, var(--cw));
+    gap:var(--gap);
+    justify-content:center;
+    align-items:start;
+  }
+  .col{
+    position:relative;
+    width:var(--cw);
+    min-height:calc(var(--ch) + 6px);
+  }
+  .slot{
+    position:absolute; top:0; left:0;
+    width:var(--cw); height:var(--ch);
+    border:2px dashed rgba(255,255,255,.20);
+    border-radius:calc(var(--cw)*0.11);
+    background:rgba(0,0,0,.14);
+  }
+  .col.target .slot{ border-color:rgba(56,189,248,.95); box-shadow:0 0 0 2px rgba(56,189,248,.3); }
+
+  /* ---------- Karte ---------- */
+  .card{
+    position:absolute; left:0;
+    width:var(--cw); height:var(--ch);
+    border-radius:calc(var(--cw)*0.11);
+    box-shadow:0 2px 5px rgba(0,0,0,.45);
+    overflow:hidden;
+    transition:transform .12s, box-shadow .18s, filter .18s;
+  }
+  .card.up{
+    background:linear-gradient(178deg,#ffffff,#eef2f7);
+    border:1px solid rgba(0,0,0,.35);
+    cursor:pointer;
+  }
+  .card.down{
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 4px, rgba(255,255,255,0) 4px 8px),
+      linear-gradient(160deg,#1d4ed8,#172554);
+    border:1px solid rgba(255,255,255,.35);
+  }
+  .card .corner{
+    position:absolute; top:calc(var(--cw)*0.05); left:calc(var(--cw)*0.08);
+    line-height:1; font-weight:800;
+    font-size:calc(var(--cw)*0.40);
+    display:flex; align-items:baseline; gap:calc(var(--cw)*0.06);
+  }
+  .card .corner .s{ font-size:calc(var(--cw)*0.34); }
+  .card .big{
+    position:absolute; right:calc(var(--cw)*0.06); bottom:calc(var(--cw)*0.02);
+    font-size:calc(var(--cw)*0.78); line-height:1; opacity:.30;
+  }
+  .card.red{ color:#c81e2b; }
+  .card.black{ color:#0f172a; }
+
+  .card.sel{ box-shadow:0 0 0 3px var(--accent), 0 8px 18px rgba(0,0,0,.5); transform:translateX(calc(var(--cw)*0.09)); z-index:60; }
+  .card.hintable:hover{ filter:brightness(1.06); }
+  .card.flip{ animation:flipIn .32s ease-out; }
+  @keyframes flipIn{ from{ transform:rotateY(90deg) scale(.9); } to{ transform:rotateY(0) scale(1); } }
+  .card.dealt{ animation:dropIn .30s cubic-bezier(.3,1.3,.5,1); }
+  @keyframes dropIn{ from{ transform:translateY(-30px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+  .card.clearing{ animation:clearOut .42s ease-in forwards; z-index:70; }
+  @keyframes clearOut{
+    0%{ transform:translate(0,0) scale(1); opacity:1; }
+    35%{ transform:translate(0,-14px) scale(1.05); }
+    100%{ transform:translate(0,150px) scale(.5) rotate(14deg); opacity:0; }
+  }
+  .col.shake{ animation:shake .32s; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-5px); }
+    40%{ transform:translateX(5px); } 60%{ transform:translateX(-3px); } 80%{ transform:translateX(3px); }
+  }
+
+  /* ---------- Fussleiste: Talon + fertige Sätze ---------- */
+  .foot{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    margin-top:14px; padding:0 2px;
+  }
+  .stock{ position:relative; width:calc(var(--cw) + 14px); height:var(--ch); cursor:pointer; flex:0 0 auto; }
+  .stock .pile{
+    position:absolute; top:0; width:var(--cw); height:var(--ch);
+    border-radius:calc(var(--cw)*0.11);
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 4px, rgba(255,255,255,0) 4px 8px),
+      linear-gradient(160deg,#1d4ed8,#172554);
+    border:1px solid rgba(255,255,255,.35);
+    box-shadow:0 2px 6px rgba(0,0,0,.5);
+  }
+  .stock.empty{ cursor:default; }
+  .stock .none{
+    position:absolute; inset:0 14px 0 0;
+    border:2px dashed rgba(255,255,255,.18); border-radius:calc(var(--cw)*0.11);
+  }
+  .stock:active:not(.empty){ transform:scale(.96); }
+  .done{ display:flex; gap:3px; flex-wrap:wrap; justify-content:flex-end; }
+  .done .mini{
+    width:calc(var(--cw)*0.62); height:calc(var(--cw)*0.90);
+    border-radius:4px; background:linear-gradient(178deg,#ffffff,#e2e8f0);
+    border:1px solid rgba(0,0,0,.35);
+    display:flex; align-items:center; justify-content:center;
+    font-size:calc(var(--cw)*0.34); font-weight:800;
+    animation:pop .3s ease-out;
+  }
+  .done .mini.red{ color:#c81e2b; }
+  .done .mini.black{ color:#0f172a; }
+  .done .ghost{
+    width:calc(var(--cw)*0.62); height:calc(var(--cw)*0.90);
+    border-radius:4px; border:1.5px dashed rgba(255,255,255,.16);
+  }
+
+  /* ---------- Anleitung ---------- */
+  details{ margin-top:16px; max-width:560px; width:100%; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 16px; }
+  summary{ cursor:pointer; font-weight:600; }
+  details p, details li{ color:#cbd5e1; font-size:.9rem; line-height:1.5; }
+  details ul{ padding-left:20px; margin:8px 0 0; }
+
+  /* ---------- Overlay ---------- */
+  .overlay{ position:fixed; inset:0; z-index:20; background:rgba(8,14,28,.86); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .overlay.hidden{ display:none; }
+  .card-box{ background:var(--card); border:2px solid var(--line); border-radius:20px; padding:26px 28px; text-align:center; max-width:360px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.55); animation:pop .3s ease-out; }
+  @keyframes pop{ from{ transform:scale(.85); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .card-box h2{ margin:0 0 6px; font-size:1.5rem; }
+  .card-box p{ color:var(--muted); margin:0 0 16px; font-size:.95rem; }
+  .levels{ display:flex; flex-direction:column; gap:10px; }
+  .levels button{ width:100%; text-align:left; padding:14px 16px; }
+  .levels button small{ display:block; font-weight:400; color:var(--muted); font-size:.78rem; margin-top:3px; }
+  #confetti{ position:fixed; inset:0; z-index:25; pointer-events:none; }
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(16px);
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:10px 16px; font-size:.88rem; opacity:0; pointer-events:none;
+    transition:opacity .25s, transform .25s; z-index:30;
+  }
+  .toast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:560px){
+    h1{ font-size:1.22rem; }
+    .sub{ font-size:.72rem; }
+    .stats{ gap:5px; }
+    .stat{ min-width:0; padding:5px 8px; }
+    .stat b{ font-size:.95rem; }
+    .stat span{ font-size:.58rem; letter-spacing:.3px; }
+    button{ padding:10px 13px; font-size:.88rem; }
+  }
+
+  /* ---------- Zurück zur Spiele-Auswahl ---------- */
+  .kmf-back{
+    position:fixed; z-index:9999;
+    top:calc(env(safe-area-inset-top, 0px) + 10px);
+    left:calc(env(safe-area-inset-left, 0px) + 10px);
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 13px; border-radius:14px;
+    font:700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color:#f1f5f9; text-decoration:none; white-space:nowrap;
+    background:rgba(15,23,42,.72);
+    border:1.5px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .kmf-back:active{ transform:scale(.94); }
+</style>
+</head>
+<body>
+
+  <a href="../" class="kmf-back" aria-label="Zurück zur Spiele-Auswahl">🎮 Spiele</a>
+
+  <h1>🕷️ Spider Solitär</h1>
+  <p class="sub">Baue in jeder Spalte eine Reihe von König bis Ass – in der gleichen Farbe.</p>
+
+  <div class="stats">
+    <div class="stat"><b id="sScore">500</b><span>Punkte</span></div>
+    <div class="stat"><b id="sMoves">0</b><span>Züge</span></div>
+    <div class="stat"><b id="sTime">0:00</b><span>Zeit</span></div>
+    <div class="stat"><b id="sDone">0/8</b><span>Reihen</span></div>
+    <div class="stat"><b id="sBest">–</b><span>Rekord</span></div>
+  </div>
+
+  <div class="row">
+    <button id="btnNew">🔄 Neues Spiel</button>
+    <button id="btnUndo" class="small">↩︎ Rückgängig</button>
+    <button id="btnDeal" class="small go">🃏 Karten geben</button>
+  </div>
+
+  <div class="table">
+    <div class="board" id="board"></div>
+    <div class="foot">
+      <div class="stock" id="stock" title="Karten geben"></div>
+      <div class="done" id="doneBox"></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>❓ So wird gespielt</summary>
+    <ul>
+      <li><b>Ziel:</b> 8-mal eine komplette Reihe König → Ass in der <b>gleichen Farbe</b> bauen. Ist eine Reihe fertig, wird sie automatisch abgeräumt.</li>
+      <li><b>Bewegen:</b> Karte antippen (sie und alles darunter wird angehoben), dann die Zielspalte antippen. Nochmals antippen hebt die Auswahl auf.</li>
+      <li><b>Ablegen:</b> Eine Karte darf auf die nächsthöhere Karte gelegt werden (7 auf 8), egal welche Farbe. Auf eine leere Spalte darf alles.</li>
+      <li><b>Mitnehmen:</b> Mehrere Karten kannst du nur zusammen bewegen, wenn sie lückenlos absteigen <b>und</b> die gleiche Farbe haben.</li>
+      <li><b>Karten geben:</b> Der Knopf legt auf jede Spalte eine neue Karte – das geht nur, wenn keine Spalte leer ist. Fünf Runden sind drin.</li>
+      <li><b>Punkte:</b> Start 500, jeder Zug kostet 1 Punkt, jede fertige Reihe bringt 100.</li>
+    </ul>
+  </details>
+
+  <div class="overlay hidden" id="overlay">
+    <div class="card-box" id="overlayBox"></div>
+  </div>
+  <canvas id="confetti"></canvas>
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ================= Konstanten ================= */
+  const RANKS = ["A","2","3","4","5","6","7","8","9","10","B","D","K"]; // Index 0 = Ass … 12 = König
+  const SUITS = [
+    { key:"S", sym:"♠", color:"black" },
+    { key:"H", sym:"♥", color:"red"   },
+    { key:"C", sym:"♣", color:"black" },
+    { key:"D", sym:"♦", color:"red"   }
+  ];
+  const LEVELS = {
+    1: { name:"Leicht",  suits:[0],           info:"Nur Pik – gut zum Reinkommen" },
+    2: { name:"Mittel",  suits:[0,1],         info:"Pik und Herz" },
+    4: { name:"Schwer",  suits:[0,1,2,3],     info:"Alle vier Farben – das echte Spider" }
+  };
+
+  /* ================= Zustand ================= */
+  let S = null;          // Spielzustand
+  let history = [];      // Schnappschüsse für Rückgängig
+  let busy = false;      // sperrt Klicks während Animationen
+  let timer = null;
+  let uid = 0;
+
+  const $ = id => document.getElementById(id);
+  const board = $("board"), stockEl = $("stock"), doneBox = $("doneBox"),
+        overlay = $("overlay"), overlayBox = $("overlayBox"), toastEl = $("toast");
+
+  /* ================= Spiel aufbauen ================= */
+  function makeDeck(level){
+    const suits = LEVELS[level].suits;
+    const deck = [];
+    // 104 Karten: 8 komplette Farbfolgen A–K, gleichmässig auf die erlaubten Farben verteilt
+    for (let i = 0; i < 8; i++){
+      const s = suits[i % suits.length];
+      for (let r = 0; r < 13; r++) deck.push({ id: ++uid, r, s, up:false });
+    }
+    // Mischen (Fisher-Yates)
+    for (let i = deck.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function newGame(level){
+    const deck = makeDeck(level);
+    const cols = Array.from({length:10}, () => []);
+    // 54 Karten austeilen: die ersten vier Spalten bekommen 6, die übrigen 5
+    for (let c = 0; c < 10; c++){
+      const n = c < 4 ? 6 : 5;
+      for (let k = 0; k < n; k++) cols[c].push(deck.pop());
+      cols[c][cols[c].length - 1].up = true;
+    }
+    // Rest = 5 Runden à 10 Karten
+    const stock = [];
+    while (deck.length) stock.push(deck.splice(-10, 10));
+
+    S = { level, cols, stock, done:[], moves:0, score:500, sel:null, start:Date.now(), over:false };
+    history = [];
+    busy = false;
+    startTimer();
+    render();
+  }
+
+  /* ================= Regeln ================= */
+  // Ab welchem Index lässt sich der Stapel als Ganzes bewegen?
+  function isRun(col, idx){
+    const cards = S.cols[col];
+    if (idx < 0 || idx >= cards.length || !cards[idx].up) return false;
+    for (let i = idx; i < cards.length - 1; i++){
+      if (!cards[i+1].up) return false;
+      if (cards[i+1].s !== cards[i].s) return false;
+      if (cards[i+1].r !== cards[i].r - 1) return false;
+    }
+    return true;
+  }
+
+  function canDrop(fromCol, idx, toCol){
+    if (fromCol === toCol) return false;
+    const dest = S.cols[toCol];
+    if (dest.length === 0) return true;
+    const top = dest[dest.length - 1];
+    if (!top.up) return false;
+    return top.r === S.cols[fromCol][idx].r + 1;
+  }
+
+  function snapshot(){
+    history.push(JSON.stringify({ cols:S.cols, stock:S.stock, done:S.done, moves:S.moves, score:S.score }));
+    if (history.length > 300) history.shift();
+  }
+
+  function undo(){
+    if (busy || !history.length) return;
+    const s = JSON.parse(history.pop());
+    S.cols = s.cols; S.stock = s.stock; S.done = s.done; S.moves = s.moves; S.score = s.score;
+    S.sel = null;
+    render();
+  }
+
+  /* ================= Züge ================= */
+  function move(fromCol, idx, toCol){
+    snapshot();
+    const moving = S.cols[fromCol].splice(idx);
+    S.cols[toCol].push(...moving);
+    S.moves++;
+    S.score = Math.max(0, S.score - 1);
+    S.sel = null;
+
+    // Freigelegte Karte umdrehen
+    const rest = S.cols[fromCol];
+    let flipped = null;
+    if (rest.length && !rest[rest.length - 1].up){
+      rest[rest.length - 1].up = true;
+      flipped = rest[rest.length - 1].id;
+    }
+    render({ flipped });
+    checkComplete();
+  }
+
+  function dealRow(){
+    if (busy || S.over) return;
+    if (!S.stock.length){ toast("Keine Karten mehr im Stapel"); return; }
+    if (S.cols.some(c => c.length === 0)){
+      toast("Erst jede Spalte füllen – leere Spalten blockieren das Geben");
+      shakeEmpty();
+      return;
+    }
+    snapshot();
+    const row = S.stock.pop();
+    const fresh = [];
+    for (let c = 0; c < 10; c++){
+      const card = row[c];
+      card.up = true;
+      S.cols[c].push(card);
+      fresh.push(card.id);
+    }
+    S.sel = null;
+    render({ dealt:fresh });
+    checkComplete();
+  }
+
+  // Fertige Reihen K→A gleicher Farbe abräumen
+  function checkComplete(){
+    let found = -1;
+    for (let c = 0; c < 10 && found < 0; c++){
+      const cards = S.cols[c];
+      if (cards.length < 13) continue;
+      const start = cards.length - 13;
+      if (cards[start].r !== 12) continue;
+      if (isRun(c, start) && cards[cards.length - 1].r === 0) found = c;
+    }
+    if (found < 0){ checkStuck(); return; }
+
+    busy = true;
+    const cards = S.cols[found];
+    const set = cards.slice(cards.length - 13);
+    render({ clearing:set.map(c => c.id) });
+
+    setTimeout(() => {
+      S.cols[found].splice(S.cols[found].length - 13);
+      S.done.push(set[0].s);
+      S.score += 100;
+      const rest = S.cols[found];
+      let flipped = null;
+      if (rest.length && !rest[rest.length - 1].up){
+        rest[rest.length - 1].up = true;
+        flipped = rest[rest.length - 1].id;
+      }
+      busy = false;
+      render({ flipped });
+      if (S.done.length === 8) win();
+      else checkComplete();     // evtl. wurde gleich die nächste Reihe frei
+    }, 430);
+  }
+
+  function anyMovePossible(){
+    for (let f = 0; f < 10; f++){
+      const cards = S.cols[f];
+      for (let i = 0; i < cards.length; i++){
+        if (!cards[i].up || !isRun(f, i)) continue;
+        for (let t = 0; t < 10; t++) if (canDrop(f, i, t)) return true;
+      }
+    }
+    return false;
+  }
+
+  function checkStuck(){
+    if (S.over) return;
+    if (S.stock.length) return;
+    if (anyMovePossible()) return;
+    S.over = true;
+    stopTimer();
+    setTimeout(() => showEnd(false), 400);
+  }
+
+  function win(){
+    S.over = true;
+    stopTimer();
+    const secs = Math.floor((Date.now() - S.start)/1000);
+    const key = "spider-best-" + S.level;
+    const prev = parseInt(localStorage.getItem(key) || "0", 10);
+    let record = false;
+    if (S.score > prev){ localStorage.setItem(key, String(S.score)); record = true; }
+    updateBest();
+    confetti();
+    setTimeout(() => showEnd(true, secs, record), 500);
+  }
+
+  /* ================= Klicks ================= */
+  function onCardClick(col, idx){
+    if (busy || S.over) return;
+    const cards = S.cols[col];
+    const card = cards[idx];
+
+    // Etwas ist ausgewählt → als Ziel behandeln
+    if (S.sel){
+      if (S.sel.col === col && S.sel.idx === idx){ S.sel = null; render(); return; }
+      if (canDrop(S.sel.col, S.sel.idx, col)){ move(S.sel.col, S.sel.idx, col); return; }
+      // sonst: neue Auswahl versuchen
+    }
+    if (!card.up){ shake(col); return; }
+    if (!isRun(col, idx)){
+      S.sel = null;
+      render();
+      shake(col);
+      toast("Diese Karten liegen nicht als saubere Reihe der gleichen Farbe");
+      return;
+    }
+    S.sel = { col, idx };
+    render();
+  }
+
+  function onColClick(col){
+    if (busy || S.over) return;
+    if (!S.sel) return;
+    if (canDrop(S.sel.col, S.sel.idx, col)) move(S.sel.col, S.sel.idx, col);
+    else { shake(col); }
+  }
+
+  /* ================= Zeichnen ================= */
+  function render(fx = {}){
+    const flipped  = fx.flipped || null;
+    const dealt    = new Set(fx.dealt || []);
+    const clearing = new Set(fx.clearing || []);
+
+    board.innerHTML = "";
+    const CH = measureCardHeight();
+    const OF_DOWN = Math.round(CH * 0.19);
+    const OF_UP   = Math.round(CH * 0.33);
+    for (let c = 0; c < 10; c++){
+      const colEl = document.createElement("div");
+      colEl.className = "col";
+      colEl.dataset.col = c;
+
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      colEl.appendChild(slot);
+
+      let y = 0;
+      const cards = S.cols[c];
+      cards.forEach((card, i) => {
+        const el = document.createElement("div");
+        const suit = SUITS[card.s];
+        el.className = "card " + (card.up ? "up " + suit.color : "down");
+        el.style.top = y + "px";
+        el.style.zIndex = String(i + 1);
+        if (card.up){
+          el.innerHTML =
+            '<div class="corner"><span>' + RANKS[card.r] + '</span><span class="s">' + suit.sym + '</span></div>' +
+            '<div class="big">' + suit.sym + '</div>';
+          if (isRun(c, i)) el.classList.add("hintable");
+        }
+        if (S.sel && S.sel.col === c && i >= S.sel.idx) el.classList.add("sel");
+        if (card.id === flipped) el.classList.add("flip");
+        if (dealt.has(card.id)) el.classList.add("dealt");
+        if (clearing.has(card.id)) el.classList.add("clearing");
+
+        el.addEventListener("click", ev => { ev.stopPropagation(); onCardClick(c, i); });
+        colEl.appendChild(el);
+
+        // Offset für die nächste Karte
+        y += card.up ? OF_UP : OF_DOWN;
+      });
+
+      // Höhe der Spalte, damit nichts abgeschnitten wird
+      colEl.style.height = (y + CH) + "px";
+      if (S.sel && canDrop(S.sel.col, S.sel.idx, c)) colEl.classList.add("target");
+      colEl.addEventListener("click", () => onColClick(c));
+      board.appendChild(colEl);
+    }
+
+    // Talon
+    stockEl.innerHTML = "";
+    if (S.stock.length){
+      stockEl.classList.remove("empty");
+      S.stock.forEach((_, i) => {
+        const p = document.createElement("div");
+        p.className = "pile";
+        p.style.left = (i * 3) + "px";
+        stockEl.appendChild(p);
+      });
+    } else {
+      stockEl.classList.add("empty");
+      const n = document.createElement("div");
+      n.className = "none";
+      stockEl.appendChild(n);
+    }
+
+    // Fertige Reihen
+    doneBox.innerHTML = "";
+    for (let i = 0; i < 8; i++){
+      const d = document.createElement("div");
+      if (i < S.done.length){
+        const suit = SUITS[S.done[i]];
+        d.className = "mini " + suit.color;
+        d.textContent = suit.sym;
+      } else {
+        d.className = "ghost";
+      }
+      doneBox.appendChild(d);
+    }
+
+    $("sScore").textContent = S.score;
+    $("sMoves").textContent = S.moves;
+    $("sDone").textContent  = S.done.length + "/8";
+    $("btnUndo").disabled = history.length === 0 || S.over;
+    $("btnDeal").disabled = S.stock.length === 0 || S.over;
+  }
+
+  // Kartenhöhe echt messen – --ch steckt in einem calc(), das lässt sich nicht auslesen
+  function measureCardHeight(){
+    const probe = document.createElement("div");
+    probe.className = "slot";
+    probe.style.visibility = "hidden";
+    board.appendChild(probe);
+    const h = probe.getBoundingClientRect().height;
+    board.removeChild(probe);
+    return h || 92;
+  }
+
+  function shake(col){
+    const el = board.children[col];
+    if (!el) return;
+    el.classList.remove("shake");
+    void el.offsetWidth;
+    el.classList.add("shake");
+  }
+  function shakeEmpty(){
+    S.cols.forEach((c, i) => { if (c.length === 0) shake(i); });
+  }
+
+  /* ================= Zeit & Rekord ================= */
+  function startTimer(){
+    stopTimer();
+    timer = setInterval(() => {
+      if (!S || S.over) return;
+      const s = Math.floor((Date.now() - S.start)/1000);
+      $("sTime").textContent = Math.floor(s/60) + ":" + String(s % 60).padStart(2,"0");
+    }, 500);
+    $("sTime").textContent = "0:00";
+  }
+  function stopTimer(){ if (timer){ clearInterval(timer); timer = null; } }
+
+  function updateBest(){
+    const lvl = S ? S.level : 1;
+    const v = localStorage.getItem("spider-best-" + lvl);
+    $("sBest").textContent = v ? v : "–";
+  }
+
+  /* ================= Overlays ================= */
+  function showStart(){
+    stopTimer();
+    overlayBox.innerHTML =
+      '<h2>🕷️ Spider Solitär</h2>' +
+      '<p>Wie schwer darf es sein?</p>' +
+      '<div class="levels">' +
+        Object.keys(LEVELS).map(k =>
+          '<button data-lvl="' + k + '">' + LEVELS[k].name +
+          '<small>' + LEVELS[k].info + '</small></button>').join("") +
+      '</div>';
+    overlay.classList.remove("hidden");
+    overlayBox.querySelectorAll("button[data-lvl]").forEach(b => {
+      b.addEventListener("click", () => {
+        overlay.classList.add("hidden");
+        newGame(parseInt(b.dataset.lvl, 10));
+        updateBest();
+      });
+    });
+  }
+
+  function showEnd(won, secs, record){
+    const t = secs != null ? (Math.floor(secs/60) + ":" + String(secs % 60).padStart(2,"0")) : "";
+    overlayBox.innerHTML =
+      '<h2>' + (won ? "🏆 Geschafft!" : "😐 Nichts geht mehr") + '</h2>' +
+      '<p>' + (won
+        ? ("Alle 8 Reihen komplett – " + S.score + " Punkte in " + S.moves + " Zügen (" + t + ")." +
+           (record ? "<br><b>Neuer Rekord!</b>" : ""))
+        : "Keine Züge mehr möglich und der Stapel ist leer.") + '</p>' +
+      '<div class="row" style="margin:0"><button class="go" id="againSame">Nochmal (' + LEVELS[S.level].name + ')</button>' +
+      '<button id="againPick">Stufe wählen</button></div>';
+    overlay.classList.remove("hidden");
+    $("againSame").addEventListener("click", () => {
+      overlay.classList.add("hidden");
+      newGame(S.level);
+    });
+    $("againPick").addEventListener("click", showStart);
+  }
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("on");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => toastEl.classList.remove("on"), 2200);
+  }
+
+  /* ================= Konfetti ================= */
+  function confetti(){
+    const cv = $("confetti"), ctx = cv.getContext("2d");
+    cv.width = innerWidth; cv.height = innerHeight;
+    const cols = ["#38bdf8","#22c55e","#facc15","#f472b6","#f87171","#ffffff"];
+    const bits = Array.from({length:150}, () => ({
+      x: Math.random()*cv.width, y: -20 - Math.random()*cv.height*0.5,
+      w: 5 + Math.random()*7, h: 8 + Math.random()*9,
+      vy: 2 + Math.random()*3.4, vx: -1.4 + Math.random()*2.8,
+      rot: Math.random()*6.28, vr: -0.16 + Math.random()*0.32,
+      c: cols[Math.floor(Math.random()*cols.length)]
+    }));
+    let frames = 0;
+    (function loop(){
+      ctx.clearRect(0,0,cv.width,cv.height);
+      bits.forEach(b => {
+        b.x += b.vx; b.y += b.vy; b.rot += b.vr;
+        ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(b.rot);
+        ctx.fillStyle = b.c; ctx.fillRect(-b.w/2,-b.h/2,b.w,b.h); ctx.restore();
+      });
+      if (++frames < 300) requestAnimationFrame(loop);
+      else ctx.clearRect(0,0,cv.width,cv.height);
+    })();
+  }
+
+  /* ================= Bedienung ================= */
+  $("btnNew").addEventListener("click", showStart);
+  $("btnUndo").addEventListener("click", undo);
+  $("btnDeal").addEventListener("click", dealRow);
+  stockEl.addEventListener("click", dealRow);
+  document.addEventListener("keydown", e => {
+    if (e.key === "z" && (e.metaKey || e.ctrlKey)){ e.preventDefault(); undo(); }
+    if (e.key === " "){ e.preventDefault(); dealRow(); }
+    if (e.key === "Escape" && S && S.sel){ S.sel = null; render(); }
+  });
+  let rt = null;
+  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (S) render(); }, 120); });
+
+  // Start
+  newGame(1);            // im Hintergrund schon ein Spiel bereitlegen
+  updateBest();
+  showStart();
+})();
+</script>
+</body>
+</html>
