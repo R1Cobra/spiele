@@ -3,142 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🔧 KMF-Werkstatt – Halle aufmöbeln</title>
+<title>🔧 KMF-Werkstatt – Bau deine Fahrschule aus!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0f172a;
-    --card:#1e293b;
-    --line:#334155;
-    --accent:#38bdf8;
-    --text:#f1f5f9;
-    --muted:#94a3b8;
-    --gold:#facc15;
+    --rot:#E2231A;
+    --rot-d:#a5140e;
+    --gelb:#FFC300;
+    --gruen:#3FA535;
+    --gruen-d:#2f6b1d;
+    --creme:#fffaf0;
+    --creme-d:#efe0be;
+    --gold:#b98a3c;
+    --braun:#6a4a12;
+    --text:#4a3a1c;
   }
   *{ box-sizing:border-box; }
   html,body{ height:100%; }
   body{
     margin:0;
-    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    background:radial-gradient(1100px 700px at 50% -10%, #1b2a4a 0%, var(--bg) 60%);
+    font-family:Oswald, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background:radial-gradient(120% 95% at 32% 0%, #cfe4f2 0%, #8fb8d4 42%, #4f7f9d 100%);
+    background-attachment:fixed;
     color:var(--text);
     min-height:100%;
     display:flex; flex-direction:column; align-items:center;
-    padding:56px 12px 28px;
+    padding:8px 10px 62px;
     -webkit-tap-highlight-color:transparent;
     user-select:none;
     overflow-x:hidden;
   }
-  h1{ font-size:1.5rem; margin:2px 0 2px; letter-spacing:.3px; }
-  .sub{ color:var(--muted); font-size:.8rem; margin:0 0 12px; text-align:center; max-width:460px; }
+  .anton{ font-family:Anton, Impact, sans-serif; font-weight:400; letter-spacing:.5px; }
 
-  /* ---------- Kopf-Knöpfe ---------- */
-  .kmf-back, .sound-btn{
-    position:fixed; top:10px; z-index:40;
-    background:rgba(30,41,59,.92); border:1px solid var(--line); color:var(--text);
-    border-radius:999px; padding:8px 14px; font-size:.85rem; font-weight:600;
-    text-decoration:none; cursor:pointer; backdrop-filter:blur(6px);
+  /* ---------- Kopf ---------- */
+  .kopfband{
+    position:relative; width:100%; max-width:1040px;
+    background:linear-gradient(180deg,var(--rot),var(--rot-d));
+    border-radius:16px; box-shadow:0 8px 0 rgba(0,0,0,.22);
+    padding:10px 14px; display:flex; align-items:center; gap:10px; overflow:hidden;
   }
-  .kmf-back{ left:10px; }
-  .sound-btn{ right:10px; padding:8px 12px; }
-
-  /* ---------- Umschalter ---------- */
-  .tabs{ display:flex; gap:6px; background:var(--card); border:1px solid var(--line);
-         border-radius:999px; padding:4px; margin-bottom:12px; }
-  .tab{ background:transparent; border:0; color:var(--muted); font:inherit; font-weight:600;
-        font-size:.86rem; padding:7px 16px; border-radius:999px; cursor:pointer; }
-  .tab.aktiv{ background:linear-gradient(180deg,#38bdf8,#0ea5e9); color:#04283a; }
-
-  .view{ width:100%; max-width:940px; display:flex; flex-direction:column; align-items:center; }
-  .view[hidden]{ display:none; }
-
-  /* ---------- Statuszeile ---------- */
-  .stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
-  .stat{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 15px; min-width:84px; text-align:center; }
-  .stat b{ display:block; font-size:1.15rem; line-height:1.15; font-variant-numeric:tabular-nums; }
-  .stat span{ font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
-  .stat.gold b{ color:var(--gold); }
-  .stat.gold{ border-color:#a16207; box-shadow:0 0 14px rgba(250,204,21,.18); }
-  .stat.warn b{ color:#f87171; }
-
-  /* ---------- Halle / Szene ---------- */
-  .szene-rahmen{
-    width:100%; max-width:900px; border-radius:18px; overflow:hidden;
-    border:3px solid #475569; box-shadow:0 20px 44px rgba(0,0,0,.55);
-    background:#0b1220; position:relative; margin-bottom:12px;
+  .kopfband::after{
+    content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 14px, rgba(255,255,255,0) 14px 28px);
+    pointer-events:none;
   }
-  .szene-rahmen svg{ display:block; width:100%; height:auto; }
+  .kopfband h1{
+    font-family:Anton, Impact, sans-serif; font-weight:400;
+    font-size:clamp(1.05rem, 4.2vw, 1.7rem); color:#fff; margin:0; line-height:1;
+    text-shadow:0 3px 0 rgba(0,0,0,.28); flex:1 1 auto;
+  }
+  .kopf-knopf{
+    position:relative; z-index:2; flex:0 0 auto;
+    background:linear-gradient(180deg,#fff6e0,var(--creme-d));
+    border:3px solid var(--gold); border-radius:999px;
+    color:var(--braun); font-family:Anton,sans-serif; font-size:.82rem;
+    padding:6px 12px; text-decoration:none; cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,.2);
+  }
+
+  /* ---------- HUD ---------- */
+  .hud{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:10px 0 6px; }
+  .pille{
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(180deg,#fff6e0,var(--creme-d));
+    border:4px solid var(--gold); border-radius:999px;
+    padding:3px 14px 3px 3px; box-shadow:0 5px 0 rgba(0,0,0,.18);
+  }
+  .pille .rund{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:Anton,sans-serif; font-size:1.05rem; color:#7a4b00;
+    background:linear-gradient(160deg,#ffdc5e,#e9a400);
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);
+  }
+  .pille .rund.rt{ background:linear-gradient(160deg,#ff5a4d,#c81c12); color:#fff; }
+  .pille .rund.gr{ background:linear-gradient(160deg,#7fd85e,#3d8a26); color:#fff; }
+  .pille b{ font-family:Anton,sans-serif; font-weight:400; font-size:1.1rem; color:var(--braun); }
+  .pille small{ font-size:.62rem; text-transform:uppercase; letter-spacing:.5px; color:#8a6b32; display:block; line-height:1; }
+
+  /* ---------- Ebenen-Umschalter ---------- */
+  .ebenen{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px; }
+  .ebene{
+    font-family:Anton,sans-serif; font-size:.78rem; letter-spacing:.5px;
+    background:linear-gradient(180deg,var(--creme),var(--creme-d));
+    border:4px solid var(--gold); border-radius:14px;
+    color:var(--braun); padding:6px 12px; cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,.18);
+  }
+  .ebene.aktiv{
+    background:linear-gradient(180deg,var(--rot),var(--rot-d));
+    border-color:#7d0f0a; color:#fff; box-shadow:0 4px 0 rgba(0,0,0,.22);
+  }
+  .ebene .rest{ display:block; font-family:Oswald,sans-serif; font-size:.6rem; opacity:.8; }
+
+  /* ---------- Isometrische Bühne ---------- */
+  .buehne-rahmen{
+    position:relative; width:100%; max-width:1040px;
+    border:6px solid var(--gold); border-radius:22px; overflow:hidden;
+    box-shadow:0 10px 0 rgba(0,0,0,.22); background:#7ea9c6;
+  }
+  .buehne{ position:relative; width:100%; overflow:hidden; }
+  .iso-welt{
+    position:absolute; left:50%; top:0; width:0; height:0;
+    transform-style:preserve-3d;
+  }
+  .iso-teil{ position:absolute; }
+  .iso-teil span{
+    display:flex; width:100%; height:100%; align-items:center; justify-content:center;
+    font-family:Anton,sans-serif; white-space:nowrap;
+  }
+  .himmel{ position:absolute; inset:0; }
+  .dunkel{ position:absolute; inset:0; background:#0b1220; opacity:.62; pointer-events:none; }
+  .vignette{ position:absolute; inset:0; pointer-events:none;
+             background:radial-gradient(88% 82% at 50% 46%, rgba(0,0,0,0) 55%, rgba(8,12,18,.45) 100%); }
+  .marker{ position:absolute; cursor:pointer; }
+  .marker i{
+    display:flex; align-items:center; justify-content:center;
+    width:46px; height:46px; margin-left:-23px; border-radius:50%;
+    background:linear-gradient(160deg,#FFD84D,#E2A200); border:4px solid #fff;
+    box-shadow:0 8px 16px rgba(0,0,0,.45);
+    font-family:Anton,sans-serif; font-style:normal; font-size:1.6rem; color:#7a4b00;
+    animation:kmfPuls 1.4s infinite;
+  }
+  .marker.zuteuer i{ opacity:.72; }
+  @keyframes kmfPuls{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.12) } }
   .blitz{ position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
-  .blitz.an{ animation:blitzen .55s ease-out; }
-  @keyframes blitzen{ 0%{opacity:.75} 100%{opacity:0} }
+  .blitz.an{ animation:blitzen .6s ease-out; }
+  @keyframes blitzen{ 0%{opacity:.8} 100%{opacity:0} }
 
-  .fortschritt{ width:100%; max-width:900px; height:10px; background:#0b1220; border:1px solid var(--line);
-                border-radius:999px; overflow:hidden; margin-bottom:14px; }
-  .fortschritt i{ display:block; height:100%; width:0%;
-                  background:linear-gradient(90deg,#22c55e,#facc15); transition:width .5s ease; }
-
-  .aufgaben{ width:100%; max-width:900px; display:grid; gap:8px;
-             grid-template-columns:repeat(auto-fill, minmax(268px,1fr)); margin-bottom:14px; }
-  .auf{
-    display:flex; align-items:center; gap:10px; text-align:left;
-    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 12px;
+  /* ---------- Aufgaben ---------- */
+  .panel{
+    width:100%; max-width:1040px; margin-top:12px;
+    background:linear-gradient(180deg,var(--creme),#f0e2c4);
+    border:5px solid var(--gold); border-radius:20px;
+    box-shadow:0 8px 0 rgba(0,0,0,.22); overflow:hidden;
   }
-  .auf .em{ font-size:1.5rem; width:34px; text-align:center; flex:0 0 auto; }
+  .panel-kopf{
+    background:linear-gradient(180deg,var(--rot),#b4160f);
+    padding:9px 16px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .panel-kopf .anton{ color:#fff; font-size:1.05rem; }
+  .panel-kopf small{ color:#ffd7d4; font-size:.75rem; font-weight:600; }
+  .auf-liste{ display:grid; gap:8px; padding:12px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); }
+  .auf{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.5);
+        border:2px solid rgba(185,138,60,.4); border-radius:12px; padding:7px 10px; }
+  .auf .nr{ flex:0 0 auto; width:32px; height:32px; border-radius:9px; background:var(--gruen);
+            display:flex; align-items:center; justify-content:center;
+            font-family:Anton,sans-serif; color:#fff; font-size:.95rem; }
   .auf .tx{ flex:1 1 auto; min-width:0; }
-  .auf .tx b{ display:block; font-size:.92rem; }
-  .auf .tx span{ display:block; font-size:.72rem; color:var(--muted); }
-  .auf button{
-    flex:0 0 auto; font:inherit; font-weight:700; font-size:.8rem; cursor:pointer;
-    border-radius:999px; padding:8px 12px; border:1px solid #a16207; color:#3b2606;
-    background:linear-gradient(180deg,#fde047,#f59e0b);
-  }
-  .auf button:disabled{ background:#334155; border-color:#475569; color:#94a3b8; cursor:not-allowed; }
-  .auf.fertig{ border-color:#15803d; background:linear-gradient(180deg,#132e1f,#16281d); }
-  .auf.fertig .tx b::after{ content:" ✓"; color:#4ade80; }
+  .auf .tx b{ display:block; font-weight:600; font-size:.9rem; color:var(--text); line-height:1.15; }
+  .auf .tx span{ display:block; font-size:.72rem; color:#8a7448; }
+  .auf .preis{ flex:0 0 auto; font-family:Anton,sans-serif; font-size:.95rem; color:var(--gold); cursor:pointer; }
+  .auf .preis.kann{ color:#fff; background:linear-gradient(180deg,#6cc94a,#3d8a26);
+                    border:2px solid var(--gruen-d); border-radius:999px; padding:4px 11px;
+                    box-shadow:0 3px 0 rgba(0,0,0,.2); }
+  .auf.fertig{ background:rgba(63,165,53,.16); border-color:rgba(63,165,53,.5); }
+  .auf.fertig .preis{ color:var(--gruen); }
 
-  .cta{
-    font:inherit; font-weight:800; font-size:1.02rem; cursor:pointer; color:#04283a;
-    background:linear-gradient(180deg,#7dd3fc,#0ea5e9); border:1px solid #0284c7;
-    border-radius:14px; padding:13px 26px; box-shadow:0 10px 24px rgba(14,165,233,.28);
+  /* ---------- Spiel-Knopf ---------- */
+  .spiel-start{ display:flex; align-items:center; gap:14px; margin-top:14px; }
+  .spiel-start .txt{ text-align:right; font-size:.9rem; font-weight:500; color:#fff; text-shadow:0 2px 6px rgba(0,0,0,.55); }
+  .spiel-start .txt b{ display:block; font-family:Anton,sans-serif; font-weight:400; font-size:1.25rem; }
+  .los{
+    width:112px; height:78px; border:5px solid var(--gruen-d);
+    border-radius:20px 44px 44px 20px; cursor:pointer;
+    background:linear-gradient(180deg,#6cc94a,#3d8a26);
+    font-family:Anton,sans-serif; font-size:1.9rem; color:#fff;
+    text-shadow:0 3px 0 rgba(0,0,0,.25); box-shadow:0 7px 0 rgba(0,0,0,.25);
+    display:flex; align-items:center; justify-content:center;
+    animation:kmfSchweb 2.4s infinite;
   }
+  @keyframes kmfSchweb{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-5px) } }
+
   .knopfreihe{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
-  .knopf{ font:inherit; font-weight:600; font-size:.85rem; cursor:pointer; color:var(--text);
-          background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 16px; }
-  .knopf:hover{ border-color:var(--accent); }
-
-  /* ---------- Ziele ---------- */
-  .ziele{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
-  .ziel{ display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line);
-         border-radius:12px; padding:5px 12px 5px 6px; }
-  .ziel svg{ width:32px; height:32px; }
-  .ziel b{ font-size:1rem; font-variant-numeric:tabular-nums; }
-  .ziel.ok{ border-color:#15803d; background:linear-gradient(180deg,#132e1f,#16281d); }
-  .ziel.ok b{ color:#4ade80; }
+  .knopf{
+    font-family:Anton,sans-serif; font-size:.85rem; cursor:pointer; color:var(--braun);
+    background:linear-gradient(180deg,var(--creme),var(--creme-d));
+    border:4px solid var(--gold); border-radius:14px; padding:7px 15px;
+    box-shadow:0 4px 0 rgba(0,0,0,.18);
+  }
 
   /* ---------- Spielfeld ---------- */
+  .view{ width:100%; display:flex; flex-direction:column; align-items:center; }
+  .view[hidden]{ display:none; }
+  .ziele{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0 10px; }
+  .ziel{ display:flex; align-items:center; gap:6px;
+         background:linear-gradient(180deg,#fff6e0,var(--creme-d));
+         border:4px solid var(--gold); border-radius:14px; padding:3px 12px 3px 4px;
+         box-shadow:0 4px 0 rgba(0,0,0,.18); }
+  .ziel svg{ width:34px; height:34px; }
+  .ziel b{ font-family:Anton,sans-serif; font-weight:400; font-size:1.05rem; color:var(--braun); }
+  .ziel.ok{ background:linear-gradient(180deg,#d8f4cf,#a9e39a); border-color:var(--gruen-d); }
+  .ziel.ok b{ color:#1f5c17; }
+  .brett-rahmen{
+    background:linear-gradient(180deg,var(--creme),#e8d9b6);
+    border:6px solid var(--gold); border-radius:22px; padding:8px;
+    box-shadow:0 9px 0 rgba(0,0,0,.22);
+  }
   .brett{
-    position:relative;
-    background:linear-gradient(160deg,#2b3446 0%,#232c3c 45%,#1d2534 100%);
-    border:3px solid #475569; border-radius:16px;
-    box-shadow:0 18px 40px rgba(0,0,0,.5), inset 0 0 60px rgba(0,0,0,.4);
-    touch-action:none; overflow:hidden;
+    position:relative; border-radius:14px; touch-action:none; overflow:hidden;
+    background:linear-gradient(160deg,#5c626a 0%,#464b52 55%,#3a3f45 100%);
+    box-shadow:inset 0 0 40px rgba(0,0,0,.55);
   }
-  .loch{ position:absolute; border-radius:10px; background:rgba(0,0,0,.22); box-shadow:inset 0 2px 5px rgba(0,0,0,.35); }
-  .stein{
-    position:absolute; display:grid; place-items:center;
-    transition:transform .17s ease;
-    will-change:transform;
-  }
+  .loch{ position:absolute; border-radius:9px; background:rgba(0,0,0,.2); box-shadow:inset 0 2px 5px rgba(0,0,0,.35); }
+  .stein{ position:absolute; display:grid; place-items:center; transition:transform .17s ease; will-change:transform; }
   .stein svg{ width:100%; height:100%; filter:drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
-  .stein.gewaehlt::after{
-    content:""; position:absolute; inset:-3px; border-radius:12px;
-    border:2.5px solid #fde047; box-shadow:0 0 14px rgba(253,224,71,.65);
-  }
+  .stein.gewaehlt::after{ content:""; position:absolute; inset:-3px; border-radius:12px;
+                          border:3px solid var(--gelb); box-shadow:0 0 14px rgba(255,195,0,.7); }
   .stein.weg{ animation:wegPuff .22s ease-in forwards; }
-  @keyframes wegPuff{ to{ transform:var(--t) scale(.15) rotate(24deg); opacity:0; } }
-  .stein.neu{ animation:reinPlopp .22s ease-out; }
-  @keyframes reinPlopp{ from{ opacity:.2 } to{ opacity:1 } }
+  @keyframes wegPuff{ to{ transform:var(--t) scale(.15) rotate(24deg); opacity:0 } }
   .funke{ position:absolute; pointer-events:none; border-radius:999px;
-          background:radial-gradient(circle,#fff 0%,#fde047 45%,rgba(250,204,21,0) 70%);
+          background:radial-gradient(circle,#fff 0%,var(--gelb) 45%,rgba(255,195,0,0) 70%);
           animation:funkeWeg .45s ease-out forwards; }
   @keyframes funkeWeg{ from{opacity:.9; transform:scale(.4)} to{opacity:0; transform:scale(1.6)} }
   .strahl{ position:absolute; pointer-events:none; border-radius:8px;
@@ -146,435 +223,91 @@
            animation:strahlWeg .38s ease-out forwards; }
   .strahl.v{ background:linear-gradient(180deg,rgba(255,255,255,0),#fff,rgba(255,255,255,0)); }
   @keyframes strahlWeg{ from{opacity:.95} to{opacity:0} }
+  .hinweis{ max-width:430px; text-align:center; font-size:.72rem; color:#0f2b3d; margin:10px 0 0; font-weight:500; }
 
   /* ---------- Overlay ---------- */
-  .ov{ position:fixed; inset:0; background:rgba(2,6,23,.78); backdrop-filter:blur(4px);
-       display:none; align-items:center; justify-content:center; padding:20px; z-index:60; }
+  .ov{ position:fixed; inset:0; background:rgba(8,20,32,.78); backdrop-filter:blur(4px);
+       display:none; align-items:center; justify-content:center; padding:20px; z-index:80; }
   .ov.an{ display:flex; }
-  .karte{ background:linear-gradient(180deg,#22304a,#18223a); border:2px solid var(--line);
-          border-radius:20px; padding:24px 26px; text-align:center; max-width:340px; width:100%;
-          box-shadow:0 26px 60px rgba(0,0,0,.6); }
-  .karte h2{ margin:0 0 6px; font-size:1.4rem; }
-  .karte p{ margin:0 0 14px; color:var(--muted); font-size:.9rem; }
-  .sterne{ font-size:2.1rem; letter-spacing:6px; margin:6px 0 12px; }
-  .sterne .aus{ opacity:.22; }
+  .karte{
+    background:linear-gradient(180deg,var(--creme),#f0e2c4);
+    border:6px solid var(--gold); border-radius:24px; padding:22px 24px; text-align:center;
+    max-width:340px; width:100%; box-shadow:0 14px 0 rgba(0,0,0,.3);
+  }
+  .karte h2{ font-family:Anton,sans-serif; font-weight:400; margin:0 0 8px; font-size:1.35rem; color:var(--rot); }
+  .karte p{ margin:0 0 14px; font-size:.88rem; color:var(--text); }
+  .sterne{ font-size:2.1rem; letter-spacing:6px; margin:4px 0 12px; color:var(--gelb);
+           text-shadow:0 2px 0 rgba(0,0,0,.2); }
+  .sterne .aus{ color:#d8cbaa; text-shadow:none; }
+
+  /* ---------- Slogan ---------- */
+  .slogan{
+    position:fixed; left:0; right:0; bottom:0; height:34px; z-index:50;
+    background:linear-gradient(90deg,var(--rot) 0 34%,var(--gelb) 34% 67%,var(--gruen) 67% 100%);
+    display:flex; align-items:center; justify-content:center;
+    font-family:Anton,sans-serif; font-size:.72rem; color:#fff; letter-spacing:1.5px;
+    text-shadow:0 2px 0 rgba(0,0,0,.25); text-align:center; padding:0 8px;
+  }
 </style>
 </head>
 <body>
 
-<a href="../" class="kmf-back" aria-label="Zurück zur Spiele-Auswahl">🎮 Spiele</a>
-<button class="sound-btn" id="b-sound" aria-label="Ton ein/aus">🔊</button>
-
-<h1>🔧 KMF-Werkstatt</h1>
-<p class="sub">Drei gleiche Teile in eine Reihe bringen, Sterne verdienen – und damit die alte Fahrzeug&shy;halle Schritt für Schritt wieder auf Vordermann bringen.</p>
-
-<div class="tabs">
-  <button class="tab aktiv" data-view="halle">🏗️ Halle</button>
-  <button class="tab" data-view="spiel">🎮 Level</button>
+<div class="kopfband">
+  <a href="../" class="kopf-knopf">🎮 Spiele</a>
+  <h1>Bau deine Fahrschule aus!</h1>
+  <button class="kopf-knopf" id="b-sound" aria-label="Ton ein/aus">🔊</button>
 </div>
 
-<!-- ============================ HALLE ============================ -->
-<section class="view" id="v-halle">
-
-  <div class="stats">
-    <div class="stat gold"><b id="s-sterne">0</b><span>Sterne</span></div>
-    <div class="stat"><b id="s-level">1</b><span>Level</span></div>
-    <div class="stat"><b id="s-fertig">0/10</b><span>Erledigt</span></div>
+<!-- ============================ FAHRSCHULE ============================ -->
+<section class="view" id="v-haus">
+  <div class="hud">
+    <div class="pille"><div class="rund">★</div><div><b id="s-sterne">0</b><small>Sterne</small></div></div>
+    <div class="pille"><div class="rund gr" id="s-lvl-rund">1</div><div><b id="s-fertig">0/29</b><small>Aufträge</small></div></div>
   </div>
 
-  <div class="szene-rahmen">
-    <div class="blitz" id="blitz"></div>
-    <svg id="szene" viewBox="0 0 900 500" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="sz-decke" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#131a29"/><stop offset="1" stop-color="#1d2739"/>
-        </linearGradient>
-        <linearGradient id="sz-wand-l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#2a2e33"/><stop offset="1" stop-color="#3c424a"/>
-        </linearGradient>
-        <linearGradient id="sz-wand-r" x1="1" y1="0" x2="0" y2="0">
-          <stop offset="0" stop-color="#272b30"/><stop offset="1" stop-color="#3a4048"/>
-        </linearGradient>
-        <linearGradient id="sz-wand-b" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#454b54"/><stop offset="1" stop-color="#31363d"/>
-        </linearGradient>
-        <linearGradient id="sz-boden-alt" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#3a3d42"/><stop offset="1" stop-color="#5a5d63"/>
-        </linearGradient>
-        <linearGradient id="sz-boden-neu" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#2b3a4d"/><stop offset="55%" stop-color="#3d5570"/><stop offset="1" stop-color="#4e6b8c"/>
-        </linearGradient>
-        <linearGradient id="sz-tor" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#5b93c9"/><stop offset="1" stop-color="#20486e"/>
-        </linearGradient>
-        <linearGradient id="sz-chrom" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#f1f5f9"/><stop offset="45%" stop-color="#94a3b8"/><stop offset="1" stop-color="#475569"/>
-        </linearGradient>
-        <linearGradient id="sz-lack" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#eaf4ff"/><stop offset="42%" stop-color="#b9d6f2"/><stop offset="1" stop-color="#6f9dc8"/>
-        </linearGradient>
-        <linearGradient id="sz-blau" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/>
-        </linearGradient>
-        <linearGradient id="sz-rost" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#a89a86"/><stop offset="45%" stop-color="#87735e"/><stop offset="1" stop-color="#5b4c3e"/>
-        </linearGradient>
-        <linearGradient id="sz-glas" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#cfe9ff"/><stop offset="55%" stop-color="#7ea9cd"/><stop offset="1" stop-color="#4a6a8a"/>
-        </linearGradient>
-        <radialGradient id="sz-lichtkegel" cx="50%" cy="0%" r="80%">
-          <stop offset="0" stop-color="#fff7d6" stop-opacity=".55"/>
-          <stop offset="1" stop-color="#fff7d6" stop-opacity="0"/>
-        </radialGradient>
-        <radialGradient id="sz-vignette" cx="50%" cy="45%" r="72%">
-          <stop offset="55%" stop-color="#000" stop-opacity="0"/>
-          <stop offset="1" stop-color="#000" stop-opacity=".55"/>
-        </radialGradient>
-        <linearGradient id="sz-reflex" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
-        </linearGradient>
+  <div class="ebenen" id="ebenen"></div>
 
-        <!-- Fahrzeug-Grundformen (einmal definiert, zweimal benutzt: Wrack + repariert) -->
-        <path id="pf-auto" d="M8,74 L11,57 C13,49 19,44 29,42 L63,40 C71,29 85,21 105,19 L143,19 C161,20 174,27 184,40 L215,44 C227,46 233,53 233,63 L233,74 C233,80 229,83 223,83 L18,83 C12,83 8,80 8,74 Z"/>
-        <path id="pf-auto-scheiben" d="M70,40 C77,31 88,26 104,25 L118,25 L118,40 Z M126,25 L142,25 C157,26 168,31 176,40 L126,40 Z"/>
-        <path id="pf-lkw-kabine" d="M6,42 C6,30 12,24 24,22 L86,18 C98,17 104,22 106,32 L112,64 L112,138 L10,138 C6,138 4,135 4,131 L4,60 Z"/>
-        <rect id="pf-lkw-koffer" x="118" y="10" width="286" height="122" rx="7"/>
-        <rect id="pf-anh-koffer" x="26" y="8" width="230" height="106" rx="7"/>
-      </defs>
-
-      <!-- Decke -->
-      <polygon points="0,55 900,55 640,130 260,130" fill="url(#sz-decke)"/>
-      <g stroke="#0b1220" stroke-opacity=".55" stroke-width="4" fill="none">
-        <path d="M150,55 L305,130"/><path d="M450,55 L450,130"/><path d="M750,55 L595,130"/>
-      </g>
-
-      <!-- Seitenwände + Rückwand -->
-      <polygon points="0,55 260,130 260,362 0,500" fill="url(#sz-wand-l)"/>
-      <polygon points="900,55 640,130 640,362 900,500" fill="url(#sz-wand-r)"/>
-      <rect x="260" y="130" width="380" height="232" fill="url(#sz-wand-b)"/>
-
-      <!-- Fenster oben in der Rückwand -->
-      <g>
-        <rect x="300" y="146" width="120" height="42" rx="4" fill="url(#sz-glas)" opacity=".8"/>
-        <rect x="480" y="146" width="120" height="42" rx="4" fill="url(#sz-glas)" opacity=".8"/>
-        <g stroke="#1f2937" stroke-width="3" fill="none">
-          <rect x="300" y="146" width="120" height="42" rx="4"/><path d="M360,146 V188 M300,167 H420"/>
-          <rect x="480" y="146" width="120" height="42" rx="4"/><path d="M540,146 V188 M480,167 H600"/>
-        </g>
-        <g data-vor="schutt" stroke="#111827" stroke-width="2.5" fill="none" opacity=".9">
-          <path d="M306,152 L352,182 M330,148 L318,186 M486,182 L594,152"/>
-        </g>
-      </g>
-
-      <!-- ===== Boden ===== -->
-      <polygon data-vor="boden" points="0,500 900,500 640,362 260,362" fill="url(#sz-boden-alt)"/>
-      <g data-vor="boden" opacity=".5">
-        <path d="M120,470 L300,378 M330,500 L420,366 M560,500 L500,366 M770,470 L620,376"
-              stroke="#2f3237" stroke-width="3" fill="none"/>
-      </g>
-      <g data-nach="boden">
-        <polygon points="0,500 900,500 640,362 260,362" fill="url(#sz-boden-neu)"/>
-        <!-- Fluchtlinien / Parkfelder -->
-        <g stroke="#fbbf24" stroke-opacity=".85" stroke-width="4" fill="none" stroke-linecap="round">
-          <path d="M300,370 L120,500"/><path d="M400,370 L360,500"/>
-          <path d="M500,370 L540,500"/><path d="M600,370 L780,500"/>
-          <path d="M268,392 L632,392" stroke-opacity=".35" stroke-width="3"/>
-          <path d="M215,436 L685,436" stroke-opacity=".3" stroke-width="3"/>
-        </g>
-        <!-- Glanz auf dem Epoxidboden -->
-        <polygon points="270,366 340,366 210,500 60,500" fill="url(#sz-reflex)" opacity=".5"/>
-        <polygon points="560,366 630,366 840,500 690,500" fill="url(#sz-reflex)" opacity=".35"/>
-      </g>
-      <!-- Ölflecken (vor dem Aufräumen) -->
-      <g data-vor="schutt" opacity=".65">
-        <path d="M300,452 C330,436 372,438 386,452 C400,466 372,482 340,480 C310,478 286,464 300,452Z" fill="#151719"/>
-        <path d="M600,410 C618,400 646,402 652,412 C658,422 638,432 616,430 C598,428 590,418 600,410Z" fill="#171a1d"/>
-      </g>
-
-      <!-- ===== Rückwand: Tor ===== -->
-      <g data-vor="tor">
-        <rect x="352" y="196" width="196" height="166" fill="#191c20"/>
-        <g fill="url(#sz-rost)">
-          <rect x="344" y="212" width="212" height="18" transform="rotate(-4 450 221)"/>
-          <rect x="344" y="268" width="212" height="16" transform="rotate(3 450 276)"/>
-          <rect x="352" y="322" width="196" height="16" transform="rotate(-2 450 330)"/>
-        </g>
-        <rect x="348" y="190" width="204" height="10" fill="#4b5158"/>
-      </g>
-      <g data-nach="tor">
-        <rect x="348" y="192" width="204" height="172" rx="4" fill="#8a929c"/>
-        <rect x="352" y="196" width="196" height="166" fill="url(#sz-tor)"/>
-        <g fill="#000" fill-opacity=".14">
-          <rect x="352" y="196" width="196" height="6"/><rect x="352" y="236" width="196" height="6"/>
-          <rect x="352" y="276" width="196" height="6"/><rect x="352" y="316" width="196" height="6"/>
-        </g>
-        <g fill="#fff" fill-opacity=".16">
-          <rect x="352" y="202" width="196" height="4"/><rect x="352" y="242" width="196" height="4"/>
-          <rect x="352" y="282" width="196" height="4"/><rect x="352" y="322" width="196" height="4"/>
-        </g>
-        <g fill="url(#sz-glas)" opacity=".85">
-          <rect x="372" y="248" width="46" height="22" rx="3"/>
-          <rect x="428" y="248" width="46" height="22" rx="3"/>
-          <rect x="484" y="248" width="46" height="22" rx="3"/>
-        </g>
-        <rect x="344" y="184" width="212" height="10" rx="3" fill="#cbd5e1"/>
-      </g>
-
-      <!-- ===== KMF-Beschriftung + Fahne ===== -->
-      <g data-nach="logo">
-        <rect x="326" y="140" width="248" height="42" rx="8" fill="#0b2e52" stroke="#7dd3fc" stroke-width="3"/>
-        <text x="450" y="169" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-              font-size="24" font-weight="bold" fill="#f8fafc" letter-spacing="1.5">KMFAHRSCHULE</text>
-        <g>
-          <rect x="610" y="178" width="6" height="128" fill="#94a3b8"/>
-          <path d="M616,184 L706,198 L706,232 L616,220 Z" fill="url(#sz-blau)"/>
-          <text x="660" y="215" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-                font-size="19" font-weight="bold" fill="#f8fafc" transform="rotate(7 660 209)">KMF</text>
-        </g>
-      </g>
-
-      <!-- ===== Linke Wand: Werkzeugwand + Werkbank ===== -->
-      <g data-nach="wand">
-        <polygon points="80,162 232,178 232,282 80,316" fill="#1f4b73" stroke="#0f2a44" stroke-width="4"/>
-        <g fill="#0b1220" fill-opacity=".35">
-          <circle cx="104" cy="196" r="3"/><circle cx="140" cy="200" r="3"/><circle cx="176" cy="204" r="3"/><circle cx="212" cy="208" r="3"/>
-          <circle cx="104" cy="240" r="3"/><circle cx="140" cy="242" r="3"/><circle cx="176" cy="244" r="3"/><circle cx="212" cy="246" r="3"/>
-        </g>
-        <!-- Werkzeuge -->
-        <g stroke="url(#sz-chrom)" stroke-width="7" stroke-linecap="round" fill="none">
-          <path d="M100,206 L108,246"/><path d="M124,210 L134,248"/>
-        </g>
-        <g fill="url(#sz-chrom)">
-          <rect x="150" y="212" width="9" height="42" rx="4"/>
-          <path d="M146,212 h17 v10 h-17 z"/>
-          <rect x="178" y="216" width="9" height="40" rx="4"/>
-          <circle cx="182" cy="258" r="9"/>
-          <rect x="202" y="218" width="10" height="26" rx="3"/>
-          <path d="M198,244 h18 l-4,14 h-10 z"/>
-        </g>
-        <!-- Werkbank -->
-        <polygon points="66,330 240,292 240,312 66,352" fill="#9aa5b1"/>
-        <polygon points="66,352 240,312 240,368 66,412" fill="#33506e"/>
-        <polygon points="66,352 82,349 82,414 66,412" fill="#24405c"/>
-        <g fill="#e2e8f0" opacity=".8">
-          <rect x="96" y="330" width="26" height="9" rx="3" transform="rotate(-12 96 330)"/>
-          <rect x="150" y="318" width="20" height="9" rx="3" transform="rotate(-12 150 318)"/>
-        </g>
-        <!-- Schraubstock -->
-        <g transform="translate(196,296) rotate(-12)">
-          <rect x="0" y="0" width="26" height="10" rx="3" fill="#1e40af"/>
-          <rect x="6" y="-10" width="8" height="12" rx="2" fill="#1e3a8a"/>
-        </g>
-      </g>
-
-      <!-- ===== Rechte Seite: Hebebühne ===== -->
-      <g data-nach="hebebuehne">
-        <ellipse cx="726" cy="428" rx="118" ry="20" fill="#000" opacity=".32"/>
-        <rect x="648" y="250" width="26" height="180" rx="4" fill="url(#sz-chrom)"/>
-        <rect x="778" y="242" width="26" height="188" rx="4" fill="url(#sz-chrom)"/>
-        <rect x="648" y="238" width="156" height="16" rx="5" fill="#1e40af"/>
-        <rect x="640" y="424" width="42" height="12" rx="4" fill="#334155"/>
-        <rect x="770" y="424" width="42" height="12" rx="4" fill="#334155"/>
-        <g fill="#facc15">
-          <rect x="666" y="336" width="122" height="12" rx="5"/>
-          <rect x="662" y="330" width="18" height="24" rx="5"/>
-          <rect x="774" y="326" width="18" height="24" rx="5"/>
-        </g>
-        <rect x="806" y="286" width="34" height="52" rx="6" fill="#0f172a" stroke="#475569" stroke-width="3"/>
-        <circle cx="823" cy="300" r="5" fill="#22c55e"/><circle cx="823" cy="316" r="5" fill="#ef4444"/>
-      </g>
-
-      <!-- ===== LKW (hinten Mitte) ===== -->
-      <g transform="translate(152,264) scale(0.62)">
-        <ellipse cx="210" cy="176" rx="215" ry="18" fill="#000" opacity=".33"/>
-        <!-- Wrack -->
-        <g data-vor="lkw">
-          <use href="#pf-lkw-koffer" fill="url(#sz-rost)" stroke="#2b241c" stroke-width="4"/>
-          <use href="#pf-lkw-kabine" fill="url(#sz-rost)" stroke="#2b241c" stroke-width="4"/>
-          <g stroke="#4a3c2c" stroke-width="3" fill="none" opacity=".8">
-            <path d="M140,14 L140,128 M200,14 L200,128 M260,14 L260,128 M320,14 L320,128"/>
-          </g>
-          <g fill="#2a2f36">
-            <rect x="150" y="30" width="60" height="70" rx="4" transform="rotate(6 180 65)"/>
-            <rect x="250" y="46" width="70" height="60" rx="4" transform="rotate(-5 285 76)"/>
-          </g>
-          <path d="M18,44 L96,40 L100,74 L20,76 Z" fill="#20242a"/>
-          <g fill="#3b3f46"><rect x="40" y="140" width="46" height="30" rx="4"/><rect x="300" y="140" width="46" height="30" rx="4"/></g>
-          <path d="M120,10 L404,132" stroke="#3b3f46" stroke-width="5" opacity=".7"/>
-        </g>
-        <!-- Repariert -->
-        <g data-nach="lkw">
-          <use href="#pf-lkw-koffer" fill="url(#sz-lack)" stroke="#5b7fa6" stroke-width="3"/>
-          <rect x="118" y="52" width="286" height="30" fill="#1d4ed8"/>
-          <text x="262" y="76" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-                font-size="27" font-weight="bold" fill="#f8fafc" letter-spacing="2">KMFAHRSCHULE</text>
-          <use href="#pf-lkw-kabine" fill="url(#sz-blau)" stroke="#1e3a8a" stroke-width="3"/>
-          <path d="M18,44 C18,36 22,32 30,31 L88,27 C96,27 99,31 100,38 L104,68 L20,70 Z" fill="url(#sz-glas)"/>
-          <rect x="8" y="96" width="100" height="16" rx="5" fill="#e2e8f0"/>
-          <circle cx="26" cy="122" r="10" fill="#fef3c7" stroke="#94a3b8" stroke-width="3"/>
-          <rect x="118" y="126" width="286" height="12" rx="4" fill="#64748b"/>
-          <!-- Fahrschul-Dachschild -->
-          <rect x="20" y="2" width="80" height="21" rx="5" fill="#facc15" stroke="#a16207" stroke-width="2"/>
-          <text x="60" y="18" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-                font-size="12" font-weight="bold" fill="#3b2606">FAHRSCHULE</text>
-          <g>
-            <g transform="translate(62,144)"><circle r="30" fill="#111418"/><circle r="15" fill="url(#sz-chrom)"/><circle r="5" fill="#64748b"/></g>
-            <g transform="translate(300,144)"><circle r="30" fill="#111418"/><circle r="15" fill="url(#sz-chrom)"/><circle r="5" fill="#64748b"/></g>
-            <g transform="translate(360,144)"><circle r="30" fill="#111418"/><circle r="15" fill="url(#sz-chrom)"/><circle r="5" fill="#64748b"/></g>
-          </g>
-        </g>
-      </g>
-
-      <!-- ===== Anhänger (vorne rechts) ===== -->
-      <g transform="translate(462,356) scale(0.70)">
-        <ellipse cx="150" cy="150" rx="150" ry="15" fill="#000" opacity=".3"/>
-        <g data-vor="anhaenger">
-          <use href="#pf-anh-koffer" fill="url(#sz-rost)" stroke="#2b241c" stroke-width="4"/>
-          <g stroke="#4a3c2c" stroke-width="3" fill="none" opacity=".8">
-            <path d="M90,12 L90,110 M150,12 L150,110 M210,12 L210,110"/>
-          </g>
-          <path d="M26,60 L0,84 L0,96 L26,96 Z" fill="#4a423a"/>
-          <g fill="#2a2f36"><rect x="60" y="30" width="60" height="50" rx="4" transform="rotate(-6 90 55)"/></g>
-          <g fill="#3b3f46"><rect x="70" y="118" width="40" height="26" rx="4"/><rect x="180" y="118" width="40" height="26" rx="4"/></g>
-        </g>
-        <g data-nach="anhaenger">
-          <use href="#pf-anh-koffer" fill="url(#sz-lack)" stroke="#5b7fa6" stroke-width="3"/>
-          <rect x="26" y="44" width="230" height="26" fill="#1d4ed8"/>
-          <text x="141" y="66" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-                font-size="22" font-weight="bold" fill="#f8fafc" letter-spacing="1.5">KAT. CE</text>
-          <path d="M26,74 L0,88 L0,100 L26,100 Z" fill="#94a3b8"/>
-          <circle cx="4" cy="94" r="8" fill="#64748b"/>
-          <rect x="26" y="110" width="230" height="10" rx="4" fill="#64748b"/>
-          <g>
-            <g transform="translate(92,124)"><circle r="24" fill="#111418"/><circle r="12" fill="url(#sz-chrom)"/></g>
-            <g transform="translate(146,124)"><circle r="24" fill="#111418"/><circle r="12" fill="url(#sz-chrom)"/></g>
-          </g>
-          <rect x="248" y="96" width="10" height="16" rx="3" fill="#ef4444"/>
-        </g>
-      </g>
-
-      <!-- ===== Fahrschulauto (vorne links) ===== -->
-      <g transform="translate(48,382) scale(0.95)">
-        <ellipse cx="120" cy="102" rx="126" ry="14" fill="#000" opacity=".35"/>
-        <g data-vor="auto">
-          <use href="#pf-auto" fill="url(#sz-rost)" stroke="#2b241c" stroke-width="3"/>
-          <use href="#pf-auto-scheiben" fill="#20242a"/>
-          <g fill="#3b3f46"><rect x="36" y="84" width="46" height="20" rx="4"/><rect x="160" y="84" width="46" height="20" rx="4"/></g>
-          <path d="M60,44 L120,60 M150,30 L176,52" stroke="#4a423a" stroke-width="4" fill="none"/>
-        </g>
-        <g data-nach="auto">
-          <use href="#pf-auto" fill="url(#sz-lack)" stroke="#5b7fa6" stroke-width="2.5"/>
-          <use href="#pf-auto-scheiben" fill="url(#sz-glas)"/>
-          <rect x="10" y="62" width="222" height="9" rx="4" fill="#1d4ed8"/>
-          <path d="M120,20 L120,83" stroke="#7ea9cd" stroke-width="2" opacity=".7"/>
-          <circle cx="228" cy="60" r="7" fill="#fef3c7" stroke="#94a3b8" stroke-width="2"/>
-          <circle cx="13" cy="62" r="5" fill="#ef4444"/>
-          <rect x="90" y="5" width="72" height="18" rx="5" fill="#facc15" stroke="#a16207" stroke-width="2"/>
-          <text x="126" y="18" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-                font-size="11" font-weight="bold" fill="#3b2606">FAHRSCHULE</text>
-          <g>
-            <g transform="translate(58,84)"><circle r="22" fill="#111418"/><circle r="11" fill="url(#sz-chrom)"/><circle r="3.5" fill="#64748b"/></g>
-            <g transform="translate(182,84)"><circle r="22" fill="#111418"/><circle r="11" fill="url(#sz-chrom)"/><circle r="3.5" fill="#64748b"/></g>
-          </g>
-          <path d="M20,30 C60,18 110,14 150,17" stroke="#fff" stroke-opacity=".35" stroke-width="5" fill="none" stroke-linecap="round"/>
-        </g>
-      </g>
-
-      <!-- ===== Gerümpel / Dreck (vor dem Aufräumen) ===== -->
-      <g data-vor="schutt">
-        <!-- Pneu-Stapel -->
-        <g transform="translate(332,420)">
-          <ellipse cx="0" cy="52" rx="52" ry="12" fill="#000" opacity=".35"/>
-          <g fill="#1b1e23" stroke="#0d0f12" stroke-width="3">
-            <ellipse cx="0" cy="44" rx="46" ry="15"/><ellipse cx="2" cy="28" rx="46" ry="15"/><ellipse cx="-3" cy="12" rx="46" ry="15"/>
-          </g>
-          <ellipse cx="-3" cy="12" rx="20" ry="7" fill="#33383f"/>
-        </g>
-        <!-- Kisten -->
-        <g transform="translate(700,398)">
-          <polygon points="0,20 70,4 70,64 0,84" fill="#8a6a44"/>
-          <polygon points="70,4 122,20 122,76 70,64" fill="#6b5134"/>
-          <polygon points="0,20 52,4 122,20 70,4" fill="#a5814f"/>
-          <path d="M0,44 L70,30 M70,30 L122,46" stroke="#5a4429" stroke-width="4" fill="none"/>
-        </g>
-        <!-- Ölfass -->
-        <g transform="translate(600,398) rotate(-8)">
-          <rect x="0" y="0" width="52" height="76" rx="8" fill="#6b7a52"/>
-          <ellipse cx="26" cy="4" rx="26" ry="8" fill="#8a9c6a"/>
-          <path d="M0,24 h52 M0,48 h52" stroke="#4c5838" stroke-width="5"/>
-        </g>
-        <!-- Palette + Bretter -->
-        <g transform="translate(452,452)" fill="#7a6247">
-          <rect x="0" y="18" width="126" height="9" rx="2" transform="rotate(-4 63 22)"/>
-          <rect x="6" y="32" width="126" height="9" rx="2" transform="rotate(3 69 36)"/>
-          <rect x="0" y="46" width="126" height="9" rx="2" transform="rotate(-2 63 50)"/>
-        </g>
-        <!-- Spinnweben -->
-        <g stroke="#cbd5e1" stroke-opacity=".35" stroke-width="2" fill="none">
-          <path d="M260,130 L316,130 M260,130 L260,186 M260,146 L302,130 M260,162 L288,130
-                   M268,130 C268,142 258,148 262,158 M282,130 C282,150 268,158 262,170"/>
-          <path d="M640,130 L584,130 M640,130 L640,186 M640,146 L598,130 M640,162 L612,130"/>
-        </g>
-        <!-- Staubkörner -->
-        <g fill="#cbd5e1" opacity=".25">
-          <circle cx="330" cy="300" r="3"/><circle cx="520" cy="260" r="2.5"/><circle cx="180" cy="250" r="3"/>
-          <circle cx="720" cy="220" r="2.5"/><circle cx="470" cy="330" r="2"/>
-        </g>
-      </g>
-
-      <!-- ===== Licht ===== -->
-      <g data-nach="licht">
-        <g fill="#e2e8f0">
-          <rect x="188" y="96" width="128" height="12" rx="4"/>
-          <rect x="386" y="86" width="128" height="12" rx="4"/>
-          <rect x="584" y="96" width="128" height="12" rx="4"/>
-        </g>
-        <g fill="#fffbeb">
-          <rect x="192" y="106" width="120" height="7" rx="3.5"/>
-          <rect x="390" y="96" width="120" height="7" rx="3.5"/>
-          <rect x="588" y="106" width="120" height="7" rx="3.5"/>
-        </g>
-        <g opacity=".85">
-          <polygon points="192,112 312,112 392,500 88,500" fill="url(#sz-lichtkegel)"/>
-          <polygon points="390,102 510,102 610,500 292,500" fill="url(#sz-lichtkegel)"/>
-          <polygon points="588,112 708,112 812,500 508,500" fill="url(#sz-lichtkegel)"/>
-        </g>
-      </g>
-      <g data-vor="licht">
-        <path d="M450,55 L450,92" stroke="#475569" stroke-width="3"/>
-        <circle cx="450" cy="100" r="10" fill="#fde68a" opacity=".85"/>
-        <circle cx="450" cy="100" r="26" fill="#fde68a" opacity=".12"/>
-        <rect x="0" y="0" width="900" height="500" fill="#020617" opacity=".42"/>
-      </g>
-
-      <rect x="0" y="0" width="900" height="500" fill="url(#sz-vignette)" pointer-events="none"/>
-    </svg>
+  <div class="buehne-rahmen">
+    <div class="buehne" id="buehne">
+      <div class="himmel" id="himmel"></div>
+      <div class="iso-welt" id="welt"></div>
+      <div class="dunkel" id="dunkel" hidden></div>
+      <div class="vignette"></div>
+      <div class="blitz" id="blitz"></div>
+    </div>
   </div>
 
-  <div class="fortschritt"><i id="fortschritt-balken"></i></div>
-  <div class="aufgaben" id="aufgaben"></div>
-  <button class="cta" id="b-spielen">Level 1 spielen</button>
+  <div class="panel">
+    <div class="panel-kopf">
+      <div class="anton" id="panel-titel">AUFTRÄGE</div>
+      <small id="panel-zahl">0 / 0 erledigt</small>
+    </div>
+    <div class="auf-liste" id="aufgaben"></div>
+  </div>
+
+  <div class="spiel-start">
+    <div class="txt">Nächste Runde<b id="s-level-txt">LEVEL 1</b></div>
+    <button class="los" id="b-spielen">1</button>
+  </div>
+
   <div class="knopfreihe">
     <button class="knopf" id="b-reset">↺ Alles zurücksetzen</button>
   </div>
 </section>
 
-<!-- ============================ SPIEL ============================ -->
+<!-- ============================ SPIELFELD ============================ -->
 <section class="view" id="v-spiel" hidden>
-  <div class="stats">
-    <div class="stat"><b id="s-lvl">1</b><span>Level</span></div>
-    <div class="stat" id="w-zuege"><b id="s-zuege">24</b><span>Züge</span></div>
-    <div class="stat"><b id="s-punkte">0</b><span>Punkte</span></div>
+  <div class="hud">
+    <div class="pille"><div class="rund gr" id="s-lvl">1</div><div><b id="s-zuege">28</b><small>Züge</small></div></div>
+    <div class="pille"><div class="rund rt">P</div><div><b id="s-punkte">0</b><small>Punkte</small></div></div>
+    <div class="pille"><div class="rund">★</div><div><b id="s-sterne2">0</b><small>Sterne</small></div></div>
   </div>
   <div class="ziele" id="ziele"></div>
-  <div class="brett" id="brett"></div>
-  <p class="sub" style="margin:10px 0 0; font-size:.72rem;">
-    4 gleiche in einer Reihe = Turbo-Teil (räumt Reihe oder Spalte) &middot;
-    Kreuz = Bombe &middot; 5 gleiche = Regenbogen-Rad (nimmt eine ganze Farbe mit)
-  </p>
+  <div class="brett-rahmen"><div class="brett" id="brett"></div></div>
+  <p class="hinweis">4 gleiche in einer Reihe = Turbo-Teil · Kreuz = Bombe · 5 gleiche = Regenbogen-Rad</p>
   <div class="knopfreihe">
-    <button class="knopf" id="b-neustart">↻ Level neu starten</button>
-    <button class="knopf" id="b-halle">🏗️ Zur Halle</button>
+    <button class="knopf" id="b-neustart">↻ Neu starten</button>
+    <button class="knopf" id="b-haus">🏢 Zur Fahrschule</button>
   </div>
 </section>
 
@@ -583,9 +316,11 @@
     <h2 id="ov-titel">Geschafft!</h2>
     <div class="sterne" id="ov-sterne"></div>
     <p id="ov-text"></p>
-    <button class="cta" id="ov-knopf">Weiter</button>
+    <button class="los" id="ov-knopf" style="width:auto;padding:0 26px;border-radius:18px;margin:0 auto;font-size:1.1rem;">Weiter</button>
   </div>
 </div>
+
+<div class="slogan">DEIN WEG. DEIN ZIEL. WIR FAHREN IHN MIT DIR!</div>
 
 <div id="kmf-defs" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"></div>
 
@@ -596,14 +331,14 @@ const $ = id => document.getElementById(id);
 const schlaf = ms => new Promise(r => setTimeout(r, ms));
 
 /* ================================================================
-   1. GRAFIK: Spielsteine als SVG-Symbole
+   1. SPIELSTEINE (SVG)
    ================================================================ */
 const TEILE = [
-  { id:"pneu",       name:"Pneu",             farbe:"#94a3b8" },
-  { id:"dreieck",    name:"Warndreieck",      farbe:"#ef4444" },
-  { id:"pylone",     name:"Leitkegel",        farbe:"#f97316" },
-  { id:"weste",      name:"Warnweste",        farbe:"#facc15" },
-  { id:"baum",       name:"Duftbaum",         farbe:"#22c55e" },
+  { id:"pneu",       name:"Pneu",               farbe:"#94a3b8" },
+  { id:"dreieck",    name:"Warndreieck",        farbe:"#ef4444" },
+  { id:"pylone",     name:"Leitkegel",          farbe:"#f97316" },
+  { id:"weste",      name:"Warnweste",          farbe:"#facc15" },
+  { id:"baum",       name:"Duftbaum",           farbe:"#22c55e" },
   { id:"schluessel", name:"Schraubenschlüssel", farbe:"#3b82f6" }
 ];
 const ANZ_TYPEN = TEILE.length;
@@ -669,7 +404,6 @@ $("kmf-defs").innerHTML = `
   </linearGradient>
 </defs>
 
-<!-- 1: Pneu -->
 <symbol id="t-pneu" viewBox="0 0 100 100">
   <circle cx="50" cy="52" r="42" fill="url(#g-gummi)"/>
   <g fill="#0b0d11" opacity=".7">${profil()}</g>
@@ -681,7 +415,6 @@ $("kmf-defs").innerHTML = `
   <path d="M23,33 A36,36 0 0 1 66,17" stroke="#fff" stroke-opacity=".22" stroke-width="8" fill="none" stroke-linecap="round"/>
 </symbol>
 
-<!-- 2: Warndreieck -->
 <symbol id="t-dreieck" viewBox="0 0 100 100">
   <path d="M50,9 L93,86 L7,86 Z" fill="url(#g-rot)" stroke="#7f1d1d" stroke-width="3" stroke-linejoin="round"/>
   <path d="M50,26 L79,79 L21,79 Z" fill="#f8fafc"/>
@@ -692,7 +425,6 @@ $("kmf-defs").innerHTML = `
   <rect x="62" y="88" width="14" height="6" rx="3" fill="#374151"/>
 </symbol>
 
-<!-- 3: Leitkegel -->
 <symbol id="t-pylone" viewBox="0 0 100 100">
   <ellipse cx="50" cy="88" rx="33" ry="7" fill="#000" opacity=".3"/>
   <path d="M50,8 C54,8 56,11 57,16 L75,80 L25,80 L43,16 C44,11 46,8 50,8 Z" fill="url(#g-orange)"/>
@@ -702,7 +434,6 @@ $("kmf-defs").innerHTML = `
   <path d="M18,80 L82,80 C85,80 87,81 88,83 L12,83 C13,81 15,80 18,80 Z" fill="#4b5563"/>
 </symbol>
 
-<!-- 4: Warnweste -->
 <symbol id="t-weste" viewBox="0 0 100 100">
   <path d="M31,20 L44,15 C48,23 52,23 56,15 L69,20 C78,23 83,29 83,38 L83,80 C83,85 80,88 75,88 L25,88 C20,88 17,85 17,80 L17,38 C17,29 22,23 31,20 Z"
         fill="url(#g-gelb)" stroke="#a16207" stroke-width="2.5" stroke-linejoin="round"/>
@@ -716,7 +447,6 @@ $("kmf-defs").innerHTML = `
   <path d="M31,20 C24,24 21,29 21,38 L21,80" stroke="#fff" stroke-opacity=".3" stroke-width="4" fill="none" stroke-linecap="round"/>
 </symbol>
 
-<!-- 5: Duftbaum -->
 <symbol id="t-baum" viewBox="0 0 100 100">
   <path d="M50,10 C52,10 53,11 54,13 L60,26 L55,26 L64,44 L58,44 L70,66 L30,66 L42,44 L36,44 L45,26 L40,26 L46,13 C47,11 48,10 50,10 Z"
         fill="url(#g-gruen)" stroke="#14532d" stroke-width="2.5" stroke-linejoin="round"/>
@@ -727,7 +457,6 @@ $("kmf-defs").innerHTML = `
         font-size="11" font-weight="bold" fill="#dcfce7" opacity=".85">KMF</text>
 </symbol>
 
-<!-- 6: Schraubenschlüssel -->
 <symbol id="t-schluessel" viewBox="0 0 100 100">
   <g transform="rotate(-34 50 50)">
     <rect x="43" y="20" width="14" height="58" rx="6" fill="url(#g-chrom)"/>
@@ -740,7 +469,6 @@ $("kmf-defs").innerHTML = `
   </g>
 </symbol>
 
-<!-- Spezial: Farbbombe -->
 <symbol id="t-bombe-farbe" viewBox="0 0 100 100">
   <circle cx="50" cy="52" r="42" fill="#0f172a"/>
   <g opacity=".95">${regenbogenKuchen()}</g>
@@ -750,7 +478,6 @@ $("kmf-defs").innerHTML = `
   <ellipse cx="38" cy="30" rx="17" ry="10" fill="url(#g-schein)" opacity=".7" transform="rotate(-30 38 30)"/>
 </symbol>
 
-<!-- Überzüge für Spezialteile -->
 <symbol id="ov-reihe" viewBox="0 0 100 100">
   <rect x="2" y="42" width="96" height="18" rx="9" fill="#fff" opacity=".28"/>
   <rect x="2" y="46" width="96" height="10" rx="5" fill="url(#g-feuer)" opacity=".95"/>
@@ -781,10 +508,13 @@ function steinSVG(typ, spezial){
 /* ================================================================
    2. TON
    ================================================================ */
-const KEY = "kmf-werkstatt-v1";
+const KEY = "kmf-werkstatt-v2";
 let ton = localStorage.getItem(KEY + "-ton") !== "0";
 let ctx = null;
-function tonAn(){ if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} } if (ctx && ctx.state === "suspended") ctx.resume(); }
+function tonAn(){
+  if (!ctx){ try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+  if (ctx && ctx.state === "suspended") ctx.resume();
+}
 function piep(f, dauer, art, laut){
   if (!ton || !ctx) return;
   const o = ctx.createOscillator(), g = ctx.createGain();
@@ -795,30 +525,403 @@ function piep(f, dauer, art, laut){
   o.connect(g); g.connect(ctx.destination);
   o.start(); o.stop(ctx.currentTime + dauer + .02);
 }
-const sndTausch = () => piep(420, .08, "sine", .07);
+const sndTausch  = () => piep(420, .08, "sine", .07);
 const sndTreffer = k => piep(430 + Math.min(k,6)*70, .13, "triangle", .1);
 const sndSpezial = () => { piep(300,.18,"sawtooth",.09); setTimeout(()=>piep(700,.16,"square",.06),70); };
-const sndFehler = () => piep(150, .12, "sine", .06);
-const sndStern = () => { [660,880,1180].forEach((f,i)=>setTimeout(()=>piep(f,.18,"triangle",.11), i*90)); };
+const sndFehler  = () => piep(150, .12, "sine", .06);
+const sndStern   = () => { [660,880,1180].forEach((f,i)=>setTimeout(()=>piep(f,.18,"triangle",.11), i*90)); };
 
 /* ================================================================
-   3. AUFGABEN IN DER HALLE
+   3. ISOMETRISCHE BAUTEILE
+   ================================================================
+   x = nach rechts-oben, y = nach rechts-unten, z = Höhe.
+   Sichtbar sind: Oberseite, die +y-Seite und die -x-Seite.
    ================================================================ */
-const AUFGABEN = [
-  { id:"schutt",     em:"🧹", titel:"Schutt & Gerümpel weg",   text:"Pneu-Stapel, Kisten und Ölflecken entsorgen", kosten:1 },
-  { id:"tor",        em:"🚪", titel:"Hallentor ersetzen",       text:"Neues Sektionaltor statt Bretterverschlag",   kosten:2 },
-  { id:"licht",      em:"💡", titel:"Licht montieren",          text:"Drei LED-Bänder unter die Decke",             kosten:2 },
-  { id:"boden",      em:"🪣", titel:"Boden versiegeln",         text:"Epoxid-Beschichtung und Markierungen",        kosten:3 },
-  { id:"wand",       em:"🧰", titel:"Werkzeugwand & Werkbank",  text:"Ordnung ins Werkzeug bringen",                kosten:2 },
-  { id:"hebebuehne", em:"🛠️", titel:"Hebebühne einbauen",       text:"Zwei-Säulen-Bühne für den Service",           kosten:3 },
-  { id:"auto",       em:"🚗", titel:"Fahrschulauto herrichten", text:"Kat. B – Lack, Räder, Dachschild",            kosten:3 },
-  { id:"anhaenger",  em:"🚛", titel:"Anhänger herrichten",      text:"Kat. CE – Koffer, Deichsel, Räder",           kosten:3 },
-  { id:"lkw",        em:"🚚", titel:"Lastwagen herrichten",     text:"Kat. C – Kabine, Koffer, Beschriftung",       kosten:4 },
-  { id:"logo",       em:"🏁", titel:"KMF-Beschriftung & Fahne", text:"Das Schild über dem Tor und die Fahne",       kosten:2 }
+function stil(p){ return p.s ? p.s : ""; }
+function beschriftung(p){
+  return p.txt ? `<span style="${p.ts || "font-size:26px;color:rgba(255,255,255,.85)"}">${p.txt}</span>` : "";
+}
+function teilHtml(p){
+  const zu = p.vor ? ` data-vor="${p.vor}"` : (p.nach ? ` data-nach="${p.nach}"` : "");
+  const f = p.f || "#999";
+  if (p.t === "k"){  // Scheibe / Kugel von oben
+    return `<div class="iso-teil"${zu} style="left:${p.x}px;top:${p.y}px;width:${p.d}px;height:${p.d}px;`
+         + `transform:translateZ(${p.z||0}px);background:${f};border-radius:50%;${stil(p)}"></div>`;
+  }
+  if (p.t === "p"){  // flache Platte
+    return `<div class="iso-teil"${zu} style="left:${p.x}px;top:${p.y}px;width:${p.b}px;height:${p.d}px;`
+         + `transform:translateZ(${p.z||0}px);background:${f};${stil(p)}">${beschriftung(p)}</div>`;
+  }
+  if (p.t === "w"){  // senkrechte Fläche, schaut nach +y (z.B. Tor, Schild)
+    return `<div class="iso-teil"${zu} style="left:${p.x}px;top:${p.y}px;width:${p.b}px;height:${p.h}px;`
+         + `transform-origin:0 0;transform:translateZ(${(p.z||0)+p.h}px) rotateX(-90deg);background:${f};${stil(p)}">`
+         + beschriftung(p) + `</div>`;
+  }
+  // Quader
+  const z = p.z || 0, h = p.h;
+  const oben  = `<div class="iso-teil"${zu} style="left:${p.x}px;top:${p.y}px;width:${p.b}px;height:${p.d}px;`
+              + `transform:translateZ(${z+h}px);background:${f};${p.rad?`border-radius:${p.rad};`:""}${stil(p)}">${beschriftung(p)}</div>`;
+  const vorne = `<div class="iso-teil"${zu} style="left:${p.x}px;top:${p.y+p.d}px;width:${p.b}px;height:${h}px;`
+              + `transform-origin:0 0;transform:translateZ(${z+h}px) rotateX(-90deg);background:${f};filter:brightness(.8);"></div>`;
+  const links = `<div class="iso-teil"${zu} style="left:${p.x}px;top:${p.y}px;width:${h}px;height:${p.d}px;`
+              + `transform-origin:0 0;transform:translateZ(${z}px) rotateY(-90deg);background:${f};filter:brightness(.62);"></div>`;
+  return oben + vorne + links;
+}
+
+/* Fahrzeuge als Baukasten -------------------------------------- */
+function autoTeile(x, y, kaputt, tag){
+  const lack = kaputt ? "linear-gradient(150deg,#a89a86,#6b5c49)" : "linear-gradient(150deg,#ffffff,#dde3e7)";
+  const zu = tag ? (kaputt ? { vor:tag } : { nach:tag }) : {};
+  const p = [];
+  p.push({ t:"p", x:x-16, y:y-16, z:1, b:212, d:292, f:"radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.42), rgba(0,0,0,0) 72%)", ...zu });
+  p.push({ t:"q", x, y, z:12, b:180, d:260, h:48, f:lack, rad:"16px", ...zu });
+  p.push({ t:"q", x:x+16, y:y+64, z:60, b:148, d:118, h:44,
+           f: kaputt ? "linear-gradient(150deg,#8d8172,#5c5145)" : "linear-gradient(150deg,#f6f8f9,#ccd3d8)",
+           rad:"14px 14px 6px 6px", ...zu });
+  if (!kaputt){
+    p.push({ t:"w", x:x+16, y:y+182, z:60, b:148, h:40, f:"linear-gradient(180deg,#5b7f9c,#22384a)", s:"border-radius:6px", ...zu });
+    p.push({ t:"q", x:x+8, y:y+228, z:30, b:164, d:16, h:12, f:"#E2231A", ...zu });
+    p.push({ t:"q", x:x+8, y:y+16,  z:30, b:164, d:16, h:12, f:"#FFC300", ...zu });
+    p.push({ t:"q", x:x+44, y:y+92, z:104, b:92, d:32, h:12, f:"linear-gradient(160deg,#FFC300,#dda200)", rad:"5px",
+             txt:"FAHRSCHULE", ts:"font-size:14px;color:#2b2b2b", ...zu });
+  }
+  const rad = "radial-gradient(50% 50% at 50% 50%, #33383c 38%, #15181b 39%)";
+  [[x-14,y+22],[x-14,y+186],[x+164,y+22],[x+164,y+186]].forEach(([rx,ry]) => {
+    p.push({ t:"k", x:rx, y:ry, z:12, d:34, f:rad, ...zu });
+  });
+  return p;
+}
+function lkwTeile(x, y, kaputt, tag){
+  const lack = kaputt ? "linear-gradient(150deg,#a89a86,#6b5c49)" : "linear-gradient(150deg,#ffffff,#dfe5e9)";
+  const zu = tag ? (kaputt ? { vor:tag } : { nach:tag }) : {};
+  const p = [];
+  p.push({ t:"p", x:x-24, y:y-24, z:1, b:290, d:520, f:"radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.45), rgba(0,0,0,0) 72%)", ...zu });
+  p.push({ t:"q", x, y:y+150, z:26, b:242, d:320, h:150, f:lack, rad:"6px", ...zu });     // Koffer
+  p.push({ t:"q", x, y, z:26, b:242, d:150, h:118, f:lack, rad:"8px 8px 4px 4px", ...zu }); // Kabine
+  if (!kaputt){
+    p.push({ t:"w", x:x+10, y:y+150, z:78, b:222, h:52, f:"linear-gradient(180deg,#6d93ad,#243c4e)", s:"border-radius:8px", ...zu });
+    p.push({ t:"q", x:x+2, y:y+150, z:96, b:238, d:16, h:16, f:"#E2231A", ...zu });
+    p.push({ t:"q", x:x+2, y:y+130, z:64, b:238, d:12, h:12, f:"#FFC300", ...zu });
+    p.push({ t:"q", x:x+40, y:y+240, z:176, b:150, d:44, h:8, f:"linear-gradient(160deg,#FFC300,#dda200)", rad:"5px",
+             txt:"KAT. C", ts:"font-size:24px;color:#2b2b2b", ...zu });
+    p.push({ t:"q", x:x+30, y:y+30, z:144, b:170, d:52, h:14, f:"linear-gradient(160deg,#FFC300,#dda200)", rad:"5px",
+             txt:"FAHRSCHULE", ts:"font-size:17px;color:#2b2b2b", ...zu });
+  } else {
+    p.push({ t:"p", x:x+30, y:y+200, z:178, b:180, d:120, f:"repeating-linear-gradient(38deg,rgba(0,0,0,.35) 0 4px,rgba(0,0,0,0) 4px 26px)", ...zu });
+  }
+  const rad = "radial-gradient(50% 50% at 50% 50%, #33383c 38%, #15181b 39%)";
+  [[x-20,y+40],[x-20,y+230],[x-20,y+320],[x+218,y+40],[x+218,y+230],[x+218,y+320]].forEach(([rx,ry]) => {
+    p.push({ t:"k", x:rx, y:ry, z:14, d:44, f:rad, ...zu });
+  });
+  return p;
+}
+function anhTeile(x, y, kaputt, tag){
+  const lack = kaputt ? "linear-gradient(150deg,#a89a86,#6b5c49)" : "linear-gradient(150deg,#eef1f3,#c5ccd1)";
+  const zu = tag ? (kaputt ? { vor:tag } : { nach:tag }) : {};
+  const p = [];
+  p.push({ t:"p", x:x-20, y:y-20, z:1, b:230, d:330, f:"radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.4), rgba(0,0,0,0) 72%)", ...zu });
+  p.push({ t:"q", x, y, z:34, b:190, d:290, h:104, f:lack, rad:"6px", ...zu });
+  if (!kaputt){
+    p.push({ t:"q", x:x+2, y:y+272, z:52, b:186, d:14, h:14, f:"#FFC300", ...zu });
+    p.push({ t:"q", x:x+22, y:y+70, z:138, b:146, d:56, h:8, f:"linear-gradient(160deg,#FFC300,#dda200)", rad:"5px",
+             txt:"ANHÄNGER BE", ts:"font-size:16px;color:#2b2b2b", ...zu });
+  }
+  const rad = "radial-gradient(50% 50% at 50% 50%, #33383c 38%, #15181b 39%)";
+  [[x-14,y+90],[x-14,y+170],[x+170,y+90],[x+170,y+170]].forEach(([rx,ry]) => {
+    p.push({ t:"k", x:rx, y:ry, z:12, d:32, f:rad, ...zu });
+  });
+  return p;
+}
+
+/* ================================================================
+   4. DIE VIER EBENEN
+   ================================================================ */
+const WAND_HELL = "linear-gradient(160deg,#efe9db,#d3ccba)";
+const WAND_ROH  = "linear-gradient(160deg,#9aa0a6,#6d7379)";
+const BODEN_ALT = "repeating-linear-gradient(38deg,#6f757b 0 6px,#787e84 6px 26px)";
+
+const BEREICHE = [
+  /* ---------------------------------------------------------- HOF */
+  {
+    id:"hof", knopf:"EG · HOF", titel:"HOF & VORPLATZ",
+    himmel:"radial-gradient(120% 95% at 32% 0%, #cfe4f2 0%, #8fb8d4 45%, #4f7f9d 100%)",
+    dunkel:null,
+    teile: [
+      { t:"p", x:-560, y:-560, z:-4, b:1120, d:1120, f:"linear-gradient(150deg,#7ba05f,#4d7040)", s:"border-radius:30px" },
+      // Platz
+      { t:"p", x:-420, y:-140, z:0, b:820, d:640, f:BODEN_ALT, vor:"asphalt" },
+      { t:"p", x:-300, y:60, z:1, b:300, d:220, f:"radial-gradient(58% 58% at 45% 45%, #3b4046 0%, rgba(60,65,71,0) 74%)", vor:"asphalt" },
+      { t:"p", x:-420, y:-140, z:0, b:820, d:640, f:"linear-gradient(150deg,#5c626a,#464b52)", nach:"asphalt" },
+      // Markierungen
+      { t:"p", x:-380, y:120, z:2, b:8, d:420, f:"rgba(255,255,255,.75)", nach:"markierung" },
+      { t:"p", x:-200, y:120, z:2, b:8, d:420, f:"rgba(255,255,255,.75)", nach:"markierung" },
+      { t:"p", x:-20,  y:120, z:2, b:8, d:420, f:"rgba(255,255,255,.75)", nach:"markierung" },
+      { t:"p", x:160,  y:120, z:2, b:8, d:420, f:"rgba(255,255,255,.75)", nach:"markierung" },
+      { t:"p", x:-380, y:112, z:2, b:548, d:8, f:"rgba(255,255,255,.75)", nach:"markierung" },
+      { t:"p", x:-400, y:180, z:2, b:520, d:70, f:"transparent", txt:"ÜBUNGSPLATZ",
+        ts:"font-size:44px;color:rgba(255,255,255,.26);letter-spacing:5px", nach:"markierung" },
+      { t:"p", x:-400, y:-100, z:2, b:300, d:14, f:"#FFC300", nach:"markierung" },
+      { t:"p", x:-400, y:-30,  z:2, b:300, d:14, f:"#FFC300", nach:"markierung" },
+      // Gebäude hinten (Fassade)
+      { t:"q", x:180, y:-520, z:0, b:260, d:600, h:300, f:WAND_HELL, rad:"6px" },
+      { t:"q", x:170, y:-530, z:300, b:280, d:620, h:18, f:"#b9ad92" },
+      { t:"w", x:180, y:80, z:170, b:260, h:70, f:"linear-gradient(180deg,#ffffff,#e6e1d4)",
+        txt:"KMFAHRSCHULE", ts:"font-size:30px;color:#E2231A;letter-spacing:1px" },
+      { t:"w", x:180, y:80, z:160, b:260, h:10, f:"linear-gradient(90deg,#E2231A 0 34%,#FFC300 34% 67%,#3FA535 67% 100%)" },
+      { t:"w", x:196, y:80, z:0, b:86, h:120, f:"linear-gradient(180deg,#3FA535,#276b21)" },
+      { t:"w", x:312, y:80, z:30, b:110, h:100, f:"linear-gradient(180deg,#8fc6e4,#3d7ea1)", s:"border:8px solid #f2ece0" },
+      { t:"w", x:196, y:80, z:240, b:224, h:44, f:"linear-gradient(180deg,#8fc6e4,#3d7ea1)", s:"border:8px solid #f2ece0" },
+      // Halle links
+      { t:"q", x:-500, y:-520, z:0, b:600, d:200, h:250, f:"linear-gradient(160deg,#dfd8c8,#b6ae9b)", rad:"4px" },
+      { t:"q", x:-510, y:-530, z:250, b:620, d:220, h:16, f:"#b9ad92" },
+      { t:"w", x:-420, y:-320, z:0, b:280, h:180, f:"linear-gradient(180deg,#E2231A 0 12%,#f7f4ec 12% 100%)" },
+      { t:"w", x:-420, y:-320, z:180, b:280, h:22, f:"linear-gradient(90deg,#E2231A 0 34%,#FFC300 34% 67%,#3FA535 67% 100%)" },
+      { t:"w", x:-420, y:-320, z:202, b:280, h:44, f:"linear-gradient(180deg,#ffffff,#e6e1d4)",
+        txt:"HALLE", ts:"font-size:28px;color:#E2231A;letter-spacing:3px" },
+      // Schranke
+      { t:"q", x:-470, y:300, z:0, b:70, d:70, h:80, f:"linear-gradient(160deg,#79848d,#4a535a)", rad:"5px" },
+      { t:"p", x:-450, y:370, z:56, b:26, d:300, f:"repeating-linear-gradient(180deg,#b4160f 0 34px,#ddd8cc 34px 68px)",
+        s:"transform:translateZ(56px) rotateZ(7deg);border-radius:4px;filter:brightness(.85)", vor:"schranke" },
+      { t:"p", x:-450, y:370, z:56, b:26, d:300, f:"repeating-linear-gradient(180deg,#E2231A 0 34px,#f7f4ec 34px 68px)",
+        s:"border-radius:4px", nach:"schranke" },
+      // Laternen
+      ...[[-460,-60],[-460,240],[340,140],[340,-60]].flatMap(([lx,ly]) => ([
+        { t:"q", x:lx, y:ly, z:0, b:16, d:16, h:200, f:"linear-gradient(180deg,#8d959b,#4d5459)", nach:"laternen" },
+        { t:"k", x:lx-14, y:ly-14, z:206, d:44, f:"radial-gradient(50% 50% at 45% 40%, #fff8d0, #e0b400)", nach:"laternen" }
+      ])),
+      // Zaun
+      ...[0,1,2,3,4,5,6].map(i => ({ t:"q", x:-520+i*160, y:520, z:0, b:130, d:14, h:70,
+        f:"linear-gradient(180deg,#e8e3d6,#b7b0a0)", nach:"zaun" })),
+      ...[0,1,2,3,4,5].map(i => ({ t:"q", x:-540, y:-460+i*160, z:0, b:14, d:130, h:70,
+        f:"linear-gradient(180deg,#e8e3d6,#b7b0a0)", nach:"zaun" })),
+      // Grün
+      { t:"k", x:400, y:280, z:26, d:140, f:"radial-gradient(50% 50% at 42% 38%, #86c661, #3d7833)", nach:"gruen" },
+      { t:"k", x:420, y:460, z:30, d:170, f:"radial-gradient(50% 50% at 42% 38%, #8ecd68, #417e36)", nach:"gruen" },
+      { t:"k", x:-560, y:340, z:26, d:150, f:"radial-gradient(50% 50% at 42% 38%, #86c661, #3d7833)", nach:"gruen" },
+      { t:"k", x:-520, y:-300, z:24, d:120, f:"radial-gradient(50% 50% at 42% 38%, #8ecd68, #417e36)", nach:"gruen" },
+      { t:"k", x:260, y:520, z:22, d:110, f:"radial-gradient(50% 50% at 42% 38%, #86c661, #3d7833)", nach:"gruen" },
+      // Waschplatz
+      { t:"p", x:-400, y:-120, z:2, b:220, d:200, f:"linear-gradient(150deg,#b7c0c6,#8d979e)", nach:"waschplatz" },
+      { t:"p", x:-390, y:-110, z:3, b:200, d:180, f:"repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,rgba(0,0,0,0) 2px 26px)", nach:"waschplatz" },
+      { t:"q", x:-380, y:-100, z:0, b:22, d:22, h:110, f:"linear-gradient(180deg,#cfd5da,#7f868c)", nach:"waschplatz" },
+      { t:"q", x:-380, y:-100, z:110, b:60, d:16, h:12, f:"#3FA535", nach:"waschplatz" },
+      { t:"k", x:-300, y:-70, z:0, d:70, f:"radial-gradient(50% 50% at 50% 50%, #1f2a33 40%, #E2231A 41%)", nach:"waschplatz" },
+      // Parcours-Pylonen
+      ...[0,1,2,3,4,5].map(i => ({ t:"q", x:-320+i*110, y:300, z:0, b:34, d:34, h:52,
+        f:"linear-gradient(180deg,#ff8a4b,#e0521a)", rad:"4px", nach:"parcours" })),
+      ...[0,1,2,3,4,5].map(i => ({ t:"p", x:-320+i*110, y:300, z:34, b:34, d:34, f:"#f7f4ec", nach:"parcours" })),
+      // Parkiertes Fahrschulauto
+      ...autoTeile(-40, 160, false, null)
+    ],
+    aufgaben: [
+      { id:"asphalt",    titel:"Vorplatz asphaltieren",    text:"Löcher zu, neuer Belag",       kosten:3, mx:-40,  my:180, mz:60 },
+      { id:"markierung", titel:"Fahrbahn-Markierungen",    text:"Parkfelder und Übungsplatz",   kosten:3, mx:-200, my:320, mz:60 },
+      { id:"schranke",   titel:"Schranke richten",         text:"Einfahrt wieder dicht",        kosten:2, mx:-430, my:340, mz:140 },
+      { id:"laternen",   titel:"Beleuchtung montieren",    text:"Vier Laternen für den Hof",    kosten:3, mx:-440, my:-40, mz:230 },
+      { id:"zaun",       titel:"Zaun aufstellen",          text:"Rundum sauber abgegrenzt",     kosten:2, mx:-520, my:520, mz:110 },
+      { id:"gruen",      titel:"Grünflächen bepflanzen",   text:"Bäume und Büsche",             kosten:2, mx:420,  my:400, mz:110 },
+      { id:"waschplatz", titel:"Waschplatz & Wasserhahn",  text:"Schlauch, Hahn, Ablauf",       kosten:4, mx:-330, my:-60, mz:150 },
+      { id:"parcours",   titel:"Pylonen-Parcours",         text:"Slalom für die Vorschulung",   kosten:2, mx:-100, my:320, mz:90 }
+    ]
+  },
+
+  /* -------------------------------------------------------- HALLE */
+  {
+    id:"halle", knopf:"1. OG · HALLE", titel:"FAHRZEUGHALLE",
+    himmel:"radial-gradient(120% 95% at 40% 0%, #dfe6ea 0%, #97a3ac 45%, #5c666e 100%)",
+    dunkel:"licht",
+    teile: [
+      { t:"p", x:-460, y:-460, z:-2, b:920, d:920, f:BODEN_ALT, vor:"boden" },
+      { t:"p", x:-200, y:-120, z:0, b:340, d:260, f:"radial-gradient(58% 58% at 45% 45%, #1d2126 0%, rgba(60,65,71,0) 76%)", vor:"boden" },
+      { t:"p", x:-460, y:-460, z:-2, b:920, d:920, f:"linear-gradient(150deg,#b3bdc4,#8f9aa1)", nach:"boden" },
+      { t:"p", x:-400, y:-400, z:0, b:800, d:800, f:"transparent", s:"border:6px solid rgba(255,195,0,.75)", nach:"boden" },
+      { t:"p", x:-120, y:-380, z:0, b:8, d:740, f:"rgba(255,255,255,.5)", nach:"boden" },
+      { t:"p", x:180,  y:-380, z:0, b:8, d:740, f:"rgba(255,255,255,.5)", nach:"boden" },
+      // Wände
+      { t:"q", x:400, y:-480, z:0, b:60, d:960, h:400, f:WAND_HELL },
+      { t:"q", x:-480, y:-480, z:0, b:940, d:60, h:400, f:"linear-gradient(160deg,#e6e0d1,#c8c1af)" },
+      // Tor
+      { t:"w", x:-160, y:-420, z:0, b:340, h:270, f:"repeating-linear-gradient(90deg,#6b5b45 0 40px,#4c4133 40px 80px)", vor:"tor" },
+      { t:"w", x:-160, y:-420, z:0, b:340, h:270, f:"linear-gradient(180deg,#f7f4ec,#d9d3c4)", nach:"tor" },
+      { t:"w", x:-160, y:-420, z:0, b:340, h:270,
+        f:"repeating-linear-gradient(180deg,rgba(0,0,0,.12) 0 6px,rgba(0,0,0,0) 6px 54px)", nach:"tor" },
+      { t:"w", x:-160, y:-420, z:80, b:340, h:26, f:"#E2231A", nach:"tor" },
+      { t:"w", x:-160, y:-420, z:270, b:340, h:56, f:"linear-gradient(180deg,#ffffff,#e6e1d4)",
+        txt:"KMFAHRSCHULE", ts:"font-size:34px;color:#E2231A;letter-spacing:1px", nach:"tor" },
+      { t:"w", x:-160, y:-420, z:326, b:340, h:12,
+        f:"linear-gradient(90deg,#E2231A 0 34%,#FFC300 34% 67%,#3FA535 67% 100%)", nach:"tor" },
+      // Werkbank + Werkzeugwand
+      { t:"q", x:300, y:-260, z:0, b:96, d:330, h:96, f:"linear-gradient(160deg,#cbd1d6,#9ba2a8)", rad:"4px", nach:"werkbank" },
+      { t:"q", x:300, y:-260, z:96, b:96, d:330, h:14, f:"#E2231A", nach:"werkbank" },
+      { t:"q", x:380, y:-240, z:150, b:18, d:290, h:170, f:"linear-gradient(160deg,#2a5d8a,#173d5c)", nach:"werkbank" },
+      ...[0,1,2,3,4].map(i => ({ t:"q", x:376, y:-220+i*54, z:180, b:10, d:14, h:74,
+        f:"linear-gradient(180deg,#f1f5f9,#7b848c)", nach:"werkbank" })),
+      // Hebebühne
+      { t:"q", x:230, y:130, z:0, b:44, d:44, h:230, f:"linear-gradient(160deg,#e6eaee,#9aa2a8)", nach:"hebebuehne" },
+      { t:"q", x:230, y:330, z:0, b:44, d:44, h:230, f:"linear-gradient(160deg,#e6eaee,#9aa2a8)", nach:"hebebuehne" },
+      { t:"q", x:230, y:130, z:230, b:44, d:244, h:26, f:"#1e40af", nach:"hebebuehne" },
+      { t:"q", x:60, y:150, z:120, b:180, d:26, h:14, f:"#FFC300", nach:"hebebuehne" },
+      { t:"q", x:60, y:320, z:120, b:180, d:26, h:14, f:"#FFC300", nach:"hebebuehne" },
+      { t:"q", x:288, y:200, z:60, b:30, d:52, h:70, f:"#1b2831", rad:"6px", nach:"hebebuehne" },
+      // Deckenlampen
+      ...[-280,-20,240].map(ly => ({ t:"q", x:-180, y:ly, z:376, b:380, d:18, h:6,
+        f:"linear-gradient(180deg,#fffdf4,#e8e3d6)", nach:"licht" })),
+      ...[-280,-20,240].map(ly => ({ t:"p", x:-260, y:ly-70, z:3, b:540, d:160,
+        f:"radial-gradient(50% 50% at 50% 50%, rgba(255,247,214,.4), rgba(255,247,214,0) 72%)", nach:"licht" })),
+      // Fahrzeuge
+      ...lkwTeile(-360, -300, true,  "lkw"),
+      ...lkwTeile(-360, -300, false, "lkw"),
+      ...anhTeile(-360, 220, true,  "anhaenger"),
+      ...anhTeile(-360, 220, false, "anhaenger"),
+      ...autoTeile(30, 260, true,  "auto"),
+      ...autoTeile(30, 260, false, "auto")
+    ],
+    aufgaben: [
+      { id:"tor",        titel:"Hallentor ersetzen",     text:"Neues Sektionaltor mit Logo",  kosten:3, mx:0,    my:-380, mz:320 },
+      { id:"licht",      titel:"Licht montieren",        text:"Drei LED-Bänder unter der Decke", kosten:3, mx:0, my:0,   mz:400 },
+      { id:"boden",      titel:"Hallenboden versiegeln", text:"Epoxid und Fahrgassen",        kosten:4, mx:-40,  my:20,   mz:80 },
+      { id:"werkbank",   titel:"Werkzeugwand & Werkbank",text:"Ordnung ins Werkzeug",         kosten:3, mx:350,  my:-100, mz:220 },
+      { id:"hebebuehne", titel:"Hebebühne einbauen",     text:"Zwei-Säulen-Bühne",            kosten:5, mx:250,  my:230,  mz:280 },
+      { id:"auto",       titel:"Fahrschulauto (Kat. B)", text:"Lack, Räder, Dachschild",      kosten:4, mx:120,  my:390,  mz:150 },
+      { id:"anhaenger",  titel:"Anhänger (Kat. BE)",     text:"Koffer, Deichsel, Räder",      kosten:4, mx:-260, my:360,  mz:170 },
+      { id:"lkw",        titel:"Lastwagen (Kat. C)",     text:"Kabine, Koffer, Beschriftung", kosten:5, mx:-240, my:-140, mz:230 }
+    ]
+  },
+
+  /* ------------------------------------------------------ THEORIE */
+  {
+    id:"theorie", knopf:"2. OG · THEORIE", titel:"THEORIE-ZIMMER",
+    himmel:"radial-gradient(120% 95% at 40% 0%, #e9eef2 0%, #a9b6c0 45%, #6d7c88 100%)",
+    dunkel:null,
+    teile: [
+      { t:"p", x:-420, y:-420, z:-2, b:840, d:840, f:"repeating-linear-gradient(90deg,#c8a473 0 3px,#dcb884 3px 60px)" },
+      { t:"q", x:380, y:-440, z:0, b:60, d:880, h:340, f:WAND_HELL },
+      { t:"q", x:-440, y:-440, z:0, b:820, d:60, h:340, f:"linear-gradient(160deg,#f2ece0,#d6cfbf)" },
+      { t:"w", x:-440, y:-380, z:0, b:820, h:14, f:"#E2231A" },
+      // Wandtafel
+      { t:"w", x:-260, y:-380, z:120, b:340, h:170, f:"linear-gradient(180deg,#fbfaf6,#e6e2d6)",
+        s:"border:10px solid #8a6a3a", nach:"tafel" },
+      { t:"w", x:-240, y:-378, z:150, b:300, h:110, f:"transparent",
+        txt:"Theorie 19:00 · Kat. B/BE/C/CE", ts:"font-size:22px;color:#454b50", nach:"tafel" },
+      // Leinwand + Beamer
+      { t:"w", x:120, y:-380, z:130, b:230, h:160, f:"linear-gradient(180deg,#ffffff,#e8ecef)",
+        s:"border:6px solid #9aa2a8", nach:"beamer" },
+      { t:"q", x:60, y:-60, z:300, b:90, d:60, h:36, f:"linear-gradient(160deg,#2f3438,#191c1f)", rad:"6px", nach:"beamer" },
+      { t:"p", x:70, y:-360, z:299, b:200, d:300, f:"linear-gradient(180deg,rgba(255,247,214,.32),rgba(255,247,214,0))", nach:"beamer" },
+      // Tische + Stühle
+      ...[0,1,2].flatMap(r => ([0,1].flatMap(c => {
+        const tx = -300 + c*300, ty = -160 + r*180;
+        return [
+          { t:"q", x:tx, y:ty, z:0, b:250, d:80, h:70, f:"linear-gradient(160deg,#f1ebde,#cdc3ab)", rad:"4px", nach:"stuehle" },
+          { t:"q", x:tx+40, y:ty+96, z:0, b:60, d:60, h:44, f:"linear-gradient(160deg,#E2231A,#a5140e)", rad:"6px", nach:"stuehle" },
+          { t:"q", x:tx+150, y:ty+96, z:0, b:60, d:60, h:44, f:"linear-gradient(160deg,#E2231A,#a5140e)", rad:"6px", nach:"stuehle" }
+        ];
+      }))),
+      { t:"q", x:-180, y:60, z:0, b:70, d:70, h:36, f:"linear-gradient(160deg,#8d8172,#5c5145)", rad:"6px", vor:"stuehle" },
+      { t:"q", x:40, y:200, z:0, b:70, d:70, h:36, f:"linear-gradient(160deg,#8d8172,#5c5145)", rad:"6px", vor:"stuehle" },
+      { t:"q", x:-300, y:280, z:0, b:200, d:70, h:20, f:"linear-gradient(160deg,#8d8172,#5c5145)", vor:"stuehle" },
+      // Drucker
+      { t:"q", x:280, y:-300, z:80, b:120, d:90, h:70, f:"linear-gradient(160deg,#8b8b8b,#5a5a5a)", rad:"6px", vor:"drucker" },
+      { t:"k", x:326, y:-330, z:156, d:20, f:"#FFC300", vor:"drucker" },
+      { t:"q", x:280, y:-300, z:80, b:120, d:90, h:70, f:"linear-gradient(160deg,#ffffff,#d9dee2)", rad:"6px", nach:"drucker" },
+      { t:"k", x:326, y:-330, z:156, d:20, f:"#3FA535", nach:"drucker" },
+      { t:"q", x:270, y:-310, z:0, b:140, d:110, h:80, f:"linear-gradient(160deg,#e0d8c6,#b3a992)", rad:"4px" },
+      // Kaffee-Ecke
+      { t:"q", x:270, y:170, z:0, b:130, d:200, h:90, f:"linear-gradient(160deg,#f1ebde,#cdc3ab)", rad:"4px", nach:"kaffee" },
+      { t:"q", x:294, y:200, z:90, b:70, d:60, h:76, f:"linear-gradient(160deg,#2f3438,#191c1f)", rad:"6px", nach:"kaffee" },
+      { t:"k", x:300, y:290, z:92, d:26, f:"#E2231A", nach:"kaffee" },
+      { t:"k", x:334, y:290, z:92, d:26, f:"#FFC300", nach:"kaffee" },
+      // Fenster
+      { t:"w", x:-380, y:-380, z:150, b:200, h:140, f:"linear-gradient(180deg,#8fc6e4,#3d7ea1)",
+        s:"border:10px solid #f2ece0", nach:"fenster" },
+      { t:"w", x:-380, y:-380, z:290, b:200, h:26, f:"#E2231A", nach:"fenster" },
+      // Deko
+      { t:"k", x:-400, y:120, z:0, d:90, f:"radial-gradient(50% 50% at 42% 38%, #86c661, #3d7833)", nach:"deko" },
+      { t:"q", x:-390, y:130, z:0, b:60, d:60, h:40, f:"linear-gradient(160deg,#d98a4b,#a5602c)", nach:"deko" },
+      { t:"w", x:110, y:-380, z:10, b:210, h:80, f:"linear-gradient(180deg,#ffffff,#e6e1d4)",
+        txt:"DEIN WEG. DEIN ZIEL.", ts:"font-size:19px;color:#E2231A", nach:"deko" },
+      { t:"q", x:-400, y:330, z:0, b:38, d:38, h:130, f:"linear-gradient(180deg,#8d959b,#4d5459)", nach:"deko" },
+      { t:"q", x:-402, y:328, z:130, b:42, d:42, h:92, f:"#26292e", rad:"8px", nach:"deko" },
+      { t:"k", x:-396, y:334, z:224, d:26, f:"#E2231A", nach:"deko" }
+    ],
+    aufgaben: [
+      { id:"stuehle", titel:"Tische & Stühle",       text:"Sechs Arbeitsplätze für die Theorie", kosten:4, mx:-100, my:120,  mz:120 },
+      { id:"tafel",   titel:"Wandtafel montieren",   text:"Grosse Tafel mit Programm",           kosten:3, mx:-100, my:-360, mz:280 },
+      { id:"beamer",  titel:"Beamer & Leinwand",     text:"Für Bilder und Filme",                kosten:4, mx:230,  my:-360, mz:280 },
+      { id:"drucker", titel:"Drucker flicken",       text:"Papierstau und Toner",                kosten:2, mx:340,  my:-260, mz:200 },
+      { id:"kaffee",  titel:"Kaffee-Ecke",           text:"Sideboard und Maschine",              kosten:2, mx:330,  my:250,  mz:200 },
+      { id:"fenster", titel:"Fenster ersetzen",      text:"Neue Verglasung, mehr Licht",         kosten:3, mx:-300, my:-360, mz:280 },
+      { id:"deko",    titel:"KMF-Deko & Ampel",      text:"Schild, Pflanze, Lichtsignal",        kosten:2, mx:80,   my:380,  mz:200 }
+    ]
+  },
+
+  /* ------------------------------------------------------- KELLER */
+  {
+    id:"keller", knopf:"UG · KELLER", titel:"KELLER & LAGER",
+    himmel:"radial-gradient(120% 95% at 40% 0%, #6b7480 0%, #414a55 50%, #22282f 100%)",
+    dunkel:"kellerlicht",
+    teile: [
+      { t:"p", x:-420, y:-420, z:-2, b:840, d:840, f:"linear-gradient(150deg,#7d848a,#5b6167)" },
+      { t:"p", x:-420, y:-420, z:-1, b:840, d:840, f:"repeating-linear-gradient(90deg,rgba(0,0,0,.1) 0 2px,rgba(0,0,0,0) 2px 120px)" },
+      { t:"q", x:380, y:-440, z:0, b:60, d:880, h:320, f:WAND_ROH },
+      { t:"q", x:-440, y:-440, z:0, b:820, d:60, h:320, f:"linear-gradient(160deg,#a3a9af,#767c82)" },
+      // Licht
+      ...[-200,120].map(ly => ({ t:"q", x:-160, y:ly, z:296, b:300, d:16, h:6,
+        f:"linear-gradient(180deg,#fffdf4,#e8e3d6)", nach:"kellerlicht" })),
+      ...[-200,120].map(ly => ({ t:"p", x:-240, y:ly-60, z:2, b:460, d:140,
+        f:"radial-gradient(50% 50% at 50% 50%, rgba(255,247,214,.4), rgba(255,247,214,0) 72%)", nach:"kellerlicht" })),
+      // Heizung
+      { t:"q", x:250, y:-340, z:0, b:150, d:160, h:190, f:"linear-gradient(160deg,#8a7d63,#5a5142)", rad:"6px", vor:"heizung" },
+      { t:"p", x:260, y:-330, z:192, b:130, d:140, f:"repeating-linear-gradient(38deg,rgba(0,0,0,.3) 0 4px,rgba(0,0,0,0) 4px 22px)", vor:"heizung" },
+      { t:"q", x:250, y:-340, z:0, b:150, d:160, h:190, f:"linear-gradient(160deg,#ffffff,#c9d1d7)", rad:"8px", nach:"heizung" },
+      { t:"q", x:262, y:-330, z:190, b:126, d:140, h:16, f:"#E2231A", nach:"heizung" },
+      { t:"q", x:290, y:-340, z:206, b:22, d:22, h:110, f:"#b6bcc2", nach:"heizung" },
+      { t:"q", x:290, y:-340, z:316, b:22, d:300, h:22, f:"#E2231A", nach:"heizung" },
+      { t:"q", x:340, y:-340, z:316, b:22, d:300, h:22, f:"#2f6fb5", nach:"heizung" },
+      // Wasser
+      { t:"p", x:-300, y:220, z:1, b:220, d:170, f:"radial-gradient(52% 52% at 46% 48%, #2b3d4a 0%, rgba(43,61,74,0) 76%)", vor:"wasser" },
+      { t:"q", x:-360, y:200, z:0, b:26, d:26, h:150, f:"linear-gradient(180deg,#8d7a5b,#5a4c39)", vor:"wasser" },
+      { t:"q", x:-360, y:180, z:0, b:180, d:150, h:90, f:"linear-gradient(160deg,#dfe5ea,#a9b2b9)", rad:"6px", nach:"wasser" },
+      { t:"q", x:-360, y:180, z:90, b:180, d:150, h:12, f:"#cfd6dc", nach:"wasser" },
+      { t:"q", x:-350, y:190, z:102, b:24, d:24, h:90, f:"linear-gradient(180deg,#e8edf1,#8d959b)", nach:"wasser" },
+      { t:"q", x:-350, y:190, z:170, b:70, d:18, h:14, f:"#3FA535", nach:"wasser" },
+      { t:"q", x:-380, y:-100, z:240, b:22, d:300, h:22, f:"#2f6fb5", nach:"wasser" },
+      // Regale
+      ...[0,1,2].flatMap(i => ([
+        { t:"q", x:-400, y:-360+i*130, z:0,   b:150, d:110, h:14, f:"linear-gradient(160deg,#b9bfc5,#868d94)", nach:"regale" },
+        { t:"q", x:-400, y:-360+i*130, z:90,  b:150, d:110, h:14, f:"linear-gradient(160deg,#b9bfc5,#868d94)", nach:"regale" },
+        { t:"q", x:-400, y:-360+i*130, z:180, b:150, d:110, h:14, f:"linear-gradient(160deg,#b9bfc5,#868d94)", nach:"regale" },
+        { t:"q", x:-380, y:-340+i*130, z:104, b:60, d:60, h:50, f:"linear-gradient(160deg,#d98a4b,#a5602c)", nach:"regale" },
+        { t:"q", x:-300, y:-340+i*130, z:14,  b:60, d:60, h:50, f:"linear-gradient(160deg,#e0c07a,#a98944)", nach:"regale" }
+      ])),
+      // Archiv
+      ...[0,1,2].map(i => ({ t:"q", x:120+i*100, y:300, z:0, b:80, d:120, h:180,
+        f:"linear-gradient(160deg,#cbd1d6,#8d959b)", rad:"4px", nach:"archiv" })),
+      ...[0,1,2].flatMap(i => [0,1,2].map(j => ({ t:"w", x:124+i*100, y:420, z:20+j*54, b:72, h:34,
+        f:"linear-gradient(180deg,#eef2f5,#b8c0c6)", nach:"archiv" }))),
+      // Reifenlager
+      ...[0,1,2,3].map(i => ({ t:"k", x:-120, y:-320, z:i*36, d:150,
+        f:"radial-gradient(50% 50% at 50% 50%, #33383c 34%, #15181b 35%)", nach:"reifenlager" })),
+      ...[0,1,2].map(i => ({ t:"k", x:40, y:-300, z:i*36, d:150,
+        f:"radial-gradient(50% 50% at 50% 50%, #33383c 34%, #15181b 35%)", nach:"reifenlager" })),
+      { t:"q", x:-140, y:-100, z:0, b:200, d:90, h:20, f:"linear-gradient(160deg,#8d8172,#5c5145)", vor:"reifenlager" },
+      { t:"q", x:-60, y:40, z:0, b:120, d:80, h:26, f:"linear-gradient(160deg,#7d715f,#4c4337)", vor:"reifenlager" }
+    ],
+    aufgaben: [
+      { id:"kellerlicht", titel:"Kellerlicht",           text:"Zwei LED-Balken",              kosten:2, mx:-100, my:-60,  mz:320 },
+      { id:"heizung",     titel:"Heizung ersetzen",      text:"Neuer Kessel, neue Leitungen", kosten:5, mx:320,  my:-260, mz:250 },
+      { id:"wasser",      titel:"Wasseranschluss",       text:"Hahn, Trog, kein Tropfen mehr",kosten:3, mx:-280, my:250,  mz:200 },
+      { id:"regale",      titel:"Lagerregale aufbauen",  text:"Platz für Material",           kosten:3, mx:-330, my:-260, mz:250 },
+      { id:"archiv",      titel:"Archiv einrichten",     text:"Schränke für die Akten",       kosten:3, mx:220,  my:340,  mz:220 },
+      { id:"reifenlager", titel:"Reifenlager",           text:"Sommer- und Winterpneus",      kosten:2, mx:-40,  my:-260, mz:180 }
+    ]
+  }
 ];
 
+const ALLE_AUFGABEN = BEREICHE.flatMap(b => b.aufgaben.map(a => ({ ...a, bereich:b.id })));
+
 /* ================================================================
-   4. LEVEL
+   5. LEVEL
    ================================================================ */
 const LEVELS = [
   { zuege:28, ziele:[[0,15]]                },
@@ -832,25 +935,30 @@ const LEVELS = [
   { zuege:21, ziele:[[0,26],[2,26]]         },
   { zuege:21, ziele:[[1,24],[3,24],[5,24]]  },
   { zuege:20, ziele:[[4,28],[0,28]]         },
-  { zuege:20, ziele:[[1,26],[2,26],[4,26]]  }
+  { zuege:20, ziele:[[1,26],[2,26],[4,26]]  },
+  { zuege:20, ziele:[[0,30],[3,30]]         },
+  { zuege:19, ziele:[[2,28],[4,28],[5,28]]  },
+  { zuege:19, ziele:[[1,32],[3,32]]         }
 ];
+const MAX_LEVEL = 120;
 function levelDaten(nr){
   let d;
   if (nr <= LEVELS.length) d = LEVELS[nr-1];
   else {
     const extra = nr - LEVELS.length;
+    const stufe = Math.floor(extra / 6);
     const a = (nr*3) % ANZ_TYPEN, b = (nr*5+2) % ANZ_TYPEN, c = (nr*7+4) % ANZ_TYPEN;
-    const typen = [...new Set([a,b,c])];
-    d = { zuege:20, ziele: typen.map(t => [t, 26 + extra*2]) };
+    const typen = [...new Set([a, b, c])].slice(0, 2 + (nr % 2));
+    const menge = 26 + stufe*3 + (nr % 3)*2;
+    d = { zuege: Math.max(15, 20 - stufe), ziele: typen.map(t => [t, menge]) };
   }
-  // Punkte-Schwellen für 2 und 3 Sterne hängen an den verfügbaren Zügen
-  return { zuege:d.zuege, ziele:d.ziele, p2: d.zuege*200, p3: d.zuege*330 };
+  return { zuege:d.zuege, ziele:d.ziele, p2:d.zuege*200, p3:d.zuege*330 };
 }
 
 /* ================================================================
-   5. SPIELSTAND
+   6. SPIELSTAND
    ================================================================ */
-let stand = { level:1, sterne:0, erledigt:[], besteSterne:{} };
+let stand = { level:1, sterne:0, erledigt:[], besteSterne:{}, bereich:"hof" };
 function laden(){
   try {
     const roh = localStorage.getItem(KEY);
@@ -860,7 +968,8 @@ function laden(){
         level: d.level || 1,
         sterne: d.sterne || 0,
         erledigt: Array.isArray(d.erledigt) ? d.erledigt : [],
-        besteSterne: d.besteSterne || {}
+        besteSterne: d.besteSterne || {},
+        bereich: d.bereich || "hof"
       };
     }
   } catch(e){}
@@ -869,79 +978,146 @@ function speichern(){ try { localStorage.setItem(KEY, JSON.stringify(stand)); } 
 const istErledigt = id => stand.erledigt.indexOf(id) >= 0;
 
 /* ================================================================
-   6. HALLE ZEICHNEN
+   7. FAHRSCHULE ZEICHNEN
    ================================================================ */
-const szene = $("szene");
+const BUEHNE_B = 1180, BUEHNE_H = 700;
+let aktBereich = null;
+
+function bereichZeichnen(id){
+  aktBereich = BEREICHE.find(b => b.id === id) || BEREICHE[0];
+  stand.bereich = aktBereich.id;
+  $("himmel").style.background = aktBereich.himmel;
+  const welt = $("welt");
+  let html = aktBereich.teile.map(teilHtml).join("");
+  html += aktBereich.aufgaben.map(a => `
+    <div class="marker" data-mid="${a.id}" data-nur="${a.id}"
+         style="left:${a.mx}px;top:${a.my}px;transform:translateZ(${a.mz}px) rotateZ(45deg) rotateX(-58deg);">
+      <i>!</i></div>`).join("");
+  welt.innerHTML = html;
+  welt.querySelectorAll(".marker").forEach(m => {
+    m.addEventListener("click", () => aufgabeErledigen(m.dataset.mid));
+  });
+  szeneAktualisieren();
+  buehneAnpassen();
+}
 function szeneAktualisieren(){
-  szene.querySelectorAll("[data-vor]").forEach(el => { el.style.display = istErledigt(el.dataset.vor) ? "none" : ""; });
-  szene.querySelectorAll("[data-nach]").forEach(el => { el.style.display = istErledigt(el.dataset.nach) ? "" : "none"; });
+  const welt = $("welt");
+  welt.querySelectorAll("[data-vor]").forEach(el => { el.style.display = istErledigt(el.dataset.vor) ? "none" : ""; });
+  welt.querySelectorAll("[data-nach]").forEach(el => { el.style.display = istErledigt(el.dataset.nach) ? "" : "none"; });
+  welt.querySelectorAll(".marker").forEach(m => {
+    const a = ALLE_AUFGABEN.find(x => x.id === m.dataset.mid);
+    m.style.display = istErledigt(m.dataset.mid) ? "none" : "";
+    m.classList.toggle("zuteuer", !!a && stand.sterne < a.kosten);
+  });
+  const d = $("dunkel");
+  if (aktBereich.dunkel && !istErledigt(aktBereich.dunkel)){ d.hidden = false; d.style.opacity = ".40"; }
+  else d.hidden = true;
+}
+function buehneAnpassen(){
+  const b = $("buehne");
+  const breite = b.clientWidth || BUEHNE_B;
+  const k = Math.min(1, breite / BUEHNE_B);
+  b.style.height = Math.round(BUEHNE_H * k) + "px";
+  $("welt").style.transform =
+    `translate(0px, ${Math.round(420*k)}px) scale(${(0.62*k).toFixed(4)}) rotateX(58deg) rotateZ(-45deg)`;
+}
+function ebenenZeichnen(){
+  const box = $("ebenen");
+  box.innerHTML = "";
+  BEREICHE.forEach(b => {
+    const offen = b.aufgaben.filter(a => !istErledigt(a.id)).length;
+    const el = document.createElement("button");
+    el.className = "ebene" + (b.id === stand.bereich ? " aktiv" : "");
+    el.innerHTML = `${b.knopf}<span class="rest">${offen ? offen + " offen" : "fertig ✓"}</span>`;
+    el.addEventListener("click", () => {
+      tonAn();
+      bereichZeichnen(b.id);
+      speichern();
+      ebenenZeichnen();
+      aufgabenZeichnen();
+    });
+    box.appendChild(el);
+  });
 }
 function aufgabenZeichnen(){
   const box = $("aufgaben");
   box.innerHTML = "";
-  let naechsteOffen = true;
-  AUFGABEN.forEach(a => {
-    const fertig = istErledigt(a.id);
+  $("panel-titel").textContent = "AUFTRÄGE · " + aktBereich.titel;
+  const fertig = aktBereich.aufgaben.filter(a => istErledigt(a.id)).length;
+  $("panel-zahl").textContent = fertig + " / " + aktBereich.aufgaben.length + " erledigt";
+  aktBereich.aufgaben.forEach((a, i) => {
+    const ok = istErledigt(a.id);
+    const kann = !ok && stand.sterne >= a.kosten;
     const div = document.createElement("div");
-    div.className = "auf" + (fertig ? " fertig" : "");
-    const kannZahlen = !fertig && stand.sterne >= a.kosten;
+    div.className = "auf" + (ok ? " fertig" : "");
     div.innerHTML = `
-      <div class="em">${a.em}</div>
+      <div class="nr">${i+1}</div>
       <div class="tx"><b>${a.titel}</b><span>${a.text}</span></div>
-      ${fertig ? `<div style="font-size:1.3rem">✅</div>`
-               : `<button data-id="${a.id}" ${kannZahlen ? "" : "disabled"}>${a.kosten} ⭐</button>`}`;
+      <div class="preis${kann ? " kann" : ""}" data-id="${a.id}">${ok ? "✓" : "★ " + a.kosten}</div>`;
     box.appendChild(div);
-    if (!fertig && naechsteOffen){ div.style.borderColor = "#38bdf8"; naechsteOffen = false; }
   });
-  box.querySelectorAll("button[data-id]").forEach(b => {
-    b.addEventListener("click", () => aufgabeErledigen(b.dataset.id));
+  box.querySelectorAll(".preis[data-id]").forEach(el => {
+    el.addEventListener("click", () => aufgabeErledigen(el.dataset.id));
   });
 }
-function halleAktualisieren(){
+function hausAktualisieren(){
   $("s-sterne").textContent = stand.sterne;
-  $("s-level").textContent = stand.level;
-  const fertig = stand.erledigt.length;
-  $("s-fertig").textContent = fertig + "/" + AUFGABEN.length;
-  $("fortschritt-balken").style.width = Math.round(fertig / AUFGABEN.length * 100) + "%";
-  $("b-spielen").textContent = "Level " + stand.level + " spielen";
+  $("s-sterne2").textContent = stand.sterne;
+  $("s-fertig").textContent = stand.erledigt.length + "/" + ALLE_AUFGABEN.length;
+  $("s-lvl-rund").textContent = Math.min(stand.level, MAX_LEVEL);
+  $("s-level-txt").textContent = "LEVEL " + Math.min(stand.level, MAX_LEVEL);
+  $("b-spielen").textContent = Math.min(stand.level, MAX_LEVEL);
+  ebenenZeichnen();
   aufgabenZeichnen();
   szeneAktualisieren();
 }
 function aufgabeErledigen(id){
-  const a = AUFGABEN.find(x => x.id === id);
-  if (!a || istErledigt(id) || stand.sterne < a.kosten) return;
+  const a = ALLE_AUFGABEN.find(x => x.id === id);
+  if (!a || istErledigt(id)) return;
   tonAn();
+  if (stand.sterne < a.kosten){
+    sndFehler();
+    zeigeKarte("Noch nicht genug Sterne", "",
+      `«${a.titel}» kostet ${a.kosten} ★. Du hast ${stand.sterne} ★. Spiel eine Runde, dann klappt es.`,
+      "Alles klar");
+    return;
+  }
+  if (a.bereich !== aktBereich.id){
+    bereichZeichnen(a.bereich);
+    ebenenZeichnen();
+  }
   stand.sterne -= a.kosten;
   stand.erledigt.push(id);
   speichern();
-  halleAktualisieren();
+  hausAktualisieren();
   const bl = $("blitz");
   bl.classList.remove("an"); void bl.offsetWidth; bl.classList.add("an");
   sndStern();
-  if (stand.erledigt.length === AUFGABEN.length){
-    setTimeout(() => zeigeKarte("🏆 Halle fertig!", "",
-      "Die ganze Werkstatt steht: Tor, Licht, Boden, Werkzeug, Hebebühne – und alle drei Fahrzeuge glänzen wieder. Du kannst weiterspielen, so viel du willst.",
-      "Super"), 500);
+  if (stand.erledigt.length === ALLE_AUFGABEN.length){
+    setTimeout(() => zeigeKarte("🏆 Fahrschule fertig!", "",
+      "Hof, Halle, Theorie und Keller sind komplett ausgebaut – und alle Fahrzeuge glänzen. Weiterspielen kannst du natürlich trotzdem.",
+      "Super"), 600);
   }
 }
 
 /* ================================================================
-   7. MATCH-3-SPIELFELD
+   8. MATCH-3
    ================================================================ */
 const N = 8, LUECKE = 4, RAND = 6;
 let ZELLE = 44;
 const brett = $("brett");
-let feld = [];                 // feld[r][c] = {id, typ, spezial, el} | null
+let feld = [];
 let idZaehler = 1;
 let sperre = true;
 let gewaehlt = null;
 let lvlNr = 1, lvlDaten = null, zuegeRest = 0, punkte = 0, fortschritt = [];
+let letzteTauschZelle = -1;
 
-function posX(c){ return RAND + c * (ZELLE + LUECKE); }
-function posY(r){ return RAND + r * (ZELLE + LUECKE); }
+const posX = c => RAND + c * (ZELLE + LUECKE);
+const posY = r => RAND + r * (ZELLE + LUECKE);
 
 function groesseAnpassen(){
-  const maxB = Math.min(window.innerWidth - 26, 452);
+  const maxB = Math.min(window.innerWidth - 40, 452);
   let z = Math.floor((maxB - 2*RAND - (N-1)*LUECKE) / N);
   ZELLE = Math.max(30, Math.min(50, z));
   const seite = 2*RAND + N*ZELLE + (N-1)*LUECKE;
@@ -988,27 +1164,10 @@ function neuerStein(typ, spezial){
   return { id: idZaehler++, typ, spezial: spezial || null, el };
 }
 function steinNeuZeichnen(s){ s.el.innerHTML = steinSVG(s.typ, s.spezial); }
-
 function feldLeeren(){
   brett.querySelectorAll(".stein, .funke, .strahl").forEach(e => e.remove());
   feld = [];
   for (let r = 0; r < N; r++) feld.push(new Array(N).fill(null));
-}
-function feldFuellen(){
-  feldLeeren();
-  for (let r = 0; r < N; r++){
-    for (let c = 0; c < N; c++){
-      let typ, versuche = 0;
-      do {
-        typ = Math.floor(Math.random() * ANZ_TYPEN);
-        versuche++;
-      } while (versuche < 30 && machtTreffer(r, c, typ));
-      const s = neuerStein(typ);
-      feld[r][c] = s;
-      setzePosition(s, r, c, true);
-    }
-  }
-  if (!zugMoeglich()) feldFuellen();
 }
 function machtTreffer(r, c, typ){
   const g = (rr, cc) => (rr >= 0 && cc >= 0 && rr < N && cc < N && feld[rr][cc]) ? feld[rr][cc].typ : -1;
@@ -1016,8 +1175,20 @@ function machtTreffer(r, c, typ){
   if (g(r-1, c) === typ && g(r-2, c) === typ) return true;
   return false;
 }
-
-/* ---------- Treffer suchen ---------- */
+function feldFuellen(){
+  feldLeeren();
+  for (let r = 0; r < N; r++){
+    for (let c = 0; c < N; c++){
+      let typ, versuche = 0;
+      do { typ = Math.floor(Math.random() * ANZ_TYPEN); versuche++; }
+      while (versuche < 30 && machtTreffer(r, c, typ));
+      const s = neuerStein(typ);
+      feld[r][c] = s;
+      setzePosition(s, r, c, true);
+    }
+  }
+  if (!zugMoeglich()) feldFuellen();
+}
 function gruppenFinden(){
   const laeufe = [];
   for (let r = 0; r < N; r++){
@@ -1030,7 +1201,7 @@ function gruppenFinden(){
       if (e - c + 1 >= 3){
         const zellen = [];
         for (let i = c; i <= e; i++) zellen.push(r*N + i);
-        laeufe.push({ typ: s.typ, zellen, richtung: "h", laenge: e - c + 1 });
+        laeufe.push({ typ: s.typ, zellen, richtung:"h", laenge: e - c + 1 });
       }
       c = e + 1;
     }
@@ -1045,14 +1216,12 @@ function gruppenFinden(){
       if (e - r + 1 >= 3){
         const zellen = [];
         for (let i = r; i <= e; i++) zellen.push(i*N + c);
-        laeufe.push({ typ: s.typ, zellen, richtung: "v", laenge: e - r + 1 });
+        laeufe.push({ typ: s.typ, zellen, richtung:"v", laenge: e - r + 1 });
       }
       r = e + 1;
     }
   }
   if (!laeufe.length) return [];
-
-  // Läufe, die sich Zellen teilen, zu Gruppen verschmelzen
   const benutzt = new Array(laeufe.length).fill(false);
   const gruppen = [];
   for (let i = 0; i < laeufe.length; i++){
@@ -1087,8 +1256,6 @@ function spezialFuer(g){
   if (g.maxV === 4) return "spalte";
   return null;
 }
-
-/* ---------- Effekte ---------- */
 function funkeAn(r, c){
   const d = document.createElement("div");
   d.className = "funke";
@@ -1112,8 +1279,6 @@ function strahlAn(r, c, senkrecht){
   brett.appendChild(d);
   setTimeout(() => d.remove(), 400);
 }
-
-/* ---------- Auslösen von Spezialteilen ---------- */
 function haeufigsterTyp(){
   const z = new Array(ANZ_TYPEN).fill(0);
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (feld[r][c]) z[feld[r][c].typ]++;
@@ -1154,7 +1319,6 @@ function ausbreiten(startZellen, farbeZiel){
   }
   return { raus, spezialAusgeloest };
 }
-
 async function entfernen(zellen, kette){
   const liste = [...zellen];
   if (!liste.length) return;
@@ -1174,7 +1338,6 @@ async function entfernen(zellen, kette){
   hudAktualisieren();
   await schlaf(210);
 }
-
 async function fallenLassen(){
   let bewegt = false;
   for (let c = 0; c < N; c++){
@@ -1195,7 +1358,6 @@ async function fallenLassen(){
       const s = neuerStein(Math.floor(Math.random() * ANZ_TYPEN));
       feld[r][c] = s;
       setzePosition(s, -ueber, c, true);
-      s.el.classList.add("neu");
       setzePosition(s, r, c, false);
       ueber++;
       bewegt = true;
@@ -1203,7 +1365,6 @@ async function fallenLassen(){
   }
   if (bewegt) await schlaf(230);
 }
-
 async function kaskade(){
   let kette = 0;
   while (true){
@@ -1235,15 +1396,11 @@ async function kaskade(){
         funkeAn(r, c);
       }
     });
-    if (neueSpezial.length) { sndSpezial(); await schlaf(120); }
+    if (neueSpezial.length){ sndSpezial(); await schlaf(120); }
     letzteTauschZelle = -1;
     await fallenLassen();
   }
 }
-
-/* ---------- Züge ---------- */
-let letzteTauschZelle = -1;
-
 function tauscheDaten(r1, c1, r2, c2){
   const t = feld[r1][c1];
   feld[r1][c1] = feld[r2][c2];
@@ -1283,10 +1440,14 @@ async function mischen(){
     if (s){ s.typ = typen[i++]; s.spezial = null; steinNeuZeichnen(s); }
   }
   await schlaf(200);
-  if (gruppenFinden().length || !zugMoeglich()) { await mischen(); return; }
+  if (gruppenFinden().length || !zugMoeglich()){ await mischen(); return; }
   sperre = false;
 }
-
+function auswahlLoeschen(){
+  if (gewaehlt && feld[gewaehlt.r] && feld[gewaehlt.r][gewaehlt.c])
+    feld[gewaehlt.r][gewaehlt.c].el.classList.remove("gewaehlt");
+  gewaehlt = null;
+}
 async function zugSpielen(r1, c1, r2, c2){
   sperre = true;
   auswahlLoeschen();
@@ -1300,15 +1461,13 @@ async function zugSpielen(r1, c1, r2, c2){
 
   const aFarbe = a.spezial === "farbe", bFarbe = b.spezial === "farbe";
   if (aFarbe || bFarbe){
-    // Farbbombe: nimmt die Farbe des Partners mit
-    const zielTyp = aFarbe && bFarbe ? -1 : (aFarbe ? b.typ : a.typ);
-    const start = [r2*N + c2, r1*N + c1];
+    const zielTyp = (aFarbe && bFarbe) ? -1 : (aFarbe ? b.typ : a.typ);
     let raus;
     if (zielTyp === -1){
       raus = new Set();
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (feld[r][c]) raus.add(r*N + c);
     } else {
-      raus = ausbreiten(start, zielTyp).raus;
+      raus = ausbreiten([r2*N + c2, r1*N + c1], zielTyp).raus;
     }
     zuegeRest--;
     sndSpezial();
@@ -1318,9 +1477,7 @@ async function zugSpielen(r1, c1, r2, c2){
     await nachZug();
     return;
   }
-
   if (a.spezial && b.spezial){
-    // Zwei Spezialteile: beide auslösen
     zuegeRest--;
     const raus = ausbreiten([r1*N + c1, r2*N + c2], null).raus;
     sndSpezial();
@@ -1330,7 +1487,6 @@ async function zugSpielen(r1, c1, r2, c2){
     await nachZug();
     return;
   }
-
   if (!gruppenFinden().length){
     tauscheDaten(r1, c1, r2, c2);
     setzePosition(feld[r1][c1], r1, c1, false);
@@ -1346,7 +1502,6 @@ async function zugSpielen(r1, c1, r2, c2){
   await kaskade();
   await nachZug();
 }
-
 async function nachZug(){
   hudAktualisieren();
   if (zieleErreicht()){ await schlaf(240); gewonnen(); return; }
@@ -1354,8 +1509,6 @@ async function nachZug(){
   if (!zugMoeglich()) await mischen();
   sperre = false;
 }
-
-/* ---------- Eingabe ---------- */
 function zelleAus(ev){
   const b = brett.getBoundingClientRect();
   const x = ev.clientX - b.left, y = ev.clientY - b.top;
@@ -1364,18 +1517,13 @@ function zelleAus(ev){
   if (r < 0 || c < 0 || r >= N || c >= N) return null;
   return { r, c };
 }
-function auswahlLoeschen(){
-  if (gewaehlt && feld[gewaehlt.r] && feld[gewaehlt.r][gewaehlt.c])
-    feld[gewaehlt.r][gewaehlt.c].el.classList.remove("gewaehlt");
-  gewaehlt = null;
-}
 let zieh = null;
 brett.addEventListener("pointerdown", ev => {
   tonAn();
   if (sperre) return;
   const z = zelleAus(ev);
   if (!z) return;
-  zieh = { r: z.r, c: z.c, x: ev.clientX, y: ev.clientY, aktiv: true };
+  zieh = { r:z.r, c:z.c, x:ev.clientX, y:ev.clientY, aktiv:true };
   if (gewaehlt && (Math.abs(gewaehlt.r - z.r) + Math.abs(gewaehlt.c - z.c)) === 1){
     const g = gewaehlt;
     zieh.aktiv = false;
@@ -1383,7 +1531,7 @@ brett.addEventListener("pointerdown", ev => {
     return;
   }
   auswahlLoeschen();
-  gewaehlt = { r: z.r, c: z.c };
+  gewaehlt = { r:z.r, c:z.c };
   if (feld[z.r][z.c]) feld[z.r][z.c].el.classList.add("gewaehlt");
 });
 brett.addEventListener("pointermove", ev => {
@@ -1401,10 +1549,7 @@ brett.addEventListener("pointermove", ev => {
 });
 window.addEventListener("pointerup", () => { zieh = null; });
 
-/* ---------- Ziele & HUD ---------- */
-function zieleErreicht(){
-  return lvlDaten.ziele.every(([typ, anz]) => (fortschritt[typ] || 0) >= anz);
-}
+function zieleErreicht(){ return lvlDaten.ziele.every(([typ, anz]) => (fortschritt[typ] || 0) >= anz); }
 function zieleZeichnen(){
   const box = $("ziele");
   box.innerHTML = "";
@@ -1420,13 +1565,11 @@ function hudAktualisieren(){
   $("s-lvl").textContent = lvlNr;
   $("s-zuege").textContent = Math.max(0, zuegeRest);
   $("s-punkte").textContent = punkte;
-  $("w-zuege").className = "stat" + (zuegeRest <= 5 ? " warn" : "");
+  $("s-sterne2").textContent = stand.sterne;
 }
-
-/* ---------- Level starten / beenden ---------- */
 function levelStarten(nr){
-  lvlNr = nr;
-  lvlDaten = levelDaten(nr);
+  lvlNr = Math.min(nr, MAX_LEVEL);
+  lvlDaten = levelDaten(lvlNr);
   zuegeRest = lvlDaten.zuege;
   punkte = 0;
   fortschritt = new Array(ANZ_TYPEN).fill(0);
@@ -1460,55 +1603,47 @@ function gewonnen(){
   const neu = Math.max(0, verdient - vorher);
   stand.besteSterne[lvlNr] = Math.max(vorher, verdient);
   stand.sterne += neu;
-  if (lvlNr === stand.level) stand.level = lvlNr + 1;
+  if (lvlNr === stand.level && stand.level < MAX_LEVEL) stand.level = lvlNr + 1;
   speichern();
   sndStern();
   const text = neu > 0
-    ? `${punkte} Punkte – du bekommst ${neu} ⭐ für die Werkstatt.`
-    : `${punkte} Punkte. Für dieses Level hattest du schon ${vorher} ⭐ – neue Sterne gibt es nur, wenn du dich verbesserst.`;
-  zeigeKarte("🎉 Level geschafft!", sterneText(verdient), text, "Zur Halle", () => {
-    halleAktualisieren();
-    ansichtWechseln("halle");
+    ? `${punkte} Punkte – du bekommst ${neu} ★ für den Ausbau.`
+    : `${punkte} Punkte. Für dieses Level hattest du schon ${vorher} ★ – neue Sterne gibt es nur, wenn du dich verbesserst.`;
+  zeigeKarte("🎉 Level geschafft!", sterneText(verdient), text, "Zur Fahrschule", () => {
+    hausAktualisieren();
+    ansichtWechseln("haus");
   });
 }
 function verloren(){
   sperre = true;
-  zeigeKarte("😕 Züge aufgebraucht", "", "Die Aufträge sind noch nicht alle erledigt. Probier es gleich nochmal!", "Nochmal", () => {
-    levelStarten(lvlNr);
-  });
+  zeigeKarte("😕 Züge aufgebraucht", "", "Die Aufträge sind noch nicht alle erfüllt. Probier es gleich nochmal!",
+    "Nochmal", () => levelStarten(lvlNr));
 }
 
 /* ================================================================
-   8. ANSICHTEN
+   9. ANSICHTEN & START
    ================================================================ */
 function ansichtWechseln(welche){
-  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("aktiv", t.dataset.view === welche));
-  $("v-halle").hidden = welche !== "halle";
+  $("v-haus").hidden = welche !== "haus";
   $("v-spiel").hidden = welche !== "spiel";
-  if (welche === "halle") halleAktualisieren();
+  if (welche === "haus"){ hausAktualisieren(); buehneAnpassen(); }
   else groesseAnpassen();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({ top:0, behavior:"smooth" });
 }
-document.querySelectorAll(".tab").forEach(t => {
-  t.addEventListener("click", () => {
-    tonAn();
-    if (t.dataset.view === "spiel" && !lvlDaten) levelStarten(stand.level);
-    ansichtWechseln(t.dataset.view);
-  });
-});
 $("b-spielen").addEventListener("click", () => {
   tonAn();
   levelStarten(stand.level);
   ansichtWechseln("spiel");
 });
 $("b-neustart").addEventListener("click", () => { tonAn(); levelStarten(lvlNr); });
-$("b-halle").addEventListener("click", () => ansichtWechseln("halle"));
+$("b-haus").addEventListener("click", () => ansichtWechseln("haus"));
 $("b-reset").addEventListener("click", () => {
-  if (!confirm("Wirklich alles zurücksetzen? Sterne, Level und die ganze Halle fangen wieder von vorne an.")) return;
-  stand = { level:1, sterne:0, erledigt:[], besteSterne:{} };
+  if (!confirm("Wirklich alles zurücksetzen? Sterne, Level und der ganze Ausbau fangen wieder von vorne an.")) return;
+  stand = { level:1, sterne:0, erledigt:[], besteSterne:{}, bereich:"hof" };
   speichern();
   lvlDaten = null;
-  halleAktualisieren();
+  bereichZeichnen("hof");
+  hausAktualisieren();
 });
 $("b-sound").addEventListener("click", () => {
   ton = !ton;
@@ -1517,17 +1652,14 @@ $("b-sound").addEventListener("click", () => {
   if (ton) tonAn();
 });
 $("b-sound").textContent = ton ? "🔊" : "🔇";
+window.addEventListener("resize", () => { buehneAnpassen(); groesseAnpassen(); });
+window.addEventListener("orientationchange", () => setTimeout(() => { buehneAnpassen(); groesseAnpassen(); }, 200));
 
-window.addEventListener("resize", groesseAnpassen);
-window.addEventListener("orientationchange", () => setTimeout(groesseAnpassen, 200));
-
-/* ================================================================
-   9. START
-   ================================================================ */
 laden();
 feldLeeren();
-halleAktualisieren();
-ansichtWechseln("halle");
+bereichZeichnen(stand.bereich);
+hausAktualisieren();
+ansichtWechseln("haus");
 })();
 </script>
 </body>
