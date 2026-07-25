@@ -198,9 +198,28 @@
   @media (prefers-reduced-motion:reduce){
     .surface, .stream{ animation:none; }
   }
+
+  /* ---------- Zurück zur Spiele-Auswahl ---------- */
+  .kmf-back{
+    position:fixed; z-index:9999;
+    top:calc(env(safe-area-inset-top, 0px) + 10px);
+    left:calc(env(safe-area-inset-left, 0px) + 10px);
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 13px; border-radius:14px;
+    font:700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color:#f1f5f9; text-decoration:none; white-space:nowrap;
+    background:rgba(15,23,42,.72);
+    border:1.5px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .kmf-back:active{ transform:scale(.94); }
 </style>
 </head>
 <body class="symbols">
+
+  <a href="../" class="kmf-back" aria-label="Zurück zur Spiele-Auswahl">🎮 Spiele</a>
 
   <h1>🧪 Reagenzgläser</h1>
   <p class="sub">Sortiere die Farben – ein Glas, eine Farbe.</p>

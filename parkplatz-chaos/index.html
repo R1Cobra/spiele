@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🅿️ Parkplatz-Chaos – KMF</title>
+<style>
+  :root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --line:#334155;
+    --accent:#38bdf8;
+    --text:#f1f5f9;
+    --muted:#94a3b8;
+    --cell:60px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background:radial-gradient(1100px 700px at 50% -10%, #1b2a4a 0%, var(--bg) 60%);
+    color:var(--text);
+    min-height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding:56px 12px 28px;   /* oben Platz für den Knopf «Spiele» */
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  h1{ font-size:1.5rem; margin:2px 0 2px; letter-spacing:.3px; }
+  .sub{ color:var(--muted); font-size:.8rem; margin:0 0 12px; }
+
+  /* ---------- Level-Wähler ---------- */
+  .levelbar{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .levelbar .lv{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:7px 16px; text-align:center; min-width:132px; }
+  .levelbar .lv b{ display:block; font-size:1.05rem; line-height:1.2; }
+  .levelbar .lv span{ font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+  .levelbar button{ padding:9px 13px; }
+
+  /* ---------- Statuszeile ---------- */
+  .stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:12px; }
+  .stat{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 13px; min-width:74px; text-align:center; }
+  .stat b{ display:block; font-size:1.1rem; line-height:1.15; }
+  .stat span{ font-size:.66rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+
+  /* ---------- Spielfeld ---------- */
+  .stage{ position:relative; margin:2px 0 14px; padding-right:54px; }   /* Platz für die Ausfahrt */
+  .board{
+    position:relative;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.075) 0 2px, transparent 2px var(--cell)),
+      repeating-linear-gradient(0deg,  rgba(255,255,255,.075) 0 2px, transparent 2px var(--cell)),
+      linear-gradient(160deg, #2b3446 0%, #232c3c 45%, #1d2534 100%);
+    border:3px solid #475569;
+    border-radius:10px;
+    box-shadow:0 18px 40px rgba(0,0,0,.5), inset 0 0 60px rgba(0,0,0,.35);
+    touch-action:none;
+    overflow:visible;
+  }
+  .board::after{ /* leichte Asphalt-Körnung */
+    content:""; position:absolute; inset:0; border-radius:7px; pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:7px 7px; opacity:.5;
+  }
+
+  /* Ausfahrt */
+  .gate{
+    position:absolute; z-index:4; pointer-events:none;
+    display:flex; align-items:center; gap:4px;
+  }
+  .gate .bar{
+    width:8px; border-radius:4px;
+    background:linear-gradient(180deg,#4ade80,#16a34a);
+    box-shadow:0 0 16px rgba(74,222,128,.75);
+    animation:gateGlow 1.8s ease-in-out infinite;
+  }
+  @keyframes gateGlow{ 0%,100%{ opacity:.65; } 50%{ opacity:1; } }
+  .gate .lab{
+    font-size:.58rem; font-weight:800; letter-spacing:1.2px; color:#86efac;
+    writing-mode:vertical-rl; text-orientation:mixed; text-shadow:0 1px 3px rgba(0,0,0,.6);
+  }
+  .gate .arrow{ font-size:1rem; color:#4ade80; }
+
+  /* Fahrzeuge */
+  .veh{
+    position:absolute; left:0; top:0; z-index:5;
+    transition:transform .17s cubic-bezier(.3,.9,.35,1);
+    cursor:grab; will-change:transform;
+    filter:drop-shadow(0 6px 8px rgba(0,0,0,.45));
+  }
+  .veh.dragging{ transition:none; cursor:grabbing; z-index:7; filter:drop-shadow(0 12px 14px rgba(0,0,0,.55)); }
+  .veh.sel .shell{ outline:3px solid var(--accent); outline-offset:1px; border-radius:12px; }
+  .veh.hint .shell{ outline:3px solid #facc15; outline-offset:1px; border-radius:12px; animation:hintPulse .7s ease-in-out infinite; }
+  @keyframes hintPulse{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.45); } }
+  .veh.truck{ z-index:6; }
+  .veh.out{ transition:transform .95s cubic-bezier(.5,0,.6,1); }
+  .shell{ width:100%; height:100%; }
+  .shell svg{ display:block; width:100%; height:100%; }
+  .veh .inner{
+    position:absolute; left:50%; top:50%;
+    transform-origin:center center;
+  }
+
+  /* Tipp-Geist */
+  .ghost{
+    position:absolute; z-index:3; pointer-events:none;
+    border:3px dashed #facc15; border-radius:12px;
+    background:rgba(250,204,21,.14);
+    animation:hintPulse .7s ease-in-out infinite;
+  }
+
+  /* ---------- Knöpfe ---------- */
+  .controls{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; max-width:620px; }
+  button{
+    font:inherit; font-weight:600; font-size:.92rem;
+    background:var(--card); color:var(--text);
+    border:2px solid var(--line); border-radius:13px;
+    padding:11px 16px; cursor:pointer;
+    transition:border-color .18s, transform .1s, opacity .2s;
+  }
+  button:hover:not(:disabled){ border-color:var(--accent); }
+  button:active:not(:disabled){ transform:scale(.96); }
+  button:disabled{ opacity:.35; cursor:default; }
+  button.small{ font-size:.82rem; padding:9px 13px; }
+
+  /* ---------- Anleitung ---------- */
+  details{ margin-top:16px; max-width:560px; width:100%; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 16px; }
+  summary{ cursor:pointer; font-weight:600; }
+  details p, details li{ color:#cbd5e1; font-size:.9rem; line-height:1.5; }
+  details ul{ padding-left:20px; margin:8px 0 0; }
+
+  /* ---------- Overlays ---------- */
+  .overlay{ position:fixed; inset:0; z-index:20; background:rgba(8,14,28,.82); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .overlay.hidden{ display:none; }
+  .card{ background:var(--card); border:2px solid var(--line); border-radius:20px; padding:26px 28px; text-align:center; max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.55); animation:pop .3s ease-out; }
+  @keyframes pop{ from{ transform:scale(.85); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .card h2{ margin:0 0 6px; font-size:1.5rem; }
+  .card p{ color:var(--muted); margin:0 0 16px; font-size:.95rem; }
+  .card .row{ display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
+  .stars{ font-size:1.9rem; letter-spacing:6px; margin:2px 0 10px; }
+  .spinner{ width:34px; height:34px; margin:0 auto 14px; border:4px solid rgba(148,163,184,.3); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #confetti{ position:fixed; inset:0; z-index:25; pointer-events:none; }
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(16px);
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:10px 16px; font-size:.88rem; opacity:0; pointer-events:none;
+    transition:opacity .25s, transform .25s; z-index:30;
+  }
+  .toast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:560px){
+    h1{ font-size:1.22rem; }
+    .sub{ margin-bottom:8px; }
+    .stats{ gap:5px; }
+    .stat{ min-width:0; padding:5px 7px; }
+    .stat b{ font-size:.95rem; }
+    .stat span{ font-size:.58rem; letter-spacing:.3px; }
+    .levelbar .lv{ min-width:112px; padding:6px 12px; }
+    button{ padding:10px 13px; font-size:.88rem; }
+  }
+
+  /* ---------- Zurück zur Spiele-Auswahl ---------- */
+  .kmf-back{
+    position:fixed; z-index:9999;
+    top:calc(env(safe-area-inset-top, 0px) + 10px);
+    left:calc(env(safe-area-inset-left, 0px) + 10px);
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 13px; border-radius:14px;
+    font:700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color:#f1f5f9; text-decoration:none; white-space:nowrap;
+    background:rgba(15,23,42,.72);
+    border:1.5px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .kmf-back:active{ transform:scale(.94); }
+</style>
+</head>
+<body>
+
+  <a href="../" class="kmf-back" aria-label="Zurück zur Spiele-Auswahl">🎮 Spiele</a>
+
+  <h1>🅿️ Parkplatz-Chaos</h1>
+  <p class="sub">Rangiere den KMF-Lastwagen aus dem Chaos zur Ausfahrt.</p>
+
+  <div class="levelbar">
+    <button id="b-prev" class="small">◀</button>
+    <div class="lv"><b id="s-level">Level 1</b><span id="s-stufe">Anfänger</span></div>
+    <button id="b-next-lv" class="small">▶</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="s-moves">0</b><span>Züge</span></div>
+    <div class="stat"><b id="s-par">–</b><span>Bestlösung</span></div>
+    <div class="stat"><b id="s-best">–</b><span>Dein Rekord</span></div>
+    <div class="stat"><b id="s-time">0:00</b><span>Zeit</span></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="controls">
+    <button id="b-undo">↩︎ Zurück</button>
+    <button id="b-restart">↺ Neustart</button>
+    <button id="b-hint">💡 Tipp</button>
+    <button id="b-sound" class="small">🔊 Ton</button>
+  </div>
+
+  <details>
+    <summary>So wird gespielt</summary>
+    <ul>
+      <li>Der blaue <b>KMF-Lastwagen</b> muss durch die grüne Ausfahrt am rechten Rand hinaus.</li>
+      <li>Jedes Fahrzeug fährt nur <b>vorwärts oder rückwärts</b> in seiner eigenen Richtung – niemand dreht.</li>
+      <li>Fahrzeug mit dem Finger ziehen (Handy) – oder anklicken und aufs freie Feld klicken bzw. die <b>Pfeiltasten</b> nehmen.</li>
+      <li>Ein Zug = eine Fahrt, egal über wie viele Felder.</li>
+      <li>«Bestlösung» ist die kürzest mögliche Zahl Züge – schaffst du es genau so knapp, gibt es 3 Sterne.</li>
+      <li>Tastatur: <b>U</b> = Zurück, <b>R</b> = Neustart, <b>H</b> = Tipp.</li>
+      <li>Jedes Level ist neu berechnet und wird immer anspruchsvoller – und garantiert lösbar.</li>
+    </ul>
+  </details>
+
+  <div class="overlay hidden" id="load-overlay">
+    <div class="card">
+      <div class="spinner"></div>
+      <h2>Parkplatz wird eingerichtet</h2>
+      <p id="load-text">Level wird gebaut …</p>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="overlay">
+    <div class="card">
+      <h2 id="win-title">🎉 Freie Fahrt!</h2>
+      <div class="stars" id="win-stars">★★★</div>
+      <p id="win-text"></p>
+      <div class="row">
+        <button id="b-next">Nächstes Level ▶︎</button>
+        <button id="b-again" class="small">Nochmal</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+  <div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Parkplatz-Chaos – Schiebe-Rätsel der KMFahrschule GmbH
+   Alles in einer Datei, ohne Bibliotheken.
+   ========================================================= */
+
+/* ===== ENGINE START ===== (reine Logik, kein DOM – wird auch vom Selbsttest benutzt) */
+
+const TRUCK_LEN = 3;        // Länge des KMF-Lastwagens
+const MAX_STATES = 120000;  // Deckel für die Zustands-Suche im Spiel (Tipp-Knopf)
+const SEARCH_STATES = 20000; // Deckel beim Levelbauen – grössere Aufbauten werden gleich verworfen
+const MAX_VEH = 16;         // mehr Fahrzeuge sprengen den Zahlen-Schlüssel (3 Bit x 16 = 48 Bit)
+
+/* Zufallszahlen mit Startwert – gleiches Level = gleiches Rätsel, auf jedem Gerät */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* Wie gross, wie voll, wie schwer wird ein Level? */
+function levelConfig(level){
+  // Grösser als 7x7 lässt sich nicht mehr zuverlässig durchrechnen – dafür wird es dichter.
+  const N = level <= 10 ? 6 : 7;
+  const minCount = N === 6 ? 9 : 14;
+  const maxCount = Math.min(MAX_VEH, N === 6 ? 12 : 16);
+  const gespanne = level < 3 ? 0 : Math.min(N === 6 ? 2 : 4, 1 + Math.floor((level - 3) / 4));
+  const targetPar = Math.min(17, Math.round(4 + level * 0.9));
+  const budget = Math.min(1200, 700 + level * 20);   // Bauzeit, damit auch Handys flott bleiben
+  return { N, minCount, maxCount, gespanne, targetPar, budget };
+}
+
+/* Zufälliger Fahrzeug-Aufbau. dir: 0 = waagrecht, 1 = senkrecht */
+function randomLayout(cfg, rnd){
+  const N = cfg.N;
+  const grid = new Int32Array(N * N).fill(-1);
+  const vehicles = [];
+  const exitRow = Math.floor(rnd() * N);
+
+  const occupy = (v, id) => {
+    for(let k = 0; k < v.len; k++){
+      grid[v.dir === 0 ? v.line * N + v.pos + k : (v.pos + k) * N + v.line] = id;
+    }
+  };
+  const free = (dir, line, pos, len) => {
+    if(pos < 0 || pos + len > N) return false;
+    for(let k = 0; k < len; k++){
+      if(grid[dir === 0 ? line * N + pos + k : (pos + k) * N + line] !== -1) return false;
+    }
+    return true;
+  };
+
+  // Aufgebaut wird von der Lösung her: der Lastwagen steht zuerst bei der Ausfahrt.
+  // Die eigentliche Startstellung wird später aus dem Zustandsraum herausgesucht.
+  const truck = { len: TRUCK_LEN, dir: 0, line: exitRow, pos: N - TRUCK_LEN, type: 'lkw', color: '#2563eb' };
+  vehicles.push(truck); occupy(truck, 0);
+  const count = Math.min(MAX_VEH, cfg.minCount + Math.floor(rnd() * (cfg.maxCount - cfg.minCount + 1)));
+
+  const farben = ['#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#a855f7','#ec4899','#e2e8f0','#94a3b8','#84cc16','#06b6d4','#fb7185'];
+  let gespanneLeft = cfg.gespanne;
+  let tries = 0;
+  while(vehicles.length < count && tries < 500){
+    tries++;
+    const wantGespann = gespanneLeft > 0 && rnd() < 0.4;
+    const len = wantGespann ? 4 : 2;
+    if(len > N) continue;
+    const dir = rnd() < 0.5 ? 0 : 1;
+    const line = Math.floor(rnd() * N);
+    // Waagrechte Fahrzeuge auf der Ausfahrts-Reihe kämen dort nie mehr weg
+    if(dir === 0 && line === exitRow) continue;
+    const pos = Math.floor(rnd() * (N - len + 1));
+    if(!free(dir, line, pos, len)) continue;
+    // Gespanne bekommen immer eine kräftige Farbe, damit Zugfahrzeug und Anhänger zusammenpassen
+    const auswahl = wantGespann ? farben.slice(0, 7) : farben;
+    const v = { len, dir, line, pos, type: wantGespann ? 'gespann' : 'pkw', color: auswahl[Math.floor(rnd() * auswahl.length)] };
+    occupy(v, vehicles.length);
+    vehicles.push(v);
+    if(wantGespann) gespanneLeft--;
+  }
+  return { N, exitRow, vehicles };
+}
+
+/* Alle möglichen Züge eines Zustands – ein Zug = Fahrt über beliebig viele freie Felder */
+function forEachMove(N, vs, pos, grid, cb){
+  for(let i = 0; i < vs.length; i++){
+    const v = vs[i], p = pos[i];
+    for(let q = p - 1; q >= 0; q--){
+      if(grid[v.dir === 0 ? v.line * N + q : q * N + v.line] !== -1) break;
+      cb(i, q);
+    }
+    for(let q = p + 1; q + v.len - 1 < N; q++){
+      const end = q + v.len - 1;
+      if(grid[v.dir === 0 ? v.line * N + end : end * N + v.line] !== -1) break;
+      cb(i, q);
+    }
+  }
+}
+
+function fillGrid(N, vs, pos, grid){
+  grid.fill(-1);
+  for(let i = 0; i < vs.length; i++){
+    const v = vs[i], p = pos[i];
+    for(let k = 0; k < v.len; k++){
+      grid[v.dir === 0 ? v.line * N + p + k : (p + k) * N + v.line] = i;
+    }
+  }
+}
+
+/* Jede Stellung wird zu einer einzigen Zahl (jedes Fahrzeug 3 Bit) – schnell zu vergleichen */
+function powTable(n){
+  const p = new Float64Array(n);
+  for(let i = 0; i < n; i++) p[i] = Math.pow(8, i);
+  return p;
+}
+function stateKey(pos, pow){
+  let k = 0;
+  for(let i = 0; i < pos.length; i++) k += pos[i] * pow[i];
+  return k;
+}
+
+/* Eigene Hash-Tabelle statt Map – gleiche Puffer für alle Suchläufe, darum viel schneller.
+   Alte Einträge werden nicht gelöscht, sondern über den Zähler «gen» ungültig gemacht. */
+let TBL = null;
+function tableInit(cap){
+  const size = 1 << Math.ceil(Math.log2(Math.max(2048, cap * 2)));
+  if(!TBL || TBL.size !== size){
+    TBL = { size, mask: size - 1, keys: new Float64Array(size), vals: new Int32Array(size), stamp: new Int32Array(size), gen: 0 };
+  }
+  TBL.gen++;
+  return TBL;
+}
+function tHash(k){
+  const low = k % 16777216, high = (k - low) / 16777216;
+  return (Math.imul(low, 0x9E3779B1) ^ Math.imul(high, 0x85EBCA77)) >>> 0;
+}
+function tGet(t, k){
+  let i = tHash(k) & t.mask;
+  while(t.stamp[i] === t.gen){ if(t.keys[i] === k) return t.vals[i]; i = (i + 1) & t.mask; }
+  return -1;
+}
+function tSet(t, k, v){
+  let i = tHash(k) & t.mask;
+  while(t.stamp[i] === t.gen){ if(t.keys[i] === k){ t.vals[i] = v; return; } i = (i + 1) & t.mask; }
+  t.stamp[i] = t.gen; t.keys[i] = k; t.vals[i] = v;
+}
+
+/* Wiederverwendete Puffer für die Suchläufe */
+let BUF = null;
+function buffers(cap){
+  if(!BUF || BUF.cap < cap){
+    BUF = { cap, flat: new Uint8Array(cap * MAX_VEH), dist: new Int32Array(cap),
+            queue: new Int32Array(cap), firstV: new Int32Array(cap), firstT: new Int32Array(cap) };
+  }
+  return BUF;
+}
+
+/* Kompletter Zustandsraum eines Aufbaus + exakter Abstand jeder Stellung zur Ausfahrt.
+   Zwei Breitensuchen: erst alle erreichbaren Stellungen, dann rückwärts von allen
+   Gewinnstellungen aus. Die Züge sind umkehrbar, darum stimmt das in beide Richtungen. */
+function analyzeFull(N, vehicles, solvedPos, maxStates, targetPar, rnd){
+  const n = vehicles.length;
+  const pow = powTable(n);
+  const buf = buffers(maxStates);
+  const tab = tableInit(maxStates);
+  const flat = buf.flat, queue = buf.queue, dist = buf.dist;
+  const grid = new Int32Array(N * N);
+  const tmp = new Uint8Array(n);
+  let count = 0, voll = false;
+
+  for(let i = 0; i < n; i++) tmp[i] = solvedPos[i];
+  flat.set(tmp, 0); tSet(tab, stateKey(tmp, pow), 0); count = 1;
+  let qh = 0, qt = 0; queue[qt++] = 0;
+
+  while(qh < qt && !voll){
+    const id = queue[qh++], off = id * n;
+    for(let i = 0; i < n; i++) tmp[i] = flat[off + i];
+    fillGrid(N, vehicles, tmp, grid);
+    forEachMove(N, vehicles, tmp, grid, (i, q) => {
+      if(voll) return;
+      const keep = tmp[i];
+      tmp[i] = q;
+      const k = stateKey(tmp, pow);
+      if(tGet(tab, k) < 0){
+        if(count >= maxStates){ voll = true; tmp[i] = keep; return; }
+        const nid = count++;
+        flat.set(tmp, nid * n);
+        tSet(tab, k, nid);
+        queue[qt++] = nid;
+      }
+      tmp[i] = keep;
+    });
+  }
+  if(voll) return null;   // zu grosser Zustandsraum – Aufbau überspringen
+
+  const goalPos = N - TRUCK_LEN;
+  for(let id = 0; id < count; id++) dist[id] = -1;
+  let qh2 = 0, qt2 = 0;
+  for(let id = 0; id < count; id++) if(flat[id * n] === goalPos){ dist[id] = 0; queue[qt2++] = id; }
+  if(!qt2) return null;
+
+  let maxDepth = 0;
+  while(qh2 < qt2){
+    const id = queue[qh2++], off = id * n, d = dist[id];
+    for(let i = 0; i < n; i++) tmp[i] = flat[off + i];
+    fillGrid(N, vehicles, tmp, grid);
+    forEachMove(N, vehicles, tmp, grid, (i, q) => {
+      const keep = tmp[i];
+      tmp[i] = q;
+      const nid = tGet(tab, stateKey(tmp, pow));
+      tmp[i] = keep;
+      if(nid >= 0 && dist[nid] === -1){ dist[nid] = d + 1; queue[qt2++] = nid; if(d + 1 > maxDepth) maxDepth = d + 1; }
+    });
+  }
+  // Startstellung gleich hier aussuchen: so schwer wie gewünscht, LKW möglichst weit links.
+  // (Die Puffer werden vom nächsten Suchlauf überschrieben, darum nichts davon herausgeben.)
+  const want = Math.min(maxDepth, targetPar);
+  if(want < 3) return { maxDepth, par: 0, pos: null };
+  const cands = [];
+  for(let i = 0; i < count; i++) if(dist[i] === want) cands.push(i);
+  if(!cands.length) return { maxDepth, par: 0, pos: null };
+  let minTruck = 99;
+  for(const id of cands) minTruck = Math.min(minTruck, flat[id * n]);
+  const eng = cands.filter(id => flat[id * n] <= minTruck + 1);
+  const id = eng[Math.floor(rnd() * eng.length)];
+  const pos = [];
+  for(let i = 0; i < n; i++) pos.push(flat[id * n + i]);
+  return { maxDepth, par: want, pos };
+}
+
+/* Einen Aufbau leicht abändern: ein Fahrzeug an einen anderen freien Platz stellen */
+function mutate(lay, rnd){
+  const N = lay.N;
+  const vs = lay.vehicles.map(v => Object.assign({}, v));
+  if(vs.length < 3) return null;
+  const idx = 1 + Math.floor(rnd() * (vs.length - 1));
+  const grid = new Int32Array(N * N).fill(-1);
+  for(let i = 0; i < vs.length; i++){
+    if(i === idx) continue;
+    const v = vs[i];
+    for(let k = 0; k < v.len; k++) grid[v.dir === 0 ? v.line * N + v.pos + k : (v.pos + k) * N + v.line] = i;
+  }
+  const v = vs[idx];
+  for(let t = 0; t < 40; t++){
+    const dir = rnd() < 0.5 ? 0 : 1;
+    const line = Math.floor(rnd() * N);
+    if(dir === 0 && line === lay.exitRow) continue;
+    const pos = Math.floor(rnd() * (N - v.len + 1));
+    let frei = true;
+    for(let k = 0; k < v.len && frei; k++){
+      if(grid[dir === 0 ? line * N + pos + k : (pos + k) * N + line] !== -1) frei = false;
+    }
+    if(!frei) continue;
+    v.dir = dir; v.line = line; v.pos = pos;
+    return { N, exitRow: lay.exitRow, vehicles: vs };
+  }
+  return null;
+}
+
+/* Von einer Stellung aus die echte Bestlösung suchen (Breitensuche bis zum Ziel).
+   Liefert die Mindestzahl Züge und den ersten Zug dieser Lösung. */
+function solveFrom(N, vehicles, startPos, maxStates){
+  const n = vehicles.length;
+  const goalPos = N - TRUCK_LEN;
+  if(startPos[0] === goalPos) return { par: 0, first: null };
+  const pow = powTable(n);
+  const buf = buffers(maxStates);
+  const tab = tableInit(maxStates);
+  const flat = buf.flat, dist = buf.dist, queue = buf.queue;
+  const firstV = buf.firstV, firstT = buf.firstT;   // erster Zug auf dem Weg hierher
+  const grid = new Int32Array(N * N);
+  const tmp = new Uint8Array(n);
+  let count = 0;
+
+  for(let i = 0; i < n; i++) tmp[i] = startPos[i];
+  flat.set(tmp, 0); dist[0] = 0; firstV[0] = -1; tSet(tab, stateKey(tmp, pow), 0); count = 1;
+  let qh = 0, qt = 0; queue[qt++] = 0;
+
+  while(qh < qt){
+    const id = queue[qh++], off = id * n, d = dist[id];
+    for(let i = 0; i < n; i++) tmp[i] = flat[off + i];
+    fillGrid(N, vehicles, tmp, grid);
+    let treffer = null, voll = false;
+    forEachMove(N, vehicles, tmp, grid, (i, q) => {
+      if(treffer || voll) return;
+      const keep = tmp[i];
+      tmp[i] = q;
+      const k = stateKey(tmp, pow);
+      if(tGet(tab, k) < 0){
+        if(count >= maxStates){ voll = true; tmp[i] = keep; return; }
+        const nid = count++;
+        flat.set(tmp, nid * n);
+        dist[nid] = d + 1;
+        firstV[nid] = id === 0 ? i : firstV[id];
+        firstT[nid] = id === 0 ? q : firstT[id];
+        tSet(tab, k, nid);
+        queue[qt++] = nid;
+        if(tmp[0] === goalPos) treffer = { par: d + 1, first: { i: firstV[nid], to: firstT[nid] } };
+      }
+      tmp[i] = keep;
+    });
+    if(treffer) return treffer;
+    if(voll) return null;
+  }
+  return null;
+}
+
+/* Ein komplettes Level bauen – garantiert lösbar, mit bekannter Bestlösung */
+function generateLevel(level){
+  const cfg = levelConfig(level);
+  const rnd = mulberry32(((level * 2654435761) ^ 0x9E3779B9) >>> 0);
+  const t0 = Date.now();
+  let best = null;
+
+  // Bergsteiger-Suche: Aufbau bewerten, leicht abändern, Verbesserungen behalten
+  const minPar = Math.max(4, Math.round(cfg.targetPar * 0.65));
+  let cur = null, curScore = -1, stillstand = 0;
+  for(let schritt = 0; schritt < 4000; schritt++){
+    const lay = (cur && rnd() < 0.85) ? mutate(cur, rnd) : randomLayout(cfg, rnd);
+    if(!lay) continue;
+    const res = analyzeFull(lay.N, lay.vehicles, lay.vehicles.map(v => v.pos), SEARCH_STATES, cfg.targetPar, rnd);
+    if(res && res.maxDepth >= 3){
+      if(res.maxDepth > curScore){ cur = lay; curScore = res.maxDepth; stillstand = 0; }
+      else if(res.maxDepth === curScore){ cur = lay; stillstand++; }
+      else stillstand++;
+      if(stillstand > 25){ cur = null; curScore = -1; stillstand = 0; }   // festgefahren: neu anfangen
+      if(res.pos){
+        const built = { level, N: lay.N, exitRow: lay.exitRow, vehicles: lay.vehicles,
+                        start: res.pos, par: res.par };
+        if(res.par >= cfg.targetPar) return built;
+        if(!best || res.par > best.par) best = built;
+      }
+    }
+    const gelaufen = Date.now() - t0;
+    if(gelaufen > cfg.budget && best && best.par >= minPar) break;
+    if(gelaufen > cfg.budget * 1.6) break; // Notbremse: lieber ein leichteres Level als ewig warten
+  }
+  if(best) return best;
+
+  // Notfall (praktisch unerreichbar): ein einfacher Aufbau von Hand
+  const N = 6, exitRow = 2;
+  const vehicles = [
+    { len: TRUCK_LEN, dir: 0, line: exitRow, pos: 0, type: 'lkw', color: '#2563eb' },
+    { len: 2, dir: 1, line: 4, pos: 1, type: 'pkw', color: '#ef4444' },
+    { len: 2, dir: 1, line: 3, pos: 2, type: 'pkw', color: '#22c55e' }
+  ];
+  const start = [0, 1, 2];
+  const sol = solveFrom(N, vehicles, start, MAX_STATES);
+  return { level, N, exitRow, vehicles, start, par: sol ? sol.par : 4 };
+}
+
+/* Wie weit darf Fahrzeug i in dieser Stellung fahren? */
+function moveRange(lv, pos, i){
+  const N = lv.N, vs = lv.vehicles, v = vs[i];
+  const grid = new Int32Array(N * N);
+  fillGrid(N, vs, pos, grid);
+  let min = pos[i], max = pos[i];
+  for(let q = pos[i] - 1; q >= 0; q--){
+    if(grid[v.dir === 0 ? v.line * N + q : q * N + v.line] !== -1) break;
+    min = q;
+  }
+  for(let q = pos[i] + 1; q + v.len - 1 < N; q++){
+    const end = q + v.len - 1;
+    if(grid[v.dir === 0 ? v.line * N + end : end * N + v.line] !== -1) break;
+    max = q;
+  }
+  return { min, max };
+}
+
+/* Der nächste Zug der Bestlösung – für den Tipp-Knopf und den Selbsttest.
+   Wird jedes Mal frisch gerechnet, damit der Tipp auch nach Umwegen stimmt. */
+function optimalNext(lv, pos){
+  const sol = solveFrom(lv.N, lv.vehicles, pos, MAX_STATES);
+  if(!sol || !sol.first) return null;
+  return { i: sol.first.i, to: sol.first.to, rest: sol.par - 1 };
+}
+
+/* ===== ENGINE END ===== */
+
+/* ---------- Fahrzeug-Grafiken (Vogelperspektive, Nase nach rechts) ---------- */
+function shade(hex, pct){
+  const n = parseInt(hex.slice(1), 16);
+  const f = v => Math.max(0, Math.min(255, Math.round(v + (pct > 0 ? (255 - v) : v) * pct / 100)));
+  return '#' + [f(n >> 16), f((n >> 8) & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function wheels(xs){
+  return xs.map(x => `<rect x="${x}" y="3" width="26" height="15" rx="5" fill="#0b1220"/>
+                      <rect x="${x}" y="82" width="26" height="15" rx="5" fill="#0b1220"/>`).join('');
+}
+
+function svgPkw(col, W){
+  const hell = shade(col, 30), dunkel = shade(col, -28);
+  return `<svg viewBox="0 0 ${W} 100">
+    ${wheels([W * 0.14, W * 0.62])}
+    <rect x="5" y="13" width="${W - 10}" height="74" rx="26" fill="${dunkel}"/>
+    <rect x="8" y="15" width="${W - 16}" height="66" rx="24" fill="${col}"/>
+    <rect x="10" y="17" width="${W - 20}" height="22" rx="16" fill="${hell}" opacity=".55"/>
+    <rect x="${W * 0.30}" y="24" width="${W * 0.40}" height="52" rx="15" fill="#0f172a" opacity=".62"/>
+    <rect x="${W * 0.70}" y="27" width="${W * 0.11}" height="46" rx="7" fill="#cbe5ff" opacity=".82"/>
+    <rect x="${W * 0.20}" y="27" width="${W * 0.08}" height="46" rx="6" fill="#cbe5ff" opacity=".55"/>
+    <rect x="${W - 20}" y="22" width="9" height="13" rx="3" fill="#fde68a"/>
+    <rect x="${W - 20}" y="65" width="9" height="13" rx="3" fill="#fde68a"/>
+    <rect x="11" y="22" width="8" height="12" rx="3" fill="#ef4444"/>
+    <rect x="11" y="66" width="8" height="12" rx="3" fill="#ef4444"/>
+  </svg>`;
+}
+
+function svgLkw(W){
+  const blau = '#2563eb', hell = shade(blau, 34), dunkel = shade(blau, -32);
+  const kab = W * 0.70;
+  return `<svg viewBox="0 0 ${W} 100">
+    ${wheels([W * 0.10, W * 0.30, W * 0.74])}
+    <rect x="5" y="10" width="${W - 10}" height="80" rx="14" fill="${dunkel}"/>
+    <rect x="8" y="13" width="${kab - 14}" height="74" rx="10" fill="#e2e8f0"/>
+    <rect x="8" y="13" width="${kab - 14}" height="24" rx="10" fill="#ffffff" opacity=".7"/>
+    <rect x="14" y="38" width="${kab - 26}" height="17" rx="5" fill="${blau}"/>
+    <rect x="14" y="57" width="${kab - 26}" height="8" rx="4" fill="#f97316"/>
+    <text x="${(kab - 12) / 2 + 8}" y="34" font-family="Helvetica,Arial,sans-serif" font-size="21" font-weight="bold"
+          fill="${blau}" text-anchor="middle">KMF</text>
+    <rect x="${kab - 4}" y="12" width="${W - kab - 6}" height="76" rx="13" fill="${blau}"/>
+    <rect x="${kab - 2}" y="14" width="${W - kab - 10}" height="20" rx="11" fill="${hell}" opacity=".5"/>
+    <rect x="${kab + 10}" y="26" width="${W - kab - 30}" height="48" rx="8" fill="#cbe5ff" opacity=".85"/>
+    <rect x="${W - 19}" y="20" width="10" height="14" rx="3" fill="#fde68a"/>
+    <rect x="${W - 19}" y="66" width="10" height="14" rx="3" fill="#fde68a"/>
+    <rect x="10" y="20" width="8" height="13" rx="3" fill="#ef4444"/>
+    <rect x="10" y="67" width="8" height="13" rx="3" fill="#ef4444"/>
+  </svg>`;
+}
+
+function svgGespann(col, W){
+  const hell = shade(col, 30), dunkel = shade(col, -28);
+  const zug = W * 0.50;          // Zugfahrzeug beginnt hier
+  const anhW = W * 0.42;         // Anhänger-Breite
+  return `<svg viewBox="0 0 ${W} 100">
+    ${wheels([anhW * 0.42])}
+    <rect x="5" y="16" width="${anhW}" height="68" rx="10" fill="#1e293b"/>
+    <rect x="8" y="19" width="${anhW - 6}" height="62" rx="8" fill="#7c8b9f"/>
+    <rect x="12" y="23" width="${anhW - 14}" height="17" rx="7" fill="${col}" opacity=".9"/>
+    <rect x="12" y="46" width="${anhW - 14}" height="9" rx="4" fill="#475569"/>
+    <rect x="${anhW + 4}" y="44" width="${zug - anhW}" height="11" rx="5" fill="#0f172a"/>
+    ${wheels([zug + (W - zug) * 0.12, zug + (W - zug) * 0.60])}
+    <rect x="${zug}" y="13" width="${W - zug - 5}" height="74" rx="24" fill="${dunkel}"/>
+    <rect x="${zug + 3}" y="15" width="${W - zug - 11}" height="66" rx="22" fill="${col}"/>
+    <rect x="${zug + 5}" y="17" width="${W - zug - 15}" height="21" rx="14" fill="${hell}" opacity=".55"/>
+    <rect x="${zug + (W - zug) * 0.30}" y="24" width="${(W - zug) * 0.38}" height="52" rx="14" fill="#0f172a" opacity=".62"/>
+    <rect x="${zug + (W - zug) * 0.70}" y="27" width="${(W - zug) * 0.11}" height="46" rx="7" fill="#cbe5ff" opacity=".82"/>
+    <rect x="${W - 19}" y="22" width="9" height="13" rx="3" fill="#fde68a"/>
+    <rect x="${W - 19}" y="65" width="9" height="13" rx="3" fill="#fde68a"/>
+  </svg>`;
+}
+
+function vehicleSVG(v){
+  const W = v.len * 100;
+  if(v.type === 'lkw') return svgLkw(W);
+  if(v.type === 'gespann') return svgGespann(v.color, W);
+  return svgPkw(v.color, W);
+}
+
+/* ---------- Speicher ---------- */
+const store = {
+  read(){
+    try{
+      const o = JSON.parse(localStorage.getItem('parkplatz.v1'));
+      if(o && typeof o === 'object') return Object.assign({ max: 1, best: {}, lv: {}, sound: true }, o);
+    }catch(e){}
+    return { max: 1, best: {}, lv: {}, sound: true };
+  },
+  write(o){ try{ localStorage.setItem('parkplatz.v1', JSON.stringify(o)); }catch(e){} }
+};
+let saved = store.read();
+
+/* ---------- Spielzustand ---------- */
+const boardEl = document.getElementById('board');
+const stageEl = document.getElementById('stage');
+const overlay = document.getElementById('overlay');
+const loadOverlay = document.getElementById('load-overlay');
+
+let lv = null;          // erzeugtes Level
+let pos = [];           // aktuelle Stellung
+let els = [];           // Fahrzeug-Elemente
+let history = [];
+let cell = 60;
+let level = 1, moves = 0, hints = 0, sel = null, won = false;
+let startTime = null, timerId = null, drag = null, ghostEl = null;
+
+function stufe(l){ return l <= 8 ? 'Anfänger' : l <= 18 ? 'Fortgeschritten' : l <= 32 ? 'Profi' : 'Meister'; }
+
+function computeCell(N){
+  const breit = Math.min((window.innerWidth || 400) - 74, 600);
+  const hoch = Math.max(250, (window.innerHeight || 800) - 270);   // Platz für Kopf-, Status- und Knopfzeile
+  return Math.max(34, Math.min(74, Math.floor(Math.min(breit, hoch) / N)));
+}
+
+/* Gespeicherte Levels: einmal gebaut, bleibt ein Level für immer dasselbe Rätsel */
+function packLevel(g){
+  return { N: g.N, e: g.exitRow, p: g.par, s: g.start.slice(),
+           v: g.vehicles.map(v => [v.len, v.dir, v.line, v.type, v.color]) };
+}
+function unpackLevel(o, level){
+  return { level, N: o.N, exitRow: o.e, par: o.p, start: o.s.slice(),
+           vehicles: o.v.map(a => ({ len: a[0], dir: a[1], line: a[2], type: a[3], color: a[4] })) };
+}
+function leseLevel(l){
+  const o = saved.lv && saved.lv[l];
+  try{ return o ? unpackLevel(o, l) : null; }catch(e){ return null; }
+}
+function schreibeLevel(l, g){
+  if(!saved.lv) saved.lv = {};
+  saved.lv[l] = packLevel(g);
+  const keys = Object.keys(saved.lv).map(Number).sort((a, b) => a - b);
+  while(keys.length > 150) delete saved.lv[keys.shift()];   // nur die neuesten behalten
+  store.write(saved);
+}
+
+/* ---------- Level laden ---------- */
+function loadLevel(l){
+  level = Math.max(1, l);
+  won = false; sel = null; drag = null;
+  clearHint();
+  overlay.classList.add('hidden');
+
+  const gespeichert = leseLevel(level);
+  if(gespeichert){ starteLevel(gespeichert); return; }
+
+  document.getElementById('load-text').textContent = 'Level ' + level + ' wird gebaut …';
+  loadOverlay.classList.remove('hidden');
+  setTimeout(() => {
+    const g = generateLevel(level);
+    schreibeLevel(level, g);
+    starteLevel(g);
+    loadOverlay.classList.add('hidden');
+  }, 40);
+}
+
+function starteLevel(g){
+  lv = g;
+  pos = lv.start.slice();
+  history = []; moves = 0; hints = 0;
+  startTime = null; stopTimer();
+  buildBoard();
+  updateStats();
+}
+
+function buildBoard(){
+  cell = computeCell(lv.N);
+  const size = cell * lv.N;
+  boardEl.style.width = size + 'px';
+  boardEl.style.height = size + 'px';
+  boardEl.style.setProperty('--cell', cell + 'px');
+  boardEl.innerHTML = '';
+  stageEl.querySelectorAll('.gate').forEach(g => g.remove());
+
+  // Ausfahrt rechts
+  const gate = document.createElement('div');
+  gate.className = 'gate';
+  gate.style.left = (size + 6) + 'px';
+  gate.style.top = (lv.exitRow * cell + 3) + 'px';
+  gate.style.height = cell + 'px';
+  gate.innerHTML = `<div class="bar" style="height:${cell}px"></div><span class="arrow">▶</span><span class="lab">AUSFAHRT</span>`;
+  stageEl.appendChild(gate);
+
+  els = lv.vehicles.map((v, i) => {
+    const el = document.createElement('div');
+    el.className = 'veh' + (i === 0 ? ' truck' : '');
+    el.dataset.i = i;
+    const laengs = v.len * cell, quer = cell;
+    el.style.width  = (v.dir === 0 ? laengs : quer) + 'px';
+    el.style.height = (v.dir === 0 ? quer : laengs) + 'px';
+    const inner = document.createElement('div');
+    inner.className = 'inner shell';
+    inner.style.width = laengs + 'px';
+    inner.style.height = quer + 'px';
+    inner.style.transform = 'translate(-50%,-50%)' + (v.dir === 1 ? ' rotate(90deg)' : '');
+    inner.innerHTML = vehicleSVG(v);
+    el.appendChild(inner);
+    boardEl.appendChild(el);
+    return el;
+  });
+  renderPositions();
+}
+
+function cellXY(i, p){
+  const v = lv.vehicles[i];
+  return v.dir === 0 ? { x: p * cell, y: v.line * cell } : { x: v.line * cell, y: p * cell };
+}
+
+function renderPositions(){
+  for(let i = 0; i < els.length; i++){
+    const { x, y } = cellXY(i, pos[i]);
+    els[i].style.transform = `translate(${x}px, ${y}px)`;
+  }
+}
+
+/* ---------- Züge ---------- */
+function applyMove(i, to, zaehlen = true){
+  if(pos[i] === to) return;
+  if(zaehlen){ history.push({ i, from: pos[i] }); moves++; }
+  pos[i] = to;
+  renderPositions();
+  clearHint();
+  if(zaehlen){ startTimer(); motorSound(); }
+  updateStats();
+  if(pos[0] === lv.N - TRUCK_LEN) gewonnen();
+}
+
+function undo(){
+  if(!history.length || won) return;
+  const m = history.pop();
+  pos[m.i] = m.from;
+  moves = Math.max(0, moves - 1);
+  renderPositions(); clearHint(); updateStats(); tick(360);
+}
+
+function restart(){
+  if(!lv) return;
+  pos = lv.start.slice();
+  history = []; moves = 0; won = false;
+  startTime = null; stopTimer();
+  overlay.classList.add('hidden');
+  els.forEach(e => e.classList.remove('out', 'sel'));
+  clearHint(); renderPositions(); updateStats();
+}
+
+function hint(){
+  if(won || !lv) return;
+  const n = optimalNext(lv, pos);
+  if(!n){ toast('Der Weg ist frei – fahr raus!'); return; }
+  hints++;
+  clearHint();
+  els[n.i].classList.add('hint');
+  const v = lv.vehicles[n.i];
+  const { x, y } = cellXY(n.i, n.to);
+  ghostEl = document.createElement('div');
+  ghostEl.className = 'ghost';
+  ghostEl.style.width  = (v.dir === 0 ? v.len * cell : cell) + 'px';
+  ghostEl.style.height = (v.dir === 0 ? cell : v.len * cell) + 'px';
+  ghostEl.style.transform = `translate(${x}px, ${y}px)`;
+  boardEl.appendChild(ghostEl);
+  toast('Noch ' + (n.rest + 1) + ' Züge bis zur Ausfahrt');
+  setTimeout(clearHint, 3200);
+}
+
+function clearHint(){
+  els.forEach(e => e.classList.remove('hint'));
+  if(ghostEl){ ghostEl.remove(); ghostEl = null; }
+}
+
+/* ---------- Ziehen & Tippen ---------- */
+boardEl.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.veh');
+  if(!el || won) return;
+  const i = +el.dataset.i;
+  const v = lv.vehicles[i];
+  const r = moveRange(lv, pos, i);
+  drag = { i, el, sx: e.clientX, sy: e.clientY, from: pos[i], min: r.min, max: r.max, px: 0, bewegt: false };
+  el.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+  if(sel !== null && sel !== i){ els[sel].classList.remove('sel'); }
+  sel = i;
+  els[i].classList.add('sel');
+  e.preventDefault();
+});
+
+boardEl.addEventListener('pointermove', e => {
+  if(!drag) return;
+  const v = lv.vehicles[drag.i];
+  const roh = v.dir === 0 ? e.clientX - drag.sx : e.clientY - drag.sy;
+  if(Math.abs(roh) > 4) drag.bewegt = true;
+  const min = (drag.min - drag.from) * cell, max = (drag.max - drag.from) * cell;
+  drag.px = Math.max(min, Math.min(max, roh));
+  const b = cellXY(drag.i, drag.from);
+  const x = b.x + (v.dir === 0 ? drag.px : 0);
+  const y = b.y + (v.dir === 1 ? drag.px : 0);
+  drag.el.style.transform = `translate(${x}px, ${y}px)`;
+});
+
+function endDrag(){
+  if(!drag) return;
+  const d = drag; drag = null;
+  d.el.classList.remove('dragging');
+  const ziel = Math.max(d.min, Math.min(d.max, d.from + Math.round(d.px / cell)));
+  if(ziel !== d.from) applyMove(d.i, ziel);
+  else renderPositions();
+}
+boardEl.addEventListener('pointerup', endDrag);
+boardEl.addEventListener('pointercancel', endDrag);
+
+/* Zusätzlich am Rechner: Fahrzeug anwählen, dann auf ein freies Feld klicken */
+boardEl.addEventListener('click', e => {
+  if(won || sel === null || e.target.closest('.veh')) return;
+  const r = boardEl.getBoundingClientRect();
+  const sp = Math.floor((e.clientX - r.left) / cell), ze = Math.floor((e.clientY - r.top) / cell);
+  const v = lv.vehicles[sel];
+  const wohin = v.dir === 0 ? sp : ze;
+  const bereich = moveRange(lv, pos, sel);
+  const ziel = Math.max(bereich.min, Math.min(bereich.max, wohin > pos[sel] ? wohin - v.len + 1 : wohin));
+  if(ziel !== pos[sel]) applyMove(sel, ziel);
+});
+
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if(k === 'u'){ undo(); return; }
+  if(k === 'r'){ restart(); return; }
+  if(k === 'h'){ hint(); return; }
+  if(sel === null || won) return;
+  const v = lv.vehicles[sel];
+  let d = 0;
+  if(e.key === 'ArrowLeft'  && v.dir === 0) d = -1;
+  if(e.key === 'ArrowRight' && v.dir === 0) d = 1;
+  if(e.key === 'ArrowUp'    && v.dir === 1) d = -1;
+  if(e.key === 'ArrowDown'  && v.dir === 1) d = 1;
+  if(!d) return;
+  e.preventDefault();
+  const r = moveRange(lv, pos, sel);
+  const ziel = pos[sel] + d;
+  if(ziel >= r.min && ziel <= r.max) applyMove(sel, ziel);
+});
+
+/* ---------- Anzeige ---------- */
+function updateStats(){
+  document.getElementById('s-level').textContent = 'Level ' + level;
+  document.getElementById('s-stufe').textContent = stufe(level);
+  document.getElementById('s-moves').textContent = moves;
+  document.getElementById('s-par').textContent = lv ? lv.par : '–';
+  const b = saved.best[level];
+  document.getElementById('s-best').textContent = b ? b + ' Züge' : '–';
+  document.getElementById('b-undo').disabled = !history.length || won;
+  document.getElementById('b-prev').disabled = level <= 1;
+  document.getElementById('b-next-lv').disabled = level >= saved.max;
+}
+
+function zeitText(){
+  if(!startTime) return '0:00';
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+function startTimer(){
+  if(startTime) return;
+  startTime = Date.now();
+  timerId = setInterval(() => { document.getElementById('s-time').textContent = zeitText(); }, 500);
+}
+function stopTimer(){
+  clearInterval(timerId); timerId = null;
+  document.getElementById('s-time').textContent = startTime ? zeitText() : '0:00';
+}
+
+let toastId = null;
+function toast(text){
+  const t = document.getElementById('toast');
+  t.textContent = text; t.classList.add('on');
+  clearTimeout(toastId);
+  toastId = setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+/* ---------- Sieg ---------- */
+function gewonnen(){
+  won = true;
+  stopTimer();
+  if(sel !== null){ els[sel].classList.remove('sel'); sel = null; }
+  clearHint();
+  // Lastwagen fährt zur Ausfahrt hinaus
+  const el = els[0];
+  el.classList.add('out');
+  el.style.transform = `translate(${(lv.N + 2) * cell}px, ${lv.exitRow * cell}px)`;
+  hornSound();
+
+  const rekordAlt = saved.best[level];
+  const rekord = !rekordAlt || moves < rekordAlt;
+  if(rekord) saved.best[level] = moves;
+  saved.max = Math.max(saved.max, level + 1);
+  store.write(saved);
+
+  const sterne = moves <= lv.par ? 3 : moves <= lv.par + 3 ? 2 : 1;
+  setTimeout(() => {
+    document.getElementById('win-title').textContent = rekord && rekordAlt ? '🏆 Neuer Rekord!' : '🎉 Freie Fahrt!';
+    document.getElementById('win-stars').textContent = '★★★☆☆☆'.slice(3 - sterne, 6 - sterne);
+    document.getElementById('win-text').textContent =
+      `Level ${level} in ${moves} Zügen · Bestlösung ${lv.par} · ${zeitText()}` + (hints ? ` · ${hints} Tipp${hints > 1 ? 's' : ''}` : '');
+    overlay.classList.remove('hidden');
+    confetti();
+    updateStats();
+  }, 900);
+}
+
+/* ---------- Konfetti ---------- */
+const cv = document.getElementById('confetti');
+function confetti(){
+  const ctx = cv.getContext('2d');
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  const farben = ['#38bdf8','#2563eb','#f97316','#facc15','#4ade80','#e2e8f0'];
+  const parts = [];
+  for(let i = 0; i < 140; i++) parts.push({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * 0.5,
+    vx: (Math.random() - .5) * 2.2, vy: 2 + Math.random() * 3.4,
+    s: 6 + Math.random() * 9, a: Math.random() * Math.PI, va: (Math.random() - .5) * .22,
+    c: farben[i % farben.length]
+  });
+  const t0 = performance.now();
+  (function loop(t){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    if(overlay.classList.contains('hidden') || t - t0 > 4200) return;
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.a += p.va;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .62);
+      ctx.restore();
+    });
+    requestAnimationFrame(loop);
+  })(t0);
+}
+
+/* ---------- Ton ---------- */
+let actx = null;
+function audioReady(){
+  if(!actx && saved.sound){
+    try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+  }
+  if(actx && actx.state === 'suspended') actx.resume();
+}
+function motorSound(){
+  if(!saved.sound || !actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator(), g = actx.createGain(), f = actx.createBiquadFilter();
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(66, t);
+  o.frequency.linearRampToValueAtTime(104, t + .11);
+  o.frequency.linearRampToValueAtTime(72, t + .26);
+  f.type = 'lowpass'; f.frequency.value = 620;
+  g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(.10, t + .04);
+  g.gain.exponentialRampToValueAtTime(.0001, t + .3);
+  o.connect(f); f.connect(g); g.connect(actx.destination);
+  o.start(t); o.stop(t + .32);
+}
+function tick(freq){
+  if(!saved.sound || !actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'sine'; o.frequency.value = freq || 520;
+  g.gain.setValueAtTime(.05, t);
+  g.gain.exponentialRampToValueAtTime(.0001, t + .07);
+  o.connect(g); g.connect(actx.destination);
+  o.start(t); o.stop(t + .08);
+}
+function hornSound(){
+  if(!saved.sound || !actx) return;
+  [0, 190].forEach((ms, k) => setTimeout(() => {
+    if(!actx) return;
+    const t = actx.currentTime;
+    [330, 415].forEach(fr => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sawtooth'; o.frequency.value = fr * (k ? 1.18 : 1);
+      g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(.07, t + .03);
+      g.gain.setValueAtTime(.07, t + .22);
+      g.gain.exponentialRampToValueAtTime(.0001, t + .34);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t + .36);
+    });
+  }, ms));
+}
+
+/* ---------- Knöpfe ---------- */
+document.getElementById('b-undo').onclick = () => { audioReady(); undo(); };
+document.getElementById('b-restart').onclick = () => { audioReady(); restart(); };
+document.getElementById('b-hint').onclick = () => { audioReady(); hint(); };
+document.getElementById('b-next').onclick = () => { audioReady(); loadLevel(level + 1); };
+document.getElementById('b-again').onclick = () => { audioReady(); restart(); };
+document.getElementById('b-prev').onclick = () => { if(level > 1) loadLevel(level - 1); };
+document.getElementById('b-next-lv').onclick = () => { if(level < saved.max) loadLevel(level + 1); };
+
+const bSound = document.getElementById('b-sound');
+function refreshSound(){ bSound.textContent = saved.sound ? '🔊 Ton' : '🔇 Ton'; }
+bSound.onclick = () => {
+  saved.sound = !saved.sound; store.write(saved); refreshSound();
+  if(saved.sound){ audioReady(); tick(600); }
+};
+
+let rt;
+window.addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => {
+    if(!lv || won) return;
+    buildBoard();
+    if(!overlay.classList.contains('hidden')){ cv.width = window.innerWidth; cv.height = window.innerHeight; }
+  }, 150);
+});
+
+/* ---------- Start ---------- */
+refreshSound();
+loadLevel(saved.max);
+window.addEventListener('load', () => { if(lv && !won) buildBoard(); });   // Grösse nachziehen
+</script>
+</body>
+</html>
