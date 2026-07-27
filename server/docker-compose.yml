@@ -1,0 +1,39 @@
+services:
+  spiele-server:
+    build: .
+    image: spiele-server:latest
+    container_name: spiele-server
+    restart: unless-stopped
+    # Läuft als Synology-Benutzer "Marco" (uid 1027, Gruppe "users") – wie die anderen Apps.
+    user: "1027:100"
+    ports:
+      - "8095:3000"
+    volumes:
+      # Hier liegen die Spielstände (spielstaende.json + Sicherungskopie)
+      - /volume1/docker/spiele-server/data:/data
+    environment:
+      - NODE_ENV=production
+      # Einfacher Riegel, damit nicht jeder Fremde im Internet schreiben kann.
+      # Muss mit dem Wert in spiele/kmf-cloud.js übereinstimmen.
+      - ZUGANG=${ZUGANG}
+
+  # Eigener Tailscale-Anschluss NUR für den Spiele-Server.
+  # Macht ihn öffentlich erreichbar unter https://spiele.<tailnet>.ts.net
+  # (nötig, weil die Spiele auf GitHub Pages über HTTPS laufen).
+  # Eigenes Gerät = teilt sich keine Adresse mit KMF-App / Fitness / Quittungen.
+  tailscale-spiele:
+    image: tailscale/tailscale:latest
+    hostname: spiele
+    container_name: tailscale-spiele
+    restart: unless-stopped
+    depends_on:
+      - spiele-server
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_HOSTNAME=spiele
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=true
+      - TS_SERVE_CONFIG=/config/serve.json
+    volumes:
+      - ./tailscale/state:/var/lib/tailscale
+      - ./tailscale/serve.json:/config/serve.json:ro

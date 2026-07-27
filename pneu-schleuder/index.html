@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<script src="../kmf-cloud.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -250,6 +251,17 @@ function P() {
 function totalScore(pl){ let s=0; for (const k in pl.best) s += pl.best[k]; return s; }
 function totalStars(pl){ let s=0; for (const k in pl.stars) s += pl.stars[k]; return s; }
 loadData();
+
+// Wer auf der Spiele-Startseite angemeldet ist, spielt auch hier unter diesem Namen.
+function globalerSpieler() {
+  const n = (window.KMF && KMF.spieler) ? KMF.spieler : null;
+  if (!n) return false;
+  if (!DATA.players[n]) DATA.players[n] = { unlocked:0, best:{}, stars:{} };
+  if (DATA.current !== n) { DATA.current = n; saveData(); }
+  return true;
+}
+globalerSpieler();
+document.addEventListener('kmf-bereit', () => { globalerSpieler(); refreshPlayerBtn(); });
 
 // ================= Sound =================
 let AC = null;
@@ -1494,6 +1506,19 @@ function buildPlayerList() {
   box.appendChild(row);
 }
 function askName() {
+  // Wenn man auf der Spiele-Startseite angemeldet ist, wird der Name dort gewechselt.
+  if (window.KMF && KMF.spieler) {
+    hideOverlays();
+    $('playerList').innerHTML =
+      '<div class="scoreline">Du spielst als <b>' + KMF.spieler + '</b>.<br>' +
+      'Den Namen wechselst du auf der Spiele-Startseite (Knopf «🎮 Spiele» oben links).</div>';
+    $('nameInput').classList.add('hidden');
+    $('nameOkBtn').textContent = 'Weiter';
+    $('nameScreen').classList.remove('hidden');
+    return;
+  }
+  $('nameInput').classList.remove('hidden');
+  $('nameOkBtn').textContent = 'Los';
   hideOverlays();
   buildPlayerList();
   $('nameInput').value = '';
@@ -1501,6 +1526,7 @@ function askName() {
   setTimeout(() => $('nameInput').focus(), 100);
 }
 $('nameOkBtn').addEventListener('click', () => {
+  if (window.KMF && KMF.spieler) { hideOverlays(); $('startScreen').classList.remove('hidden'); return; }
   const n = ($('nameInput').value || '').trim().slice(0,14) || 'Spieler';
   if (!DATA.players[n]) DATA.players[n] = { unlocked:0, best:{}, stars:{} };
   DATA.current = n; saveData(); refreshPlayerBtn();
@@ -1508,8 +1534,24 @@ $('nameOkBtn').addEventListener('click', () => {
 });
 $('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('nameOkBtn').click(); });
 
-// -- Rangliste --
+// -- Rangliste: zuerst vom Server (alle Geräte), sonst die Namen auf diesem Gerät --
 function buildBoard() {
+  buildBoardLokal();
+  if (!(window.KMF && KMF.bestenliste)) return;
+  KMF.bestenliste().then(spiele => {
+    const t = spiele['Pneu-Schleuder'];
+    if (!t || !t.plaetze.length) return;
+    let html = '<tr><th>#</th><th>Name</th><th class="r">Punkte</th><th class="r"></th></tr>';
+    t.plaetze.forEach((p, i) => {
+      html += '<tr class="' + (p.name === DATA.current ? 'me' : '') + '"><td>' + (i+1) + '</td><td>' +
+        p.name + '</td><td class="r">' + p.wert + '</td><td class="r">' + (p.zusatz || '') + '</td></tr>';
+    });
+    $('boardTable').innerHTML = html;
+    const u = document.querySelector('#boardScreen .scoreline');
+    if (u) u.textContent = 'Alle Spieler auf allen Geräten';
+  }).catch(() => {});
+}
+function buildBoardLokal() {
   const t = $('boardTable');
   const names = Object.keys(DATA.players);
   let html = '<tr><th>#</th><th>Name</th><th class="r">⭐</th><th class="r">Punkte</th><th class="r">Level</th></tr>';

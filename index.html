@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KMF Spiele</title>
+<script src="kmf-cloud.js" data-startseite></script>
 <style>
   body {
     margin: 0;
@@ -19,7 +20,7 @@
     box-sizing: border-box;
   }
   h1 { font-size: 2rem; margin: 0 0 8px; }
-  p.sub { color: #94a3b8; margin: 0 0 32px; }
+  p.sub { color: #94a3b8; margin: 0 0 18px; }
   a.game {
     display: block;
     background: #1e293b;
@@ -40,20 +41,61 @@
   a.game:hover { border-color: #38bdf8; transform: scale(1.02); }
   a.game span { display: block; font-size: 0.85rem; font-weight: 400; color: #94a3b8; margin-top: 6px; }
 
+  /* ---------- Spieler / Anmeldung ---------- */
+  .spielerbox { width: 100%; max-width: 420px; display: flex; gap: 8px; margin: 0 0 20px; }
+  button.knopf {
+    font: inherit; font-weight: 600; background: #1e293b; color: #f1f5f9;
+    border: 2px solid #334155; border-radius: 14px; padding: 12px 14px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; flex: 1;
+    transition: transform 0.1s, border-color 0.2s; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  button.knopf:active { transform: scale(0.97); }
+  button.knopf.stark { border-color: #38bdf8; }
+  button.knopf:disabled { opacity: .55; cursor: default; }
+
+  .lage { width: 100%; max-width: 420px; font-size: .78rem; color: #64748b;
+          margin: -14px 0 16px; text-align: center; min-height: 1em; }
+  .lage b { color: #4ade80; font-weight: 600; }
+  .lage i { color: #fbbf24; font-style: normal; }
+
+  /* ---------- Fenster ---------- */
+  .fenster { position: fixed; inset: 0; background: rgba(8,14,28,.86); z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 22px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+  .fenster.weg { display: none; }
+  .karte { background: #111c33; border: 2px solid #334155; border-radius: 20px;
+    padding: 22px; width: 100%; max-width: 420px; max-height: 84vh; overflow-y: auto; }
+  .karte h2 { margin: 0 0 6px; font-size: 1.3rem; }
+  .karte p.klein { color: #94a3b8; font-size: .84rem; margin: 0 0 16px; line-height: 1.45; }
+  .karte input {
+    font: inherit; font-size: 1.05rem; width: 100%; box-sizing: border-box;
+    padding: 13px 14px; border-radius: 13px; border: 2px solid #334155;
+    background: #0b1526; color: #f1f5f9; margin-bottom: 10px;
+  }
+  .karte input:focus { outline: none; border-color: #38bdf8; }
+  .namen { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 16px; }
+  .namen button {
+    font: inherit; font-weight: 600; background: #1e293b; color: #f1f5f9;
+    border: 2px solid #334155; border-radius: 12px; padding: 10px 14px; cursor: pointer;
+  }
+  .namen button:hover { border-color: #38bdf8; }
+  .namen button small { display: block; font-weight: 400; color: #94a3b8; font-size: .72rem; }
+  .reihe { display: flex; gap: 8px; }
+  table.rang { width: 100%; border-collapse: collapse; font-size: .92rem; margin-bottom: 14px; }
+  table.rang th { text-align: left; color: #94a3b8; font-size: .78rem; font-weight: 600;
+    border-bottom: 1px solid #334155; padding: 5px 6px; }
+  table.rang td { padding: 6px; border-bottom: 1px solid #1e293b; }
+  table.rang td.r { text-align: right; }
+  table.rang tr.ich td { color: #fbbf24; font-weight: 700; }
+  h3.spiel { font-size: 1rem; margin: 14px 0 4px; }
+
   /* ---------- Aktualisieren ---------- */
   .aktbox { width: 100%; max-width: 420px; margin: 26px 0 4px; text-align: center; }
   button.akt {
-    font: inherit;
-    font-size: 1rem;
-    font-weight: 600;
-    background: #1e293b;
-    color: #f1f5f9;
-    border: 2px solid #38bdf8;
-    border-radius: 14px;
-    padding: 13px 20px;
-    width: 100%;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
+    font: inherit; font-size: 1rem; font-weight: 600; background: #1e293b; color: #f1f5f9;
+    border: 2px solid #38bdf8; border-radius: 14px; padding: 13px 20px; width: 100%;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
     transition: transform 0.1s, opacity 0.2s;
   }
   button.akt:active { transform: scale(0.97); }
@@ -66,7 +108,14 @@
 <body>
   <h1>🚗 KMF Spiele</h1>
   <p class="sub">KMFahrschule GmbH</p>
-  <a class="game" href="pneu-schleuder/">🛞 Pneu-Schleuder<span>Reifen schleudern, Blitzer abräumen – mit echter Physik!</span></a>
+
+  <div class="spielerbox">
+    <button class="knopf stark" id="b-spieler">👤 Anmelden</button>
+    <button class="knopf" id="b-beste">🏆 Bestenliste</button>
+  </div>
+  <p class="lage" id="lage">&nbsp;</p>
+
+  <a class="game" href="pneu-schleuder/">🛞 Pneu-Schleuder<span>Reifen schleudern, Blitzer abräumen – 500 Levels in 20 Welten</span></a>
   <a class="game" href="fahrzeug-tetris/">🧩 Fahrzeug-Tetris<span>Fahrzeuge stapeln – wie lange hältst du durch?</span></a>
   <a class="game" href="reagenzglaeser/">🧪 Reagenzgläser<span>Farben sortieren, bis jedes Glas einfarbig ist</span></a>
   <a class="game" href="parkplatz-chaos/">🅿️ Parkplatz-Chaos<span>Rangiere den KMF-Lastwagen aus dem Chaos zur Ausfahrt</span></a>
@@ -83,53 +132,196 @@
     <p class="stand" id="stand">&nbsp;</p>
   </div>
 
+  <!-- Anmelden -->
+  <div class="fenster weg" id="f-anmelden">
+    <div class="karte">
+      <h2>Wer spielt?</h2>
+      <p class="klein">Tippe deinen Namen an – oder trag einen neuen ein. Kein Passwort nötig.
+        Dein Spielstand wird gespeichert und ist auf jedem Gerät wieder da.</p>
+      <div class="namen" id="namensliste"></div>
+      <input id="neuerName" maxlength="20" placeholder="Neuer Name" autocomplete="off">
+      <div class="reihe">
+        <button class="knopf stark" id="b-neu">Anmelden</button>
+        <button class="knopf" id="b-abmelden">Abmelden</button>
+        <button class="knopf" id="b-zu1">Schliessen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Konflikt: hier UND auf dem Server ein Spielstand -->
+  <div class="fenster weg" id="f-konflikt">
+    <div class="karte">
+      <h2>Zwei Spielstände</h2>
+      <p class="klein" id="konfliktText"></p>
+      <div class="reihe">
+        <button class="knopf stark" id="b-nimm-server">Vom Server holen</button>
+        <button class="knopf" id="b-nimm-geraet">Von hier hochladen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bestenliste -->
+  <div class="fenster weg" id="f-beste">
+    <div class="karte">
+      <h2>🏆 Bestenliste</h2>
+      <p class="klein">Alle Spieler, alle Geräte.</p>
+      <div id="rangInhalt"></div>
+      <button class="knopf" id="b-zu2">Schliessen</button>
+    </div>
+  </div>
+
 <script>
 (function(){
   "use strict";
+  var $ = function(id){ return document.getElementById(id); };
 
-  /* Merker, wann zuletzt aktualisiert wurde. Nur dieser eine Eintrag wird
-     geschrieben – die Spielstände der einzelnen Spiele bleiben unberührt. */
-  const KEY = "kmfSpiele.aktualisiert";
-  const knopf = document.getElementById("b-akt");
-  const stand = document.getElementById("stand");
-
-  const marke = localStorage.getItem(KEY) || "";
-
-  /* Spiele-Links dieselbe Frische-Marke mitgeben, damit auch die
-     Unterseiten neu vom Server geladen werden und nicht aus dem Cache. */
+  /* ---------------- Aktualisieren (wie bisher) ---------------- */
+  var KEY = "kmfSpiele.aktualisiert";
+  var knopf = $("b-akt"), stand = $("stand");
+  var marke = localStorage.getItem(KEY) || "";
   if (marke){
-    for (const a of document.querySelectorAll("a.game")){
-      a.href += (a.href.indexOf("?") < 0 ? "?" : "&") + "v=" + encodeURIComponent(marke);
+    for (var i = 0, a = document.querySelectorAll("a.game"); i < a.length; i++){
+      a[i].href += (a[i].href.indexOf("?") < 0 ? "?" : "&") + "v=" + encodeURIComponent(marke);
     }
-    const d = new Date(Number(marke));
+    var d = new Date(Number(marke));
     if (!isNaN(d.getTime())){
       stand.textContent = "Zuletzt aktualisiert: " +
         d.toLocaleDateString("de-CH", { day:"2-digit", month:"2-digit", year:"numeric" }) +
         ", " + d.toLocaleTimeString("de-CH", { hour:"2-digit", minute:"2-digit" });
     }
   }
-
-  knopf.addEventListener("click", async () => {
+  knopf.addEventListener("click", async function(){
     knopf.disabled = true;
     knopf.textContent = "⏳ Wird geladen …";
-    const neu = String(Date.now());
+    if (window.KMF && KMF.spieler) { try { await KMF.jetztHochladen(); } catch(e){} }
+    var neu = String(Date.now());
+    try{ localStorage.setItem(KEY, neu); }catch(e){}
     try{
-      localStorage.setItem(KEY, neu);          /* nur der Merker, nichts sonst */
-    }catch(e){ /* Speicher gesperrt – Neuladen klappt trotzdem */ }
-    try{
-      /* Zwischenspeicher des Browsers leeren – Spielstände liegen im
-         localStorage und sind davon nicht betroffen. */
       if (window.caches && caches.keys){
-        const namen = await caches.keys();
-        await Promise.all(namen.map(n => caches.delete(n)));
+        var namen = await caches.keys();
+        await Promise.all(namen.map(function(n){ return caches.delete(n); }));
       }
       if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map(r => r.unregister()));
+        var regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(function(r){ return r.unregister(); }));
       }
-    }catch(e){ /* nicht schlimm, wir laden gleich sowieso neu */ }
-    /* mit neuer Marke neu laden – so umgeht der Browser seinen Cache */
+    }catch(e){}
     location.replace(location.origin + location.pathname + "?v=" + neu);
+  });
+
+  /* ---------------- Spieler ---------------- */
+  var lage = $("lage");
+  function zeigeLage(text, art){
+    lage.innerHTML = art === "gut" ? "<b>" + text + "</b>"
+                   : art === "warn" ? "<i>" + text + "</i>" : text;
+  }
+  function zeigeSpieler(){
+    var n = window.KMF && KMF.spieler;
+    $("b-spieler").textContent = n ? "👤 " + n : "👤 Anmelden";
+    $("b-abmelden").style.display = n ? "" : "none";
+  }
+  zeigeSpieler();
+
+  document.addEventListener("kmf-bereit", function(){
+    zeigeSpieler();
+    if (!KMF.spieler) zeigeLage("Nicht angemeldet – der Spielstand bleibt nur auf diesem Gerät.", "warn");
+    else if (KMF.online === false) zeigeLage("Server nicht erreichbar – es wird lokal gespeichert.", "warn");
+    else zeigeLage("Spielstand von " + KMF.spieler + " ist abgeglichen.", "gut");
+  });
+
+  function fenster(id, auf){ $(id).classList.toggle("weg", !auf); }
+
+  $("b-spieler").addEventListener("click", async function(){
+    fenster("f-anmelden", true);
+    var box = $("namensliste");
+    box.innerHTML = "<span style='color:#94a3b8;font-size:.85rem'>Lade Spieler …</span>";
+    try{
+      var liste = await KMF.spielerListe();
+      box.innerHTML = "";
+      if (!liste.length) box.innerHTML = "<span style='color:#94a3b8;font-size:.85rem'>Noch niemand angemeldet.</span>";
+      liste.forEach(function(s){
+        var b = document.createElement("button");
+        var anzahl = Object.keys(s.spiele || {}).length;
+        b.innerHTML = s.name + "<small>" + (anzahl ? anzahl + " Spiele" : "neu") + "</small>";
+        b.addEventListener("click", function(){ anmelden(s.name); });
+        box.appendChild(b);
+      });
+    }catch(e){
+      box.innerHTML = "<span style='color:#fbbf24;font-size:.85rem'>Server nicht erreichbar – " +
+        "du kannst trotzdem spielen, der Stand bleibt dann auf diesem Gerät.</span>";
+    }
+  });
+  $("b-zu1").addEventListener("click", function(){ fenster("f-anmelden", false); });
+  $("b-zu2").addEventListener("click", function(){ fenster("f-beste", false); });
+  $("b-neu").addEventListener("click", function(){ anmelden($("neuerName").value); });
+  $("neuerName").addEventListener("keydown", function(e){ if (e.key === "Enter") anmelden(this.value); });
+  $("b-abmelden").addEventListener("click", async function(){
+    zeigeLage("Wird gespeichert …");
+    try{ await KMF.abmelden(); }catch(e){}
+    zeigeSpieler(); fenster("f-anmelden", false);
+    zeigeLage("Abgemeldet.", "warn");
+  });
+
+  var wartetAuf = null;
+  async function anmelden(name){
+    name = String(name || "").trim();
+    if (!name) return;
+    zeigeLage("Melde " + name + " an …");
+    fenster("f-anmelden", false);
+    try{
+      var p = await KMF.pruefen(name);
+      if (p.konflikt){
+        wartetAuf = name;
+        $("konfliktText").textContent = "Für " + name + " gibt es auf dem Server einen Spielstand – " +
+          "und auf diesem Gerät liegt auch einer. Welchen möchtest du behalten? " +
+          "Der andere wird überschrieben.";
+        fenster("f-konflikt", true);
+        return;
+      }
+      await KMF.anmelden(name, "auto");
+      zeigeSpieler();
+      zeigeLage("Angemeldet als " + name + " – Spielstand ist abgeglichen.", "gut");
+    }catch(e){
+      zeigeLage("Server nicht erreichbar – du spielst lokal weiter.", "warn");
+    }
+  }
+  async function loese(richtung){
+    fenster("f-konflikt", false);
+    zeigeLage("Gleiche ab …");
+    try{
+      await KMF.anmelden(wartetAuf, richtung);
+      zeigeSpieler();
+      zeigeLage("Angemeldet als " + wartetAuf + ".", "gut");
+      if (richtung === "server") setTimeout(function(){ location.reload(); }, 600);
+    }catch(e){ zeigeLage("Hat nicht geklappt – bitte nochmals versuchen.", "warn"); }
+  }
+  $("b-nimm-server").addEventListener("click", function(){ loese("server"); });
+  $("b-nimm-geraet").addEventListener("click", function(){ loese("geraet"); });
+
+  /* ---------------- Bestenliste ---------------- */
+  $("b-beste").addEventListener("click", async function(){
+    fenster("f-beste", true);
+    var box = $("rangInhalt");
+    box.innerHTML = "<p class='klein'>Lade …</p>";
+    try{
+      var spiele = await KMF.bestenliste();
+      var namen = Object.keys(spiele);
+      if (!namen.length){ box.innerHTML = "<p class='klein'>Noch keine Ergebnisse – spiel eine Runde!</p>"; return; }
+      var html = "";
+      namen.forEach(function(sp){
+        var t = spiele[sp];
+        html += "<h3 class='spiel'>" + t.icon + " " + sp + "</h3><table class='rang'>" +
+                "<tr><th>#</th><th>Name</th><th class='r'>" + t.einheit + "</th><th class='r'></th></tr>";
+        t.plaetze.forEach(function(p, i){
+          html += "<tr class='" + (p.name === KMF.spieler ? "ich" : "") + "'><td>" + (i+1) + "</td><td>" +
+                  p.name + "</td><td class='r'>" + p.wert + "</td><td class='r'>" + (p.zusatz || "") + "</td></tr>";
+        });
+        html += "</table>";
+      });
+      box.innerHTML = html;
+    }catch(e){
+      box.innerHTML = "<p class='klein'>Server nicht erreichbar.</p>";
+    }
   });
 })();
 </script>
