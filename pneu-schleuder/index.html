@@ -15,33 +15,78 @@
   .overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center;
     justify-content:center; background:rgba(20,40,60,.72); z-index:10;
     backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); color:#fff; text-align:center;
-    padding:20px; padding-top:env(safe-area-inset-top); }
+    padding:16px; padding-top:calc(env(safe-area-inset-top) + 10px); }
   .hidden { display:none !important; }
-  .title { font-size:min(13vw,64px); font-weight:900; letter-spacing:-1px;
-    color:#ffd23f; text-shadow:0 4px 0 #c47a00, 0 8px 18px rgba(0,0,0,.4); margin-bottom:8px; }
-  .subtitle { font-size:min(4.5vw,19px); opacity:.92; margin-bottom:28px; max-width:340px; line-height:1.4; }
+  .title { font-size:min(12vw,58px); font-weight:900; letter-spacing:-1px;
+    color:#ffd23f; text-shadow:0 4px 0 #c47a00, 0 8px 18px rgba(0,0,0,.4); margin-bottom:6px; line-height:1.02; }
+  .subtitle { font-size:min(4.2vw,17px); opacity:.92; margin-bottom:18px; max-width:360px; line-height:1.4; }
   .btn { background:linear-gradient(#ffd23f,#ffb300); color:#4a2c00; border:none;
-    font-size:20px; font-weight:800; padding:16px 40px; border-radius:16px;
-    box-shadow:0 5px 0 #c47a00, 0 8px 16px rgba(0,0,0,.35); margin:8px; cursor:pointer; }
+    font-size:19px; font-weight:800; padding:14px 32px; border-radius:16px;
+    box-shadow:0 5px 0 #c47a00, 0 8px 16px rgba(0,0,0,.35); margin:6px; cursor:pointer; }
   .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #c47a00; }
   .btn.sec { background:linear-gradient(#e8eef2,#c3ccd4); color:#2b3a45; box-shadow:0 5px 0 #8d99a3, 0 8px 16px rgba(0,0,0,.3); }
   .btn.sec:active { box-shadow:0 2px 0 #8d99a3; }
-  #levelGrid { display:grid; grid-template-columns:repeat(4, 66px); gap:12px;
-    margin:18px 0 24px; max-height:48vh; overflow-y:auto; padding:6px; touch-action:pan-y; }
-  .lvlBtn { width:66px; height:66px; border-radius:16px; border:none; font-size:21px; font-weight:900;
-    background:linear-gradient(#ffd23f,#ffb300); color:#4a2c00;
-    box-shadow:0 4px 0 #c47a00; cursor:pointer; }
+  .btn.sm { font-size:15px; padding:10px 18px; border-radius:13px; }
+  .row { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; }
+
+  #worldGrid { display:grid; grid-template-columns:repeat(auto-fit, 150px); gap:10px; justify-content:center;
+    margin:12px 0 16px; max-height:56vh; overflow-y:auto; padding:6px; touch-action:pan-y; width:100%; max-width:660px; }
+  .wBtn { width:150px; padding:10px 8px; border-radius:15px; border:none; cursor:pointer; text-align:left;
+    background:linear-gradient(#ffd23f,#ffb300); color:#4a2c00; box-shadow:0 4px 0 #c47a00; }
+  .wBtn:active { transform:translateY(2px); box-shadow:0 2px 0 #c47a00; }
+  .wBtn.locked { background:#5a6a76; color:#9fb0bc; box-shadow:0 4px 0 #3d4952; cursor:default; }
+  .wNum { font-size:11px; font-weight:800; opacity:.75; }
+  .wName { font-size:15px; font-weight:900; line-height:1.15; margin:1px 0 3px; }
+  .wStars { font-size:12px; font-weight:800; }
+
+  #levelGrid { display:grid; grid-template-columns:repeat(5, 62px); gap:9px;
+    margin:12px 0 14px; max-height:52vh; overflow-y:auto; padding:6px; touch-action:pan-y; }
+  .lvlBtn { width:62px; height:62px; border-radius:15px; border:none; cursor:pointer;
+    background:linear-gradient(#ffd23f,#ffb300); color:#4a2c00; box-shadow:0 4px 0 #c47a00;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; }
   .lvlBtn:active { transform:translateY(2px); box-shadow:0 2px 0 #c47a00; }
-  .lvlBtn.locked { background:#5a6a76; color:#9fb0bc; box-shadow:0 4px 0 #3d4952; }
-  .lvlBtn.endless { background:linear-gradient(#7bd88f,#3fae5c); color:#0d3a1c; box-shadow:0 4px 0 #2a7a41; }
-  .stars { font-size:52px; letter-spacing:8px; margin:10px 0 4px; }
-  .big { font-size:min(10vw,46px); font-weight:900; margin-bottom:6px; }
-  .scoreline { font-size:18px; opacity:.9; margin-bottom:22px; }
+  .lvlBtn .n { font-size:19px; font-weight:900; line-height:1; }
+  .lvlBtn .s { font-size:10px; line-height:1; letter-spacing:1px; }
+  .lvlBtn.locked { background:#5a6a76; color:#9fb0bc; box-shadow:0 4px 0 #3d4952; cursor:default; }
+
+  .stars { font-size:48px; letter-spacing:8px; margin:6px 0 2px; }
+  .big { font-size:min(9vw,40px); font-weight:900; margin-bottom:4px; }
+  .mid { font-size:min(5vw,21px); font-weight:800; margin-bottom:10px; opacity:.95; }
+  .scoreline { font-size:17px; opacity:.9; margin-bottom:12px; }
+  .bar { width:min(86vw,340px); height:14px; border-radius:9px; background:rgba(255,255,255,.22);
+    position:relative; margin:6px 0 16px; overflow:hidden; }
+  .bar > i { position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,#ffd23f,#ffb300); border-radius:9px; }
+  .bar > b { position:absolute; top:-3px; bottom:-3px; width:2px; background:rgba(255,255,255,.85); }
+
+  input.nameIn { font-size:20px; font-weight:800; padding:12px 16px; border-radius:14px; border:none;
+    width:min(80vw,300px); text-align:center; margin:10px 0 16px; color:#22303a; }
+  table.board { border-collapse:collapse; margin:6px 0 16px; font-size:15px; width:min(90vw,420px); }
+  table.board td, table.board th { padding:7px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,.16); }
+  table.board td.r { text-align:right; }
+  table.board tr.me { background:rgba(255,210,63,.22); font-weight:900; }
+  .scrollbox { max-height:52vh; overflow-y:auto; touch-action:pan-y; width:100%; display:flex;
+    flex-direction:column; align-items:center; }
+
   #hud { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between;
-    align-items:flex-start; padding:calc(env(safe-area-inset-top) + 10px) 14px 0 108px; z-index:5;
+    align-items:flex-start; flex-wrap:wrap; gap:6px;
+    padding:calc(env(safe-area-inset-top) + 10px) 14px 0 108px; z-index:5;
     pointer-events:none; font-weight:800; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.45); }
-  .hudbox { background:rgba(0,0,0,.28); border-radius:12px; padding:6px 12px; font-size:15px; }
-  #tiresHud { font-size:18px; letter-spacing:2px; }
+  #scoreHud { margin-left:auto; }
+  @media (max-width:520px) { .hudbox { font-size:13px; padding:5px 9px; } #levelHud { max-width:150px; } }
+  .hudbox { background:rgba(0,0,0,.30); border-radius:12px; padding:6px 11px; font-size:14px; }
+  #tiresHud { display:flex; gap:5px; align-items:center; padding:6px 10px; }
+  .thumb { width:20px; height:20px; border-radius:50%; border:3px solid #22262b; box-sizing:border-box; }
+  .thumb.now { outline:2px solid #ffd23f; outline-offset:2px; }
+  #hintBox { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 14px);
+    background:rgba(0,0,0,.42); color:#fff; font-size:14px; font-weight:700; padding:8px 14px;
+    border-radius:12px; z-index:5; pointer-events:none; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+  #pauseBtn { position:fixed; z-index:6; bottom:calc(env(safe-area-inset-bottom) + 12px);
+    right:calc(env(safe-area-inset-right) + 12px); width:46px; height:46px; border-radius:15px;
+    background:rgba(15,23,42,.68); color:#fff; font-size:17px; cursor:pointer;
+    border:1.5px solid rgba(255,255,255,.28); }
+  #toast { position:fixed; left:50%; top:34%; transform:translateX(-50%); z-index:7; pointer-events:none;
+    font-size:min(7vw,30px); font-weight:900; color:#fff; text-shadow:0 3px 8px rgba(0,0,0,.6);
+    opacity:0; transition:opacity .2s; }
 
   /* ---------- Zurück zur Spiele-Auswahl ---------- */
   .kmf-back{
@@ -67,40 +112,90 @@
 
 <div id="hud" class="hidden">
   <div class="hudbox" id="levelHud">Level 1</div>
-  <div class="hudbox" id="tiresHud">🛞🛞🛞🛞</div>
+  <div class="hudbox" id="tiresHud"></div>
   <div class="hudbox" id="scoreHud">0</div>
 </div>
+<div id="hintBox" class="hidden"></div>
+<button id="pauseBtn" class="hidden">⏸</button>
+<div id="toast"></div>
 
+<!-- Startbildschirm -->
 <div id="startScreen" class="overlay">
   <div class="title">🛞 PNEU-<br>SCHLEUDER</div>
-  <div class="subtitle">Zieh den Pneu mit dem Finger zurück, lass los – und räum alle 📸 Blitzer ab! Kisten und Pylonen fliegen mit.</div>
-  <button class="btn" id="startBtn">Los geht's!</button>
-  <button class="btn sec" id="menuOpenBtn">Level wählen</button>
+  <div class="subtitle">Zieh den Pneu mit dem Finger zurück, lass los – und räum alle 📸 Blitzer ab.
+    Im Flug antippen = Spezialfähigkeit. Aber Achtung: Fahrschüler nie treffen!</div>
+  <div class="row">
+    <button class="btn" id="startBtn">Weiterspielen</button>
+    <button class="btn sec" id="menuOpenBtn">Welten</button>
+  </div>
+  <div class="row">
+    <button class="btn sec sm" id="boardOpenBtn">🏆 Rangliste</button>
+    <button class="btn sec sm" id="playerBtn">👤 <span id="playerName">Spieler</span></button>
+  </div>
 </div>
 
-<div id="menuScreen" class="overlay hidden">
-  <div class="big">Level wählen</div>
-  <div class="scoreline">Ab Level 13: Endlos-Modus 🎲</div>
+<!-- Spielername -->
+<div id="nameScreen" class="overlay hidden">
+  <div class="big">Wer spielt?</div>
+  <div class="subtitle">Dein Name kommt in die Rangliste. Jeder Name hat einen eigenen Spielstand.</div>
+  <input class="nameIn" id="nameInput" maxlength="14" placeholder="Name" autocomplete="off">
+  <div class="row"><button class="btn" id="nameOkBtn">Los</button></div>
+  <div id="playerList" class="scrollbox" style="max-height:34vh"></div>
+</div>
+
+<!-- Weltenauswahl -->
+<div id="worldScreen" class="overlay hidden">
+  <div class="big">Welten</div>
+  <div class="scoreline" id="worldSub">20 Welten · 500 Levels</div>
+  <div id="worldGrid"></div>
+  <button class="btn sec" id="worldBackBtn">Zurück</button>
+</div>
+
+<!-- Levelauswahl -->
+<div id="levelScreen" class="overlay hidden">
+  <div class="big" id="levelTitle">Welt 1</div>
+  <div class="scoreline" id="levelSub"></div>
   <div id="levelGrid"></div>
-  <button class="btn sec" id="menuBackBtn">Zurück</button>
+  <button class="btn sec" id="levelBackBtn">Welten</button>
 </div>
 
+<!-- Ende -->
 <div id="endScreen" class="overlay hidden">
   <div class="big" id="endTitle">Level geschafft!</div>
   <div class="stars" id="endStars">⭐⭐⭐</div>
   <div class="scoreline" id="endScore">Punkte: 0</div>
-  <div>
-    <button class="btn sec" id="menuBtn">Menü</button>
-    <button class="btn sec" id="retryBtn">Nomal</button>
+  <div class="bar"><i id="endBar"></i><b id="endM2"></b><b id="endM3"></b></div>
+  <div class="row">
+    <button class="btn sec sm" id="menuBtn">Menü</button>
+    <button class="btn sec sm" id="retryBtn">Nochmal</button>
     <button class="btn" id="nextBtn">Weiter ➜</button>
   </div>
+</div>
+
+<!-- Pause -->
+<div id="pauseScreen" class="overlay hidden">
+  <div class="big">Pause</div>
+  <div class="scoreline" id="pauseSub"></div>
+  <div class="row">
+    <button class="btn" id="resumeBtn">Weiter</button>
+    <button class="btn sec sm" id="pauseRetryBtn">Neu starten</button>
+    <button class="btn sec sm" id="pauseMenuBtn">Menü</button>
+  </div>
+</div>
+
+<!-- Rangliste -->
+<div id="boardScreen" class="overlay hidden">
+  <div class="big">🏆 Rangliste</div>
+  <div class="scoreline">Alle Spieler auf diesem Gerät</div>
+  <div class="scrollbox"><table class="board" id="boardTable"></table></div>
+  <button class="btn sec" id="boardBackBtn">Zurück</button>
 </div>
 
 <script>
 "use strict";
 const { Engine, Bodies, Body, Composite, Events, Sleeping } = Matter;
 
-// ---------- Setup ----------
+// ================= Setup =================
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let cw = 0, ch = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -111,28 +206,52 @@ function resize() {
 }
 window.addEventListener('resize', resize); resize();
 
-const WORLD_W = 1700, WORLD_H = 760, GROUND_Y = 660;
+const WORLD_W = 1900, WORLD_H = 780, GROUND_Y = 660;
 const SLING = { x: WORLD_W - 230, y: 545 };
 const MAX_DRAG = 130, POWER = 0.185;
+const LEVELS_PER_WORLD = 25, TOTAL_LEVELS = 500;
 
 let engine, world;
-let tire = null, tireState = 'idle'; // idle | aiming | flight
-let tiresLeft = 0, score = 0, levelIdx = 0, bestUnlocked = 0;
-let breakables = [], blitzers = [], particles = [], flashes = [];
-let camX = 0, camTargetX = 0, scale = 1;
+let tire = null, tireState = 'idle';       // idle | aiming | flight
+let tireQueue = [], curTire = null, specialUsed = false;
+let score = 0, levelIdx = 0;
+let breakables = [], blitzers = [], particles = [], flashes = [], flakes = [];
+let camX = 0, camTargetX = 0, scale = 1, offY = 0;
 let dragging = false, dragPos = null;
-let settleTimer = 0, flightTime = 0;
-let gameActive = false;
+let settleTimer = 0, flightTime = 0, previewTimer = 0;
+let gameActive = false, paused = false;
+let W = null, levelMax = 1, civilHits = 0;
 
-// safe storage (fällt in claude.ai auf Memory zurück)
+// ================= Speicher / Spieler =================
 const mem = {};
 const store = {
   get(k){ try { return localStorage.getItem(k); } catch(e){ return mem[k] ?? null; } },
   set(k,v){ try { localStorage.setItem(k,v); } catch(e){ mem[k]=v; } }
 };
-bestUnlocked = parseInt(store.get('ps_unlocked') || '0');
+let DATA = { current:'', players:{} };
+function loadData() {
+  try { DATA = JSON.parse(store.get('ps_data')) || DATA; } catch(e){}
+  if (!DATA.players) DATA = { current:'', players:{} };
+  // Übernahme des alten Spielstands (Version ohne Namen)
+  const old = parseInt(store.get('ps_unlocked') || '-1');
+  if (old >= 0 && !Object.keys(DATA.players).length) {
+    DATA.players['Spieler 1'] = { unlocked: old, best:{}, stars:{} };
+    DATA.current = 'Spieler 1';
+    saveData();
+  }
+}
+function saveData(){ try { store.set('ps_data', JSON.stringify(DATA)); } catch(e){} }
+function P() {
+  let p = DATA.players[DATA.current];
+  if (!p) { p = DATA.players[DATA.current] = { unlocked:0, best:{}, stars:{} }; }
+  if (!p.best) p.best = {}; if (!p.stars) p.stars = {};
+  return p;
+}
+function totalScore(pl){ let s=0; for (const k in pl.best) s += pl.best[k]; return s; }
+function totalStars(pl){ let s=0; for (const k in pl.stars) s += pl.stars[k]; return s; }
+loadData();
 
-// ---------- Sound (WebAudio, klein & synthetisch) ----------
+// ================= Sound =================
 let AC = null;
 function audio() { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); return AC; }
 function beep(freq, dur, type, vol, slide) {
@@ -151,137 +270,100 @@ const sfx = {
   launch(){ beep(220, .25, 'sawtooth', .1, 700); },
   hit(){ beep(140, .1, 'square', .09, 70); },
   wood(){ beep(200, .12, 'triangle', .12, 90); },
+  glass(){ beep(1200, .12, 'sine', .1, 400); },
   blitz(){ beep(880, .3, 'square', .12, 220); beep(1400, .15, 'sine', .1); },
+  boom(){ beep(90, .45, 'sawtooth', .18, 40); beep(240, .25, 'square', .12, 60); },
+  boost(){ beep(500, .18, 'square', .1, 1200); },
+  split(){ beep(700, .14, 'triangle', .1, 1100); },
+  bad(){ beep(160, .5, 'sawtooth', .14, 80); },
   win(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.18,'triangle',.13),i*120)); },
   lose(){ [400,340,280,200].forEach((f,i)=>setTimeout(()=>beep(f,.2,'sawtooth',.1),i*140)); }
 };
 
-// ---------- Level-Bausteine ----------
-// Spiegelung: Schleuder rechts, Hindernisse links (Rechtshänder-Modus)
-const MX = x => WORLD_W - x;
-function crate(x, y, s=56) {
-  return { body: Bodies.rectangle(MX(x), y, s, s, { friction:.6, restitution:.05, density:.0016 }),
-    kind:'crate', hp:45, maxHp:45, w:s, h:s };
-}
-function plank(x, y, w, h, angle=0) {
-  return { body: Bodies.rectangle(MX(x), y, w, h, { friction:.6, restitution:.05, density:.0014, angle:-angle }),
-    kind:'plank', hp:38, maxHp:38, w, h };
-}
-function stone(x, y, w, h) {
-  return { body: Bodies.rectangle(MX(x), y, w, h, { friction:.8, restitution:.02, density:.004 }),
-    kind:'stone', hp:120, maxHp:120, w, h };
-}
-function cone(x, y) {
-  return { body: Bodies.trapezoid(MX(x), y, 40, 46, .9, { friction:.5, restitution:.1, density:.0009 }),
-    kind:'cone', hp:18, maxHp:18, w:40, h:46 };
-}
-function blitzer(x, y) {
-  return { body: Bodies.rectangle(MX(x), y, 46, 60, { friction:.6, restitution:.05, density:.002 }),
-    kind:'blitzer', hp:30, maxHp:30, w:46, h:60 };
-}
-const G = GROUND_Y;
-
-const LEVELS = [
-  { tires: 4, parts: () => [
-      crate(1050, G-28), crate(1050, G-84),
-      blitzer(1050, G-142),
-      cone(940, G-23), cone(1160, G-23)
-  ]},
-  { tires: 4, parts: () => [
-      crate(1000, G-28), crate(1110, G-28),
-      plank(1055, G-70, 200, 18),
-      crate(1055, G-108), blitzer(1055, G-168),
-      cone(900, G-23), blitzer(1300, G-30), cone(1370, G-23)
-  ]},
-  { tires: 4, parts: () => [
-      stone(980, G-25, 40, 50), stone(1140, G-25, 40, 50),
-      plank(1060, G-60, 240, 18),
-      crate(1010, G-98), crate(1110, G-98),
-      plank(1060, G-136, 200, 18),
-      blitzer(1060, G-176),
-      cone(880, G-23), cone(1250, G-23), blitzer(1420, G-30)
-  ]},
-  { tires: 5, parts: () => [
-      crate(950, G-28), crate(950, G-84), blitzer(950, G-142),
-      stone(1200, G-30, 44, 60), stone(1330, G-30, 44, 60),
-      plank(1265, G-70, 220, 18),
-      crate(1265, G-108), blitzer(1265, G-168),
-      cone(1080, G-23), cone(1470, G-23)
-  ]},
-  { tires: 5, parts: () => [
-      stone(1000, G-35, 40, 70), stone(1180, G-35, 40, 70),
-      plank(1090, G-80, 280, 18),
-      blitzer(1030, G-120), crate(1150, G-118),
-      plank(1090, G-158, 220, 18),
-      crate(1090, G-196), blitzer(1090, G-256),
-      cone(880, G-23), cone(1290, G-23), blitzer(1450, G-30), cone(1520, G-23)
-  ]},
-  { tires: 6, parts: () => [
-      stone(950, G-35, 44, 70), stone(1090, G-35, 44, 70), stone(1230, G-35, 44, 70),
-      plank(1020, G-80, 220, 18), plank(1160, G-80, 220, 18),
-      crate(1020, G-118), blitzer(1090, G-120), crate(1160, G-118),
-      plank(1090, G-158, 300, 18),
-      stone(1030, G-198, 36, 60), stone(1150, G-198, 36, 60),
-      plank(1090, G-238, 200, 18),
-      blitzer(1090, G-278),
-      cone(850, G-23), cone(1340, G-23), blitzer(1480, G-30)
-  ]},
-  // Level 7: Kisten-Pyramide
-  { tires: 5, parts: () => [
-      crate(1000, G-28), crate(1060, G-28), crate(1120, G-28),
-      crate(1030, G-84), crate(1090, G-84),
-      crate(1060, G-140),
-      blitzer(1060, G-198),
-      cone(900, G-23), blitzer(1330, G-30), cone(1400, G-23), cone(1460, G-23)
-  ]},
-  // Level 8: Steinmauer schützt Blitzer
-  { tires: 5, parts: () => [
-      crate(960, G-28), crate(960, G-84), blitzer(960, G-142),
-      stone(1230, G-30, 44, 60), stone(1230, G-90, 44, 60), stone(1230, G-150, 44, 60),
-      blitzer(1330, G-30), cone(1400, G-23),
-      cone(870, G-23)
-  ]},
-  // Level 9: Breite Brücke, 3 Blitzer
-  { tires: 5, parts: () => [
-      stone(960, G-35, 40, 70), stone(1120, G-35, 40, 70), stone(1280, G-35, 40, 70),
-      plank(1040, G-80, 220, 18), plank(1200, G-80, 220, 18),
-      blitzer(1000, G-120), crate(1120, G-118), blitzer(1240, G-120),
-      plank(1120, G-158, 260, 18),
-      blitzer(1120, G-198),
-      cone(860, G-23), cone(1380, G-23)
-  ]},
-  // Level 10: Hoher Turm + Boden-Blitzer
-  { tires: 6, parts: () => [
-      stone(1010, G-35, 44, 70), stone(1130, G-35, 44, 70),
-      plank(1070, G-80, 220, 18),
-      stone(1020, G-125, 40, 70), stone(1120, G-125, 40, 70),
-      plank(1070, G-170, 200, 18),
-      crate(1070, G-208), blitzer(1070, G-268),
-      blitzer(1300, G-30), cone(1370, G-23),
-      blitzer(1470, G-30), cone(900, G-23)
-  ]},
-  // Level 11: Doppel-Pyramide
-  { tires: 6, parts: () => [
-      crate(940, G-28), crate(1000, G-28), crate(970, G-84), blitzer(970, G-142),
-      crate(1200, G-28), crate(1260, G-28), crate(1320, G-28),
-      crate(1230, G-84), crate(1290, G-84),
-      crate(1260, G-140), blitzer(1260, G-198),
-      cone(860, G-23), cone(1100, G-23), blitzer(1470, G-30)
-  ]},
-  // Level 12: Grosse Festung
-  { tires: 7, parts: () => [
-      stone(920, G-35, 44, 70), stone(1060, G-35, 44, 70), stone(1200, G-35, 44, 70), stone(1340, G-35, 44, 70),
-      plank(990, G-80, 220, 18), plank(1130, G-80, 220, 18), plank(1270, G-80, 220, 18),
-      blitzer(990, G-120), crate(1130, G-118), blitzer(1270, G-120),
-      plank(1130, G-158, 320, 18),
-      stone(1070, G-198, 36, 60), stone(1190, G-198, 36, 60),
-      plank(1130, G-238, 200, 18),
-      blitzer(1130, G-278),
-      cone(830, G-23), cone(1440, G-23), blitzer(1540, G-30)
-  ]}
+// ================= Welten =================
+const WORLDS = [
+  {n:'Übungsplatz', sky:['#8fd3f4','#cdeffd','#e8f9ff'], h1:'#b8dcc8', h2:'#8fc9a8', gr:'#6fae5e', rd:'#4b4f55', ln:'#ffd23f', deco:'tree'},
+  {n:'Dorf',        sky:['#7ec8e3','#c4e8f7','#eaf7ff'], h1:'#a9d3bd', h2:'#84bf9c', gr:'#69a858', rd:'#5a5f66', ln:'#ffd23f', deco:'house'},
+  {n:'Baustelle',   sky:['#f0c789','#ffe1b0','#fff3dd'], h1:'#cbb894', h2:'#ab9770', gr:'#a9945f', rd:'#57565a', ln:'#ffd23f', deco:'crane'},
+  {n:'Autobahn',    sky:['#8fd3f4','#d8eefb','#f0fbff'], h1:'#b3cfc0', h2:'#8dbba1', gr:'#6aa95c', rd:'#3f434a', ln:'#ffffff', deco:'sign'},
+  {n:'Steinbruch',  sky:['#c3cbd3','#e0e7ed','#f3f6f9'], h1:'#a8b0b8', h2:'#8b939c', gr:'#8f8a7e', rd:'#4e5157', ln:'#ffd23f', deco:'mountain'},
+  {n:'Stadt',       sky:['#9ad3f0','#cfe9f8','#eef8ff'], h1:'#aebcc7', h2:'#8c9dab', gr:'#6f9a63', rd:'#44484f', ln:'#ffd23f', deco:'city'},
+  {n:'Winterdorf',  sky:['#b9d6e8','#dceaf3','#f4fafd'], h1:'#e2edf4', h2:'#c6d7e2', gr:'#eef5fa', rd:'#7f8a93', ln:'#ffd23f', deco:'house', snow:true},
+  {n:'Hafen',       sky:['#82c9e8','#c2e6f6','#e9f8ff'], h1:'#9bbecd', h2:'#7aa4b6', gr:'#7f8f96', rd:'#495056', ln:'#ffd23f', deco:'crane'},
+  {n:'Waldstrasse', sky:['#94cfe2','#cbe9ee','#eaf8fa'], h1:'#8fbf94', h2:'#6ba372', gr:'#5d9a4f', rd:'#4b4f55', ln:'#ffd23f', deco:'tree'},
+  {n:'Wüstenpiste', sky:['#f6d79a','#ffe9bd','#fff6e2'], h1:'#e0c48c', h2:'#c9a86a', gr:'#dcc188', rd:'#6b6152', ln:'#ffd23f', deco:'palm'},
+  {n:'Alpenpass',   sky:['#8ecbe8','#c9e6f5','#edf9ff'], h1:'#b7c8d2', h2:'#93a9b6', gr:'#7ba55f', rd:'#4d5359', ln:'#ffd23f', deco:'mountain'},
+  {n:'Nebeltal',    sky:['#b8c4cc','#d6dde2','#eef1f3'], h1:'#b4c2c6', h2:'#95a5ab', gr:'#6f9268', rd:'#4a4f54', ln:'#ffd23f', deco:'tree', fog:true},
+  {n:'Fabrik',      sky:['#c9c2b4','#e2ddd2','#f4f1ea'], h1:'#a9a297', h2:'#8b857b', gr:'#8a8a7d', rd:'#43464b', ln:'#ffd23f', deco:'city'},
+  {n:'Flughafen',   sky:['#8fd3f4','#d3ecfa','#eff9ff'], h1:'#adc3cd', h2:'#8ba5b1', gr:'#6ea25e', rd:'#3c4046', ln:'#ffffff', deco:'sign', wind:-0.00010},
+  {n:'Nachtstadt',  sky:['#14213d','#1f3157','#33507d'], h1:'#22314a', h2:'#182338', gr:'#2b3b30', rd:'#26292e', ln:'#ffd23f', deco:'city', night:true},
+  {n:'Sumpfweg',    sky:['#a9c7ae','#cfe0cd','#e9f2e6'], h1:'#87a184', h2:'#6b8569', gr:'#5c7a4a', rd:'#474b45', ln:'#ffd23f', deco:'tree', fog:true},
+  {n:'Vulkan',      sky:['#5a2a26','#94473a','#d3764c'], h1:'#5d3730', h2:'#432722', gr:'#5a4038', rd:'#33302f', ln:'#ffd23f', deco:'mountain', ash:true, wind:0.00012},
+  {n:'Gletscher',   sky:['#a8cfe4','#d3e9f3','#f0fafe'], h1:'#cfe4ee', h2:'#aecbdb', gr:'#e6f2f8', rd:'#8a97a0', ln:'#ffd23f', deco:'mountain', snow:true},
+  {n:'Mondbasis',   sky:['#05060f','#0b1024','#141b36'], h1:'#3a3f4c', h2:'#282c37', gr:'#5c5f68', rd:'#3a3d44', ln:'#9fb0bc', deco:'none', night:true, grav:0.42},
+  {n:'KMF-Finale',  sky:['#8fd3f4','#ffe9b3','#fff6dd'], h1:'#b8dcc8', h2:'#8fc9a8', gr:'#6fae5e', rd:'#4b4f55', ln:'#ffd23f', deco:'house'}
 ];
 
-// ---------- Endlos-Generator (ab Level 13, pro Levelnummer immer gleich) ----------
+// ================= Pneu-Typen =================
+const TIRES = {
+  pkw:     { n:'PKW-Pneu',    r:26, dens:.0040, rest:.35, dmg:1.00, col:'#22262b', rim:'#c8ced4', sp:'', hint:'' },
+  lkw:     { n:'LKW-Pneu',    r:35, dens:.0068, rest:.18, dmg:1.30, col:'#191d22', rim:'#aeb6bd', sp:'stampf', hint:'Tippen = runter stampfen' },
+  renn:    { n:'Rennpneu',    r:21, dens:.0036, rest:.48, dmg:0.85, col:'#2b1616', rim:'#e03a3a', sp:'boost',  hint:'Tippen = Turbo' },
+  winter:  { n:'Winterpneu',  r:24, dens:.0038, rest:.34, dmg:0.85, col:'#2a3138', rim:'#dceaf5', sp:'split',  hint:'Tippen = teilt sich in 3' },
+  traktor: { n:'Traktorpneu', r:31, dens:.0050, rest:.22, dmg:1.05, col:'#1d2a1c', rim:'#7bd88f', sp:'boom',   hint:'Tippen = Explosion' }
+};
+const TIRE_ORDER = ['pkw','lkw','renn','winter','traktor'];
+// ab welcher Welt (0-basiert) ein Typ vorkommt
+const TIRE_FROM = { pkw:0, lkw:1, renn:2, winter:3, traktor:4 };
+
+// ================= Bauteile =================
+// Distanz -> Weltkoordinate (Schleuder rechts). Geklemmt, damit nie etwas aus der Welt fällt.
+const MX = d => WORLD_W - Math.max(320, Math.min(d, 1740));
+const VALUE = { crate:50, plank:50, stone:120, ice:60, cone:30, barrel:150, blitzer:500, civil:0, rock:0, platform:0 };
+const G = GROUND_Y;
+
+function crate(d, y, s=56) {
+  return { body: Bodies.rectangle(MX(d), y, s, s, { friction:.6, restitution:.05, density:.0016 }),
+    kind:'crate', hp:45, maxHp:45, w:s, h:s };
+}
+function plank(d, y, w, h, angle=0) {
+  return { body: Bodies.rectangle(MX(d), y, w, h, { friction:.6, restitution:.05, density:.0014, angle:-angle }),
+    kind:'plank', hp:38, maxHp:38, w, h };
+}
+function stone(d, y, w, h) {
+  return { body: Bodies.rectangle(MX(d), y, w, h, { friction:.8, restitution:.02, density:.004 }),
+    kind:'stone', hp:120, maxHp:120, w, h };
+}
+function ice(d, y, w, h) {
+  return { body: Bodies.rectangle(MX(d), y, w, h, { friction:.03, frictionStatic:.05, restitution:.1, density:.0012 }),
+    kind:'ice', hp:26, maxHp:26, w, h };
+}
+function cone(d, y) {
+  return { body: Bodies.trapezoid(MX(d), y, 40, 46, .9, { friction:.5, restitution:.1, density:.0009 }),
+    kind:'cone', hp:18, maxHp:18, w:40, h:46 };
+}
+function barrel(d, y) {
+  return { body: Bodies.rectangle(MX(d), y, 40, 54, { friction:.5, restitution:.08, density:.0015 }),
+    kind:'barrel', hp:22, maxHp:22, w:40, h:54 };
+}
+function blitzer(d, y) {
+  return { body: Bodies.rectangle(MX(d), y, 46, 60, { friction:.6, restitution:.05, density:.002 }),
+    kind:'blitzer', hp:30, maxHp:30, w:46, h:60 };
+}
+function civil(d, y) {
+  return { body: Bodies.rectangle(MX(d), y, 26, 58, { friction:.7, restitution:.02, density:.0011 }),
+    kind:'civil', hp:14, maxHp:14, w:26, h:58 };
+}
+function rock(d, y, w, h) {   // unzerstörbarer Fels
+  return { body: Bodies.rectangle(MX(d), y, w, h, { isStatic:true, friction:.9 }),
+    kind:'rock', hp:1e9, maxHp:1e9, w, h, solid:true };
+}
+function platform(d, y, w) {  // schwebende Plattform
+  return { body: Bodies.rectangle(MX(d), y, w, 20, { isStatic:true, friction:.8 }),
+    kind:'platform', hp:1e9, maxHp:1e9, w, h:20, solid:true };
+}
+
+// ================= Zufall (fest pro Level) =================
 function mulberry32(a) {
   return function() {
     a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -290,73 +372,396 @@ function mulberry32(a) {
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-function proceduralParts(i) {
-  const rnd = mulberry32(i * 98761 + 7);
-  const parts = [];
-  const towers = 2 + Math.floor(rnd() * 2) + (i % 4 === 0 ? 1 : 0); // 2-4 Türme
-  let x = 930;
-  for (let t = 0; t < towers && x < 1520; t++) {
-    const floors = 1 + Math.floor(rnd() * 3); // 1-3 Stockwerke
-    const half = 55 + Math.floor(rnd() * 25);
-    let topY = G;
-    for (let f = 0; f < floors; f++) {
-      const useStone = rnd() < Math.min(0.15 + (i - 12) * 0.02, 0.6);
-      const sh = useStone ? 60 : 56;
-      if (useStone) {
-        parts.push(stone(x - half, topY - sh/2, 40, sh));
-        parts.push(stone(x + half, topY - sh/2, 40, sh));
-      } else {
-        parts.push(crate(x - half, topY - 28));
-        parts.push(crate(x + half, topY - 28));
-      }
-      const plankY = topY - sh - 9;
-      parts.push(plank(x, plankY, half * 2 + 90, 18));
-      topY = plankY - 9;
-    }
-    if (rnd() < 0.85 || t === 0) {
-      parts.push(blitzer(x, topY - 30));
-    } else {
-      parts.push(crate(x, topY - 28));
-      parts.push(blitzer(x, topY - 86));
-    }
-    if (rnd() < 0.6) parts.push(cone(x - half - 65, G - 23));
-    x += 230 + Math.floor(rnd() * 120);
-  }
-  if (rnd() < 0.7) parts.push(blitzer(Math.min(x, 1540), G - 30));
-  return parts;
+const pick = (rnd, arr) => arr[Math.floor(rnd() * arr.length) % arr.length];
+const ri = (rnd, a, b) => a + Math.floor(rnd() * (b - a + 1));
+
+// ================= Baupläne (Archetypen) =================
+// Jede Funktion baut eine Szene. c = { P, rnd, diff (0..1), hard, mat, sup, nb }
+//  mat() = Füllmaterial (crate/ice/stone), sup() = Stützmaterial, nb = gewünschte Blitzer-Zahl
+function pillar(c, d, y, h, m) {         // eine Stütze, gibt echte Oberkante zurück
+  if (m === 'stone') { c.P.push(stone(d, y - h/2, 40, h)); return y - h; }
+  if (m === 'ice')   { c.P.push(ice(d, y - h/2, 40, h));   return y - h; }
+  const n = Math.max(1, Math.round(h / 56));
+  for (let i = 0; i < n; i++) c.P.push(crate(d, y - 28 - i*56));
+  return y - n*56;
 }
-function getLevelDef(i) {
-  if (i < LEVELS.length) return LEVELS[i];
-  const nBlitzer = proceduralParts(i).filter(p => p.kind === 'blitzer').length;
-  return { tires: nBlitzer + 2, parts: () => proceduralParts(i) };
+function pillars(c, d, half, y, h) {     // Stützenpaar aus GLEICHEM Material (sonst steht der Balken schräg)
+  const m = c.sup();
+  const t = pillar(c, d - half, y, h, m);
+  pillar(c, d + half, y, h, m);
+  return t;
+}
+function fill(c, d, y) {                // ein Füllblock, gibt Oberkante zurück
+  const m = c.mat();
+  if (m === 'stone') { c.P.push(stone(d, y - 30, 44, 60)); return y - 60; }
+  if (m === 'ice')   { c.P.push(ice(d, y - 28, 52, 56));   return y - 56; }
+  c.P.push(crate(d, y - 28)); return y - 56;
 }
 
-// ---------- Level laden ----------
+// -- Bauplan-Sammlung --------------------------------------------------------
+const PLANS = [
+{ id:'turm', n:'Turmbau', f(c){
+    const d = 1080 + ri(c.rnd,-40,60);
+    const fl = 1 + Math.round(c.diff*3) + ri(c.rnd,0,1);
+    let y = G, half = 58;
+    for (let i = 0; i < fl; i++) {
+      const top = pillars(c, d, half, y, 60);
+      c.P.push(plank(d, top - 9, half*2 + 80, 18));
+      y = top - 18;
+    }
+    c.P.push(blitzer(d, y - 30));
+    if (c.nb > 1) c.P.push(blitzer(d + 260, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d - 250, G - 30));
+    c.P.push(cone(d - half - 90, G - 23)); c.P.push(cone(d + half + 90, G - 23));
+  }},
+{ id:'pyramide', n:'Pyramide', f(c){
+    const d = 1100, base = 3 + Math.round(c.diff*2);
+    for (let row = 0; row < base; row++) {
+      const cnt = base - row;
+      for (let i = 0; i < cnt; i++) {
+        const x = d + (i - (cnt-1)/2) * 58;
+        if (row === 0 && c.rnd() < c.diff*0.6) c.P.push(stone(x, G - 30, 44, 60));
+        else c.P.push(crate(x, G - 28 - row*56));
+      }
+    }
+    c.P.push(blitzer(d, G - base*56 - 30));
+    for (let k = 1; k < Math.min(c.nb, 3); k++) c.P.push(blitzer(d + 240 + k*150, G - 30));
+    c.P.push(cone(d - 190, G - 23));
+  }},
+{ id:'bruecke', n:'Die Brücke', f(c){
+    const d = 1150, span = 170, m = c.sup();
+    const t = pillar(c, d - span, G, 100, m); pillar(c, d, G, 100, m); pillar(c, d + span, G, 100, m);
+    c.P.push(plank(d - span/2, t - 9, span + 90, 18));
+    c.P.push(plank(d + span/2, t - 9, span + 90, 18));
+    c.P.push(blitzer(d - span/2, t - 48));
+    c.P.push(blitzer(d + span/2, t - 48));
+    if (c.nb > 2) { c.P.push(crate(d, t - 46)); c.P.push(blitzer(d, t - 104)); }
+    c.P.push(cone(d - span - 100, G - 23)); c.P.push(cone(d + span + 100, G - 23));
+  }},
+{ id:'festung', n:'Festung', f(c){
+    const d = 1150;
+    c.P.push(stone(d - 150, G - 60, 44, 120)); c.P.push(stone(d + 150, G - 60, 44, 120));
+    c.P.push(plank(d, G - 129, 340, 18));
+    c.P.push(blitzer(d - 70, G - 168)); c.P.push(blitzer(d + 70, G - 168));
+    c.P.push(crate(d, G - 166));
+    c.P.push(plank(d, G - 204, 220, 18));
+    if (c.nb > 2) c.P.push(blitzer(d, G - 243));
+    c.P.push(barrel(d - 150, G - 27));
+    c.P.push(cone(d + 240, G - 23));
+  }},
+{ id:'felsentor', n:'Felsentor', f(c){
+    const d = 1230, gap = 130 - c.diff*25;
+    c.P.push(rock(d, G - 40, 70, 80));
+    c.P.push(rock(d, G - 40 - 80 - gap - 90, 70, 180));
+    c.P.push(blitzer(d - 190, G - 30));
+    c.P.push(crate(d - 190, G - 86)); c.P.push(blitzer(d - 190, G - 144));
+    if (c.nb > 2) c.P.push(blitzer(d - 340, G - 30));
+    c.P.push(cone(d + 140, G - 23));
+  }},
+{ id:'hochhaus', n:'Hochhaus', f(c){
+    const d = 1120; let y = G;
+    const fl = 3 + Math.round(c.diff*3);
+    for (let i = 0; i < fl; i++) {
+      const t = pillars(c, d, 40, y, 60);
+      c.P.push(plank(d, t - 9, 150, 18));
+      y = t - 18;
+    }
+    c.P.push(blitzer(d, y - 30));
+    c.P.push(blitzer(d + 280, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d - 270, G - 30));
+    c.P.push(cone(d - 130, G - 23)); c.P.push(cone(d + 130, G - 23));
+  }},
+{ id:'plattform', n:'Schwebende Plattformen', f(c){
+    const d = 1140;
+    c.P.push(platform(d - 200, G - 190, 230));
+    c.P.push(platform(d + 180, G - 300, 230));
+    c.P.push(blitzer(d - 200, G - 230));
+    c.P.push(crate(d - 260, G - 228)); c.P.push(crate(d - 140, G - 228));
+    c.P.push(blitzer(d + 180, G - 340));
+    if (c.nb > 2) c.P.push(blitzer(d, G - 30));
+    c.P.push(cone(d - 20, G - 23)); c.P.push(cone(d + 60, G - 23));
+  }},
+{ id:'grube', n:'Die Grube', f(c){
+    const d = 1200;
+    c.P.push(rock(d - 150, G - 55, 60, 110));
+    c.P.push(rock(d + 150, G - 55, 60, 110));
+    c.P.push(blitzer(d - 50, G - 30)); c.P.push(blitzer(d + 50, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d, G - 92));
+    c.P.push(barrel(d, G - 27));
+    c.P.push(cone(d + 260, G - 23));
+  }},
+{ id:'tntlager', n:'Fässerlager', f(c){
+    const d = 1140;
+    for (let i = 0; i < 4; i++) c.P.push(barrel(d - 90 + i*60, G - 27));
+    c.P.push(plank(d - 0, G - 63, 300, 18));
+    c.P.push(barrel(d - 60, G - 99)); c.P.push(barrel(d + 60, G - 99));
+    c.P.push(blitzer(d, G - 102));
+    c.P.push(crate(d + 240, G - 28)); c.P.push(blitzer(d + 240, G - 86));
+    if (c.nb > 2) c.P.push(blitzer(d - 250, G - 30));
+  }},
+{ id:'wippe', n:'Die Wippe', f(c){
+    const d = 1160;
+    c.P.push(rock(d, G - 30, 50, 60));
+    c.P.push(plank(d, G - 70, 380, 20));
+    c.P.push(blitzer(d - 150, G - 110)); c.P.push(blitzer(d + 150, G - 110));
+    c.P.push(crate(d, G - 108));
+    if (c.nb > 2) c.P.push(blitzer(d, G - 166));
+    c.P.push(cone(d - 280, G - 23));
+  }},
+{ id:'doppelturm', n:'Zwillingstürme', f(c){
+    for (const d of [1030, 1330]) {
+      let y = G;
+      for (let i = 0; i < 2 + Math.round(c.diff*2); i++) {
+        const t = pillars(c, d, 50, y, 60);
+        c.P.push(plank(d, t - 9, 170, 18)); y = t - 18;
+      }
+      c.P.push(blitzer(d, y - 30));
+    }
+    if (c.nb > 2) c.P.push(blitzer(1180, G - 30));
+    c.P.push(cone(1180, G - 23));
+  }},
+{ id:'kette', n:'Kettenreaktion', f(c){
+    let d = 980;
+    for (let i = 0; i < 4; i++) {
+      c.P.push(crate(d, G - 28)); c.P.push(crate(d, G - 84));
+      c.P.push(barrel(d + 60, G - 27));
+      if (i % 2 === 0) c.P.push(blitzer(d, G - 142));
+      d += 160;
+    }
+    c.P.push(blitzer(d, G - 30));
+  }},
+{ id:'dach', n:'Das Schrägdach', f(c){
+    const d = 1160;
+    c.P.push(stone(d - 170, G - 55, 44, 110)); c.P.push(stone(d + 170, G - 55, 44, 110));
+    c.P.push(plank(d - 90, G - 150, 220, 18, 0.42));
+    c.P.push(plank(d + 90, G - 150, 220, 18, -0.42));
+    c.P.push(blitzer(d, G - 30)); c.P.push(crate(d - 60, G - 28)); c.P.push(crate(d + 60, G - 28));
+    if (c.nb > 2) c.P.push(blitzer(d + 300, G - 30));
+    c.P.push(cone(d - 260, G - 23));
+  }},
+{ id:'bunker', n:'Der Bunker', f(c){
+    const d = 1180;
+    c.P.push(stone(d - 90, G - 60, 40, 120)); c.P.push(stone(d + 90, G - 60, 40, 120));
+    c.P.push(stone(d, G - 130, 220, 30));
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(blitzer(d, G - 175));
+    if (c.nb > 2) c.P.push(blitzer(d - 280, G - 30));
+    c.P.push(barrel(d + 160, G - 27));
+    c.P.push(cone(d - 200, G - 23));
+  }},
+{ id:'hoehle', n:'Der Durchschuss', f(c){
+    const d = 1270, gap = 120 - c.diff*20;
+    c.P.push(rock(d, G - 30, 60, 60));
+    c.P.push(rock(d, G - 60 - gap - 110, 60, 220));
+    c.P.push(rock(d + 220, G - 250, 60, 200));
+    c.P.push(blitzer(d - 200, G - 30));
+    c.P.push(crate(d - 320, G - 28)); c.P.push(blitzer(d - 320, G - 86));
+    if (c.nb > 2) c.P.push(blitzer(d - 120, G - 30));
+  }},
+{ id:'treppe', n:'Die Treppe', f(c){
+    const d = 1020;
+    for (let i = 0; i < 4; i++) {
+      const h = 56 * (i + 1);
+      for (let k = 0; k <= i; k++) c.P.push(crate(d + i*90, G - 28 - k*56));
+      if (i === 3) c.P.push(blitzer(d + i*90, G - h - 30));
+    }
+    c.P.push(blitzer(d + 4*90 + 120, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d - 110, G - 30));
+    c.P.push(cone(d - 180, G - 23));
+  }},
+{ id:'schild', n:'Die Schutzmauer', f(c){
+    const d = 1080;
+    for (let i = 0; i < 3; i++) c.P.push(stone(d, G - 30 - i*60, 44, 60));
+    const t = 1300;
+    c.P.push(crate(t, G - 28)); c.P.push(crate(t, G - 84)); c.P.push(blitzer(t, G - 142));
+    c.P.push(blitzer(t + 180, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(t - 120, G - 30));
+    c.P.push(cone(d - 120, G - 23));
+  }},
+{ id:'hochtief', n:'Hoch und tief', f(c){
+    const d = 1120;
+    c.P.push(platform(d, G - 330, 200));
+    c.P.push(blitzer(d, G - 370));
+    c.P.push(rock(d, G - 45, 80, 90));
+    c.P.push(blitzer(d + 240, G - 30));
+    c.P.push(crate(d - 200, G - 28)); c.P.push(blitzer(d - 200, G - 86));
+    if (c.nb > 3) c.P.push(blitzer(d - 380, G - 30));
+    c.P.push(cone(d + 130, G - 23));
+  }},
+{ id:'reihe', n:'Dreierreihe', f(c){
+    let d = 1000;
+    for (let i = 0; i < 3; i++) {
+      const t = pillars(c, d, 45, G, 60);
+      c.P.push(plank(d, t - 9, 160, 18));
+      c.P.push(blitzer(d, t - 48));
+      d += 230;
+    }
+    c.P.push(cone(1115, G - 23)); c.P.push(cone(1345, G - 23));
+  }},
+{ id:'eispalast', n:'Eispalast', f(c){
+    const d = 1150;
+    c.P.push(ice(d - 110, G - 60, 44, 120)); c.P.push(ice(d + 110, G - 60, 44, 120));
+    c.P.push(ice(d, G - 132, 300, 24));
+    c.P.push(ice(d - 60, G - 190, 44, 92)); c.P.push(ice(d + 60, G - 190, 44, 92));
+    c.P.push(plank(d, G - 245, 200, 18));
+    c.P.push(blitzer(d, G - 284));
+    c.P.push(blitzer(d, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d + 280, G - 30));
+  }},
+{ id:'kran', n:'Der Kran', f(c){
+    const d = 1200;
+    c.P.push(rock(d, G - 130, 44, 260));
+    c.P.push(platform(d - 130, G - 270, 240));
+    c.P.push(blitzer(d - 130, G - 310));
+    c.P.push(crate(d - 210, G - 308));
+    c.P.push(blitzer(d - 330, G - 30));
+    c.P.push(barrel(d + 90, G - 27));
+    if (c.nb > 3) c.P.push(blitzer(d + 200, G - 30));
+    c.P.push(cone(d - 60, G - 23));
+  }},
+{ id:'ring', n:'Der Mauerring', f(c){
+    const d = 1180;
+    c.P.push(stone(d - 130, G - 55, 40, 110)); c.P.push(stone(d + 130, G - 55, 40, 110));
+    c.P.push(plank(d, G - 119, 300, 18));
+    c.P.push(crate(d - 60, G - 156)); c.P.push(crate(d + 60, G - 156));
+    c.P.push(plank(d, G - 193, 220, 18));
+    c.P.push(blitzer(d, G - 232));
+    c.P.push(blitzer(d, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d - 300, G - 30));
+    c.P.push(barrel(d + 220, G - 27));
+  }},
+{ id:'sandwich', n:'Zwischen den Platten', f(c){
+    const d = 1170;
+    c.P.push(stone(d, G - 12, 250, 24));                                            // Sockel
+    c.P.push(blitzer(d - 70, G - 54)); c.P.push(blitzer(d + 70, G - 54));
+    c.P.push(stone(d - 150, G - 60, 40, 120)); c.P.push(stone(d + 150, G - 60, 40, 120));
+    c.P.push(stone(d, G - 133, 300, 26));                                           // Deckel
+    if (c.nb > 2) { c.P.push(crate(d, G - 174)); c.P.push(blitzer(d, G - 232)); }
+    c.P.push(cone(d - 250, G - 23));
+  }},
+{ id:'weitschuss', n:'Weitschuss', f(c){
+    const d = 1520;
+    const t = pillars(c, d, 60, G, 60);
+    c.P.push(plank(d, t - 9, 190, 18));
+    c.P.push(blitzer(d, t - 48));
+    c.P.push(blitzer(d - 190, G - 30));
+    c.P.push(rock(1080, G - 70, 60, 140));
+    if (c.nb > 2) c.P.push(blitzer(d + 120, G - 30));
+    c.P.push(cone(1250, G - 23));
+  }},
+{ id:'chaos', n:'Chaos-Baustelle', f(c){
+    let d = 950;
+    for (let i = 0; i < 3; i++) {
+      const h = ri(c.rnd, 1, 3);
+      let y = G;
+      for (let k = 0; k < h; k++) y = fill(c, d, y);
+      if (c.rnd() < .7) c.P.push(blitzer(d, y - 30)); else c.P.push(barrel(d, y - 27));
+      if (c.rnd() < .5) c.P.push(cone(d + 70, G - 23));
+      c.P.push(plank(d + 95, G - 90, 150, 18, (c.rnd()-.5)*.6));
+      d += 180 + ri(c.rnd, 0, 60);
+    }
+    c.P.push(blitzer(d, G - 30));
+  }}
+];
+
+// ================= Level bauen =================
+function levelWorld(i){ return Math.min(WORLDS.length - 1, Math.floor(i / LEVELS_PER_WORLD)); }
+function levelName(i) {
+  const plan = PLANS[planIndex(i)];
+  return plan.n;
+}
+function planIndex(i) {
+  const w = levelWorld(i), k = i % LEVELS_PER_WORLD;
+  // jede Welt spielt alle Baupläne genau einmal – aber in eigener Reihenfolge
+  return (k * 7 + w * 11 + Math.floor(w / 3)) % PLANS.length;
+}
+function buildLevel(i) {
+  const w = levelWorld(i), k = i % LEVELS_PER_WORLD;
+  const rnd = mulberry32(i * 2654435761 + 12345);
+  const diff = Math.min(1, i / (TOTAL_LEVELS * 0.85));
+  const hard = k / (LEVELS_PER_WORLD - 1);
+  const nb = 1 + Math.min(4, Math.floor(w / 4) + Math.round(hard * 2));
+
+  // Materialmischung: je weiter hinten, desto mehr Stein / Eis
+  const stoneP = Math.min(.62, .06 + diff * .7);
+  const iceP   = (WORLDS[w].snow || w === 17) ? .35 : Math.min(.18, diff * .25);
+  const mat = () => { const r = rnd(); return r < stoneP ? 'stone' : (r < stoneP + iceP ? 'ice' : 'crate'); };
+  const sup = () => { const r = rnd(); return r < stoneP * .9 ? 'stone' : (r < stoneP * .9 + iceP * .6 ? 'ice' : 'crate'); };
+
+  const P = [];
+  const c = { P, rnd, diff, hard, mat, sup, nb };
+  PLANS[planIndex(i)].f(c);
+
+  // Fässer je nach Fortschritt zusätzlich
+  if (i >= 30 && rnd() < .35 + diff * .3) P.push(barrel(1000 + Math.floor(rnd()*450), G - 27));
+
+  // Fahrschüler (nicht treffen!) ab Level 16 – nur auf wirklich freie Plätze am Boden
+  if (i >= 15) {
+    const n = 1 + (rnd() < diff * .8 ? 1 : 0);
+    const spots = [860, 920, 980, 1040, 1420, 1490, 1560, 1630, 1690];
+    const taken = [];
+    const frei = d => P.every(p => p.body.position.y < G - 95 || Math.abs(p.body.position.x - MX(d)) > 64)
+                   && taken.every(t => Math.abs(t - d) > 90);
+    for (let j = 0; j < n; j++) {
+      const offen = spots.filter(frei);
+      if (!offen.length) break;
+      const d = offen[Math.floor(rnd() * offen.length)];
+      taken.push(d);
+      P.push(civil(d, G - 29));
+    }
+  }
+
+  // Pneus zusammenstellen
+  const avail = TIRE_ORDER.filter(t => TIRE_FROM[t] <= w);
+  const nBlitz = P.filter(p => p.kind === 'blitzer').length;
+  // fair bleiben: immer mindestens ein Pneu Reserve (Marcos Regel: schwerer ja, unmöglich nein)
+  let count = Math.max(3, nBlitz + 1, nBlitz + 2 - Math.round(hard * 1.5) - (w > 8 ? 1 : 0));
+  count = Math.min(count, 8);
+  const q = ['pkw'];
+  for (let j = 1; j < count; j++) q.push(pick(rnd, avail));
+  // ab Welt 2 immer ein schwerer Pneu dabei – sonst kommt man durch Steinmauern kaum durch
+  if (w >= 1 && count > 2 && !q.includes('lkw') && !q.includes('traktor')) q[q.length-1] = 'lkw';
+
+  const max = P.reduce((s,p) => s + (VALUE[p.kind] || 0), 0) + (count - 1) * 200;
+  return { parts: P, tires: q, max: Math.max(max, 500), world: w, name: PLANS[planIndex(i)].n };
+}
+
+// ================= Level laden =================
 function loadLevel(i) {
-  levelIdx = i;
+  levelIdx = Math.max(0, Math.min(TOTAL_LEVELS - 1, i));
+  const def = buildLevel(levelIdx);
+  W = WORLDS[def.world];
+  levelMax = def.max; civilHits = 0;
+
   engine = Engine.create({ enableSleeping: true });
   world = engine.world;
-  engine.gravity.y = 1;
+  engine.gravity.y = W.grav || 1;
 
   const ground = Bodies.rectangle(WORLD_W/2, GROUND_Y+60, WORLD_W*2, 120, { isStatic:true, friction:.9 });
   const wallL = Bodies.rectangle(-60, WORLD_H/2, 120, WORLD_H*2, { isStatic:true });
   Composite.add(world, [ground, wallL]);
 
   breakables = []; blitzers = []; particles = []; flashes = []; pendingRemove = [];
-  const def = getLevelDef(i);
-  for (const p of def.parts()) {
+  for (const p of def.parts) {
     Composite.add(world, p.body);
     p.body.plugin.info = p;
     breakables.push(p);
     if (p.kind === 'blitzer') blitzers.push(p);
   }
 
-  tiresLeft = def.tires;
+  tireQueue = def.tires.slice();
+  shards = [];
   score = 0;
-  camX = WORLD_W; camTargetX = WORLD_W; // wird in draw() auf rechten Rand geklemmt
+  camX = WORLD_W; camTargetX = 0; previewTimer = 1500;   // kurzer Blick aufs Ziel
   endScheduled = false; failTimer = 0; winTimer = 0;
   tireState = 'idle'; flightTime = 0; settleTimer = 0;
+  tire = null; curTire = null;
   spawnTire();
+
+  // Schneeflocken / Asche
+  flakes = [];
+  if (W.snow || W.ash) for (let f = 0; f < 70; f++)
+    flakes.push({ x: Math.random()*WORLD_W, y: Math.random()*WORLD_H, s: 1.5+Math.random()*2.5, v: .4+Math.random()*1.1 });
 
   Events.on(engine, 'collisionStart', onCollision);
   updateHud();
@@ -364,94 +769,131 @@ function loadLevel(i) {
 
 function spawnTire() {
   if (tire) { Composite.remove(world, tire); tire = null; }
-  if (tiresLeft <= 0) return;
-  tire = Bodies.circle(SLING.x, SLING.y, 26, {
-    density:.004, friction:.7, restitution:.35, frictionAir:.008
+  if (!tireQueue.length) { curTire = null; return; }
+  const type = tireQueue[0];
+  const T = TIRES[type];
+  curTire = type; specialUsed = false;
+  tire = Bodies.circle(SLING.x, SLING.y - (T.r - 26), T.r, {
+    density:T.dens, friction:.7, restitution:T.rest, frictionAir:.008
   });
-  tire.plugin.isTire = true;
+  tire.plugin.isTire = true; tire.plugin.type = type;
   Body.setStatic(tire, true);
   Composite.add(world, tire);
   tireState = 'idle';
-  camTargetX = WORLD_W; // rechts (wird geklemmt)
+  camTargetX = WORLD_W;
+  showHint(T.hint);
+  updateHud();
 }
 
-// ---------- Kollision & Schaden ----------
+// ================= Kollision & Schaden =================
 function onCollision(ev) {
   for (const pair of ev.pairs) {
     const a = pair.bodyA, b = pair.bodyB;
     const va = a.velocity, vb = b.velocity;
     const relSpeed = Math.hypot(va.x - vb.x, va.y - vb.y);
     if (relSpeed < 3) continue;
-    const impact = relSpeed * Math.min(a.mass, b.mass);
-    damage(a, impact, relSpeed); damage(b, impact, relSpeed);
-    if ((a.plugin.isTire || b.plugin.isTire) && relSpeed > 4) sfx.hit();
+    const isT = a.plugin.isTire || b.plugin.isTire;
+    const mult = isT ? (TIRES[(a.plugin.type || b.plugin.type)] || TIRES.pkw).dmg : 1;
+    const impact = relSpeed * Math.min(a.mass, b.mass) * mult;
+    damage(a, impact); damage(b, impact);
+    if (isT && relSpeed > 4) sfx.hit();
   }
 }
 let pendingRemove = [];
-function damage(body, impact, speed) {
+function damage(body, impact) {
   const info = body.plugin.info;
-  if (!info || info.dead || info.hp <= 0) return;
-  const dmg = impact * 1.4;
+  if (!info || info.solid) return;
+  hurt(info, impact * 1.4);
+}
+function hurt(info, dmg) {
+  if (!info || info.dead || info.solid || info.hp <= 0) return;
   if (dmg < 4) return;
   info.hp -= dmg;
   if (info.kind === 'crate' || info.kind === 'plank') sfx.wood();
-  if (info.hp <= 0) {
-    // WICHTIG: nicht mitten im Physik-Update entfernen – nur vormerken
-    info.dead = true;
-    pendingRemove.push(info);
-  }
+  else if (info.kind === 'ice') sfx.glass();
+  if (info.hp <= 0) { info.dead = true; pendingRemove.push(info); }   // erst nach dem Physikschritt entfernen
 }
 function processRemovals() {
-  if (!pendingRemove.length) return;
-  const list = pendingRemove; pendingRemove = [];
-  for (const info of list) destroyPart(info);
+  let guard = 0;
+  while (pendingRemove.length && guard++ < 40) {
+    const list = pendingRemove; pendingRemove = [];
+    for (const info of list) destroyPart(info);
+  }
 }
 function wakeAll() {
-  for (const x of breakables) Sleeping.set(x.body, false);
+  for (const x of breakables) if (!x.body.isStatic) Sleeping.set(x.body, false);
   if (tire) Sleeping.set(tire, false);
 }
+const PART_COLORS = { crate:['#b5793a','#8a5a26'], plank:['#c98d4b','#9c6a30'], stone:['#9aa4ad','#6f7a84'],
+  ice:['#cfeaf7','#9ecfe8'], cone:['#ff7a1a','#ffffff'], barrel:['#ff9a2e','#c23b16'],
+  blitzer:['#7c8894','#2e6bd6'], civil:['#ffd23f','#4a86c8'] };
 function destroyPart(info) {
   info.hp = 0;
   const p = info.body.position;
-  const colors = { crate:['#b5793a','#8a5a26'], plank:['#c98d4b','#9c6a30'],
-    stone:['#9aa4ad','#6f7a84'], cone:['#ff7a1a','#ffffff'], blitzer:['#7c8894','#2e6bd6'] };
-  spawnParticles(p.x, p.y, colors[info.kind] || ['#fff'], info.kind === 'blitzer' ? 26 : 14);
+  spawnParticles(p.x, p.y, PART_COLORS[info.kind] || ['#fff'], info.kind === 'blitzer' ? 26 : 14);
   Composite.remove(world, info.body);
   breakables = breakables.filter(x => x !== info);
-  // Alle schlafenden Teile aufwecken, sonst schweben sie in der Luft
   wakeAll();
   if (info.kind === 'blitzer') {
     blitzers = blitzers.filter(x => x !== info);
-    score += 500;
-    flashes.push({ x:p.x, y:p.y, t:1 });
-    sfx.blitz();
+    score += 500; flashes.push({ x:p.x, y:p.y, t:1 }); sfx.blitz();
+  } else if (info.kind === 'barrel') {
+    score += 150; explode(p.x, p.y, 210, 1);
+  } else if (info.kind === 'civil') {
+    score -= 750; civilHits++;
+    sfx.bad(); toast('Aua! Fahrschüler getroffen  −750');
   } else {
-    score += info.kind === 'stone' ? 120 : 50;
+    score += VALUE[info.kind] || 0;
   }
   updateHud();
 }
+function explode(x, y, radius, power) {
+  sfx.boom();
+  flashes.push({ x, y, t:1, big:true });
+  spawnParticles(x, y, ['#ffd23f','#ff8a1e','#c23b16'], 34);
+  for (const p of breakables) {
+    if (p.body.isStatic) continue;
+    const dx = p.body.position.x - x, dy = p.body.position.y - y;
+    const dist = Math.max(20, Math.hypot(dx, dy));
+    if (dist > radius) continue;
+    const f = (1 - dist / radius) * power;
+    Sleeping.set(p.body, false);
+    Body.applyForce(p.body, p.body.position, { x: dx/dist * f * p.body.mass * .55, y: dy/dist * f * p.body.mass * .55 - p.body.mass * .12 });
+    hurt(p, f * 95);
+  }
+  if (tire && !tire.isStatic) {
+    const dx = tire.position.x - x, dy = tire.position.y - y;
+    const dist = Math.max(20, Math.hypot(dx, dy));
+    if (dist < radius) {
+      const f = (1 - dist / radius) * power;
+      Body.applyForce(tire, tire.position, { x: dx/dist * f * tire.mass * .5, y: dy/dist * f * tire.mass * .5 });
+    }
+  }
+}
 function spawnParticles(x, y, colors, n) {
   for (let i = 0; i < n; i++) {
-    particles.push({ x, y,
-      vx:(Math.random()-.5)*9, vy:-Math.random()*8-1,
+    particles.push({ x, y, vx:(Math.random()-.5)*9, vy:-Math.random()*8-1,
       s:4+Math.random()*6, c:colors[i % colors.length], t:1 });
   }
 }
 
-// ---------- Eingabe ----------
+// ================= Eingabe =================
 function getPos(e) {
   const t = e.touches ? e.touches[0] : e;
-  return { x: t.clientX / scale + camX, y: t.clientY / scale };
+  return { x: t.clientX / scale + camX, y: t.clientY / scale - offY };
 }
 function onDown(e) {
-  if (!gameActive || !tire || tireState === 'flight') return;
+  if (!gameActive || paused) return;
+  if (tireState === 'flight') { useSpecial(); e.preventDefault(); return; }
+  if (previewTimer > 0) { previewTimer = 0; camTargetX = WORLD_W; }
+  if (!tire) return;
   const p = getPos(e);
   const d = Math.hypot(p.x - tire.position.x, p.y - tire.position.y);
-  if (d < 90) { dragging = true; tireState = 'aiming'; dragPos = p; }
+  if (d < 110) { dragging = true; tireState = 'aiming'; dragPos = p; }
   e.preventDefault();
 }
 function onMove(e) {
-  if (!dragging) return;
+  if (!dragging || !tire) return;
   dragPos = getPos(e);
   let dx = dragPos.x - SLING.x, dy = dragPos.y - SLING.y;
   const len = Math.hypot(dx, dy);
@@ -460,20 +902,17 @@ function onMove(e) {
   e.preventDefault();
 }
 function onUp(e) {
-  if (!dragging) return;
+  if (!dragging || !tire) return;
   dragging = false;
   const dx = SLING.x - tire.position.x, dy = SLING.y - tire.position.y;
   const len = Math.hypot(dx, dy);
-  if (len < 18) { // zu kurz gezogen → zurück
-    Body.setPosition(tire, { x: SLING.x, y: SLING.y });
-    tireState = 'idle'; return;
-  }
+  if (len < 18) { Body.setPosition(tire, { x: SLING.x, y: SLING.y }); tireState = 'idle'; return; }
   Body.setStatic(tire, false);
   Sleeping.set(tire, false);
   Body.setVelocity(tire, { x: dx * POWER, y: dy * POWER });
   tireState = 'flight';
   flightTime = 0; settleTimer = 0;
-  tiresLeft--;
+  tireQueue.shift();
   sfx.launch();
   updateHud();
 }
@@ -484,12 +923,50 @@ canvas.addEventListener('mousedown', onDown);
 canvas.addEventListener('mousemove', onMove);
 canvas.addEventListener('mouseup', onUp);
 
-// ---------- Runden-Logik (zentral, jeden Frame) ----------
+// ---- Spezialfähigkeiten ----
+function useSpecial() {
+  if (specialUsed || !tire || tireState !== 'flight' || flightTime < 90) return;
+  const T = TIRES[curTire]; if (!T || !T.sp) return;
+  specialUsed = true;
+  const v = tire.velocity, p = tire.position;
+  if (T.sp === 'boost') {
+    const len = Math.max(1, Math.hypot(v.x, v.y));
+    Body.setVelocity(tire, { x: v.x/len * len * 1.85, y: v.y/len * len * 1.85 });
+    sfx.boost(); trailBurst(p, '#e03a3a');
+  } else if (T.sp === 'stampf') {
+    Body.setVelocity(tire, { x: v.x * .55, y: Math.max(24, Math.abs(v.y) * 1.9) });
+    sfx.boost(); trailBurst(p, '#aeb6bd');
+  } else if (T.sp === 'boom') {
+    explode(p.x, p.y, 230, 1.25);
+    Composite.remove(world, tire); tire = null; tireState = 'idle';
+    wakeAll(); settleTimer = 0;
+    setTimeout(() => { if (gameActive && !tire && tireQueue.length) spawnTire(); }, 500);
+  } else if (T.sp === 'split') {
+    sfx.split(); trailBurst(p, '#dceaf5');
+    for (let i = -1; i <= 1; i += 2) {
+      const b = Bodies.circle(p.x, p.y + i * 22, 17, { density:.0035, friction:.7, restitution:.35, frictionAir:.008 });
+      b.plugin.isTire = true; b.plugin.type = 'winter'; b.plugin.shard = true;
+      Composite.add(world, b);
+      Body.setVelocity(b, { x: v.x * .95, y: v.y * .95 + i * 4.2 });
+      shards.push(b);
+    }
+  }
+}
+let shards = [];
+function trailBurst(p, col) {
+  for (let i = 0; i < 12; i++) particles.push({ x:p.x, y:p.y, vx:(Math.random()-.5)*7, vy:(Math.random()-.5)*7, s:4, c:col, t:1 });
+}
+
+// ================= Rundenlogik =================
 let endScheduled = false, failTimer = 0, winTimer = 0;
 function checkGameState(dt) {
   if (!gameActive || endScheduled) return;
 
-  // SIEG hat immer Vorrang: alle Blitzer weg → gewonnen
+  if (previewTimer > 0) {
+    previewTimer -= dt;
+    if (previewTimer <= 0) camTargetX = WORLD_W;
+  }
+
   if (blitzers.length === 0 && pendingRemove.length === 0) {
     winTimer += dt;
     if (winTimer > 800) { endScheduled = true; endLevel(true); }
@@ -497,120 +974,174 @@ function checkGameState(dt) {
   }
   winTimer = 0;
 
-  // Fliegender Pneu: Zug beenden, wenn er liegt, schläft oder raus ist
   if (tireState === 'flight' && tire) {
     flightTime += dt;
+    // Wind als Beschleunigung: Matter multipliziert Kräfte mit delta² (≈278), darum diese kleinen Werte
+    if (W.wind) Body.applyForce(tire, tire.position, { x: W.wind * tire.mass, y: 0 });
     const sp = Math.hypot(tire.velocity.x, tire.velocity.y);
     const out = tire.position.y > WORLD_H + 200 || tire.position.x > WORLD_W + 200 || tire.position.x < -200;
     if (sp < 0.4 || tire.isSleeping) settleTimer += dt; else settleTimer = 0;
-    if (out || settleTimer > 1200 || flightTime > 6500) {
+    if (out || settleTimer > 1200 || flightTime > 7000) {
       Composite.remove(world, tire); tire = null; tireState = 'idle';
-      wakeAll(); // Teile, die auf dem Pneu lagen, sollen runterfallen
-      if (tiresLeft > 0) spawnTire();
+      for (const s of shards) Composite.remove(world, s);
+      shards = [];
+      wakeAll();
+      if (tireQueue.length) spawnTire();
     }
   }
 
-  // NIEDERLAGE: kein Pneu mehr im Spiel, keiner übrig, Blitzer noch da
-  if (!tire && tiresLeft <= 0) {
+  if (!tire && !tireQueue.length) {
     failTimer += dt;
-    if (failTimer > 1600) { endScheduled = true; endLevel(false); }
-  } else {
+    if (failTimer > 1700) { endScheduled = true; endLevel(false); }
+  } else if (tire) {
     failTimer = 0;
   }
 }
 
+function starsFor(sc) {
+  if (sc >= levelMax * 0.72) return 3;
+  if (sc >= levelMax * 0.50) return 2;
+  return 1;
+}
 function endLevel(won) {
   if (!gameActive) return;
   gameActive = false;
-  const end = document.getElementById('endScreen');
-  const stars = won ? (tiresLeft >= 2 ? 3 : tiresLeft === 1 ? 2 : 1) : 0;
-  if (won) { score += tiresLeft * 200; sfx.win(); } else sfx.lose();
-  document.getElementById('endTitle').textContent = won ? 'Level geschafft! 🎉' : 'Alle Pneus verschossen 😅';
-  document.getElementById('endStars').textContent = won ? '⭐'.repeat(stars) + '☆'.repeat(3-stars) : '☆☆☆';
-  document.getElementById('endScore').textContent = 'Punkte: ' + score;
-  document.getElementById('nextBtn').classList.toggle('hidden', !won);
-  if (won && levelIdx === 11)
-    document.getElementById('endTitle').textContent = 'Alle 12 Levels geschafft – ab jetzt Endlos-Modus! 🏆';
-  if (won) { bestUnlocked = Math.max(bestUnlocked, levelIdx + 1); store.set('ps_unlocked', bestUnlocked); }
-  end.classList.remove('hidden');
+  document.getElementById('pauseBtn').classList.add('hidden');
+  document.getElementById('hintBox').classList.add('hidden');
+  if (won) score += tireQueue.length * 200;
+  const st = won ? starsFor(score) : 0;
+  if (won) sfx.win(); else sfx.lose();
+
+  const p = P();
+  const key = String(levelIdx);
+  if (won) {
+    p.best[key] = Math.max(p.best[key] || 0, Math.max(0, score));
+    p.stars[key] = Math.max(p.stars[key] || 0, st);
+    p.unlocked = Math.max(p.unlocked || 0, Math.min(TOTAL_LEVELS - 1, levelIdx + 1));
+    saveData();
+  }
+
+  document.getElementById('endTitle').textContent = won
+    ? (levelIdx === TOTAL_LEVELS - 1 ? 'Alle 500 Levels geschafft! 🏆' : 'Level geschafft! 🎉')
+    : 'Alle Pneus verschossen 😅';
+  document.getElementById('endStars').textContent = won ? '⭐'.repeat(st) + '☆'.repeat(3-st) : '☆☆☆';
+  document.getElementById('endScore').textContent =
+    'Punkte: ' + Math.max(0, score) + (civilHits ? '  (−' + (civilHits*750) + ' für Fahrschüler)' : '') +
+    '   ·   Bester: ' + (p.best[key] || 0);
+  const pct = Math.max(0, Math.min(1, score / levelMax));
+  document.getElementById('endBar').style.width = (pct*100).toFixed(0) + '%';
+  document.getElementById('endM2').style.left = '50%';
+  document.getElementById('endM3').style.left = '72%';
+  document.getElementById('nextBtn').classList.toggle('hidden', !won || levelIdx >= TOTAL_LEVELS - 1);
+  document.getElementById('endScreen').classList.remove('hidden');
 }
 
 function updateHud() {
-  document.getElementById('levelHud').textContent = 'Level ' + (levelIdx + 1) + ' · 📸 ' + blitzers.length;
-  document.getElementById('tiresHud').textContent = '🛞'.repeat(Math.max(tiresLeft, 0)) || '–';
-  document.getElementById('scoreHud').textContent = score;
+  const w = levelWorld(levelIdx);
+  document.getElementById('levelHud').innerHTML =
+    'Level ' + (levelIdx + 1) + ' · 📸 ' + blitzers.length +
+    '<div style="font-size:11px;opacity:.85;font-weight:700">' + WORLDS[w].n + ' · ' + levelName(levelIdx) +
+    (W && W.wind ? ' · 💨' : '') + '</div>';
+  const box = document.getElementById('tiresHud');
+  box.innerHTML = '';
+  const list = tire && tireState !== 'flight' ? tireQueue : tireQueue;
+  list.slice(0, 8).forEach((t, i) => {
+    const T = TIRES[t];
+    const el = document.createElement('div');
+    el.className = 'thumb' + (i === 0 && tireState !== 'flight' ? ' now' : '');
+    el.style.borderColor = T.col; el.style.background = T.rim;
+    box.appendChild(el);
+  });
+  if (!list.length) box.textContent = '–';
+  document.getElementById('scoreHud').textContent = Math.max(0, score);
+}
+let toastT = 0;
+function toast(txt) {
+  const el = document.getElementById('toast');
+  el.textContent = txt; el.style.opacity = '1'; toastT = 1400;
+}
+function showHint(txt) {
+  const el = document.getElementById('hintBox');
+  if (!txt) { el.classList.add('hidden'); return; }
+  el.textContent = txt; el.classList.remove('hidden');
 }
 
-// ---------- Rendering ----------
+// ================= Rendering =================
 function draw() {
-  scale = ch / WORLD_H;
-  const viewW = cw / scale;
+  // Querformat: ganze Welthöhe. Hochformat: näher ran, sonst wird das Spiel winzig und der Himmel riesig.
+  scale = Math.max(Math.min(ch / WORLD_H, cw / 1150), Math.min(ch / (WORLD_H * 1.55), cw / 560));
+  const viewW = cw / scale, viewH = ch / scale;
+  offY = viewH - WORLD_H;
+  if (offY < 0) offY = 0;
 
-  // Kamera
   if (tireState === 'flight' && tire) camTargetX = tire.position.x - viewW * 0.58;
   const maxCam = Math.max(0, WORLD_W - viewW);
   camTargetX = Math.max(0, Math.min(camTargetX, maxCam));
-  camX += (camTargetX - camX) * 0.08;
+  camX += (camTargetX - camX) * (previewTimer > 0 ? 0.05 : 0.08);
   camX = Math.max(0, Math.min(camX, maxCam));
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cw, ch);
 
-  // Himmel
+  const S = W || WORLDS[0];
   const sky = ctx.createLinearGradient(0, 0, 0, ch);
-  sky.addColorStop(0, '#8fd3f4'); sky.addColorStop(.7, '#cdeffd'); sky.addColorStop(1, '#e8f9ff');
+  sky.addColorStop(0, S.sky[0]); sky.addColorStop(.7, S.sky[1]); sky.addColorStop(1, S.sky[2]);
   ctx.fillStyle = sky; ctx.fillRect(0, 0, cw, ch);
 
   ctx.save();
   ctx.scale(scale, scale);
+  ctx.translate(0, offY);
 
-  // Berge (Parallax)
-  drawHills(camX * 0.3, '#b8dcc8', 380);
-  drawHills(camX * 0.55, '#8fc9a8', 460);
+  if (S.night) drawStars();
+  drawHills(camX * 0.30, S.h1, 380);
+  drawSilhouettes(S.deco, camX * 0.42, S);
+  drawHills(camX * 0.55, S.h2, 460);
 
   ctx.translate(-camX, 0);
 
-  // Wolken
-  drawCloud(300, 120); drawCloud(750, 80); drawCloud(1250, 150);
+  if (!S.night) { drawCloud(300, 120); drawCloud(750, 80); drawCloud(1250, 150); drawCloud(1700, 100); }
 
-  // Boden + Strasse
-  ctx.fillStyle = '#6fae5e'; ctx.fillRect(-200, GROUND_Y, WORLD_W + 600, 40);
-  ctx.fillStyle = '#4b4f55'; ctx.fillRect(-200, GROUND_Y + 24, WORLD_W + 600, 120);
-  ctx.fillStyle = '#ffd23f';
-  for (let x = -100; x < WORLD_W + 300; x += 90) ctx.fillRect(x, GROUND_Y + 60, 45, 6);
+  ctx.fillStyle = S.gr; ctx.fillRect(-300, GROUND_Y, WORLD_W + 800, 40);
+  ctx.fillStyle = S.rd; ctx.fillRect(-300, GROUND_Y + 24, WORLD_W + 800, 140);
+  ctx.fillStyle = S.ln;
+  for (let x = -200; x < WORLD_W + 400; x += 90) ctx.fillRect(x, GROUND_Y + 60, 45, 6);
 
-  // Schleuder (hinterer Ast)
   drawSlingBack();
-
-  // Bodies
   for (const b of breakables) drawPart(b);
-  if (tire) drawTire(tire);
-
-  // Gummiband + vorderer Ast
+  for (const s of shards) drawTire(s, 'winter');
+  if (tire) drawTire(tire, curTire);
   drawSlingFront();
-
-  // Flugbahn-Vorschau
   if (dragging && tire) drawTrajectory();
 
-  // Partikel
   for (const p of particles) {
-    ctx.globalAlpha = p.t;
+    ctx.globalAlpha = Math.max(0, p.t);
     ctx.fillStyle = p.c;
     ctx.fillRect(p.x - p.s/2, p.y - p.s/2, p.s, p.s);
   }
   ctx.globalAlpha = 1;
 
-  // Blitzer-Flash
   for (const f of flashes) {
     ctx.globalAlpha = f.t * .8;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(f.x, f.y, (1 - f.t) * 120 + 30, 0, 7); ctx.fill();
+    ctx.fillStyle = f.big ? '#ffca4a' : '#fff';
+    ctx.beginPath(); ctx.arc(f.x, f.y, (1 - f.t) * (f.big ? 200 : 120) + 30, 0, 7); ctx.fill();
     ctx.globalAlpha = 1;
   }
 
+  if (S.snow || S.ash) {
+    ctx.fillStyle = S.ash ? 'rgba(70,60,55,.75)' : 'rgba(255,255,255,.9)';
+    for (const f of flakes) { ctx.beginPath(); ctx.arc(f.x + camX, f.y, f.s, 0, 7); ctx.fill(); }
+  }
+  if (S.fog) { ctx.fillStyle = 'rgba(220,228,232,.28)'; ctx.fillRect(camX - 50, 0, WORLD_W, WORLD_H); }
+
   ctx.restore();
 }
-
+function drawStars() {
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  for (let i = 0; i < 60; i++) {
+    const x = (i * 137) % 1400, y = (i * 79) % 320;
+    ctx.fillRect(x, y, 2, 2);
+  }
+}
 function drawHills(offset, color, baseY) {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -621,6 +1152,58 @@ function drawHills(offset, color, baseY) {
   }
   ctx.lineTo(WORLD_W + 400, WORLD_H);
   ctx.closePath(); ctx.fill();
+}
+function drawSilhouettes(kind, off, S) {
+  if (!kind || kind === 'none') return;
+  ctx.save();
+  ctx.translate(-(off % 520), 0);
+  ctx.fillStyle = S.night ? 'rgba(255,220,120,.5)' : 'rgba(0,0,0,.16)';
+  for (let i = 0; i < 6; i++) {
+    const x = i * 520 + 120, base = 470;
+    if (kind === 'tree') {
+      ctx.fillRect(x + 14, base - 40, 10, 40);
+      ctx.beginPath(); ctx.moveTo(x + 19, base - 130); ctx.lineTo(x + 55, base - 34); ctx.lineTo(x - 17, base - 34); ctx.closePath(); ctx.fill();
+      ctx.fillRect(x + 214, base - 30, 9, 30);
+      ctx.beginPath(); ctx.arc(x + 218, base - 52, 34, 0, 7); ctx.fill();
+    } else if (kind === 'house') {
+      ctx.fillRect(x, base - 74, 96, 74);
+      ctx.beginPath(); ctx.moveTo(x - 12, base - 74); ctx.lineTo(x + 48, base - 120); ctx.lineTo(x + 108, base - 74); ctx.closePath(); ctx.fill();
+      ctx.fillRect(x + 200, base - 54, 70, 54);
+      ctx.beginPath(); ctx.moveTo(x + 190, base - 54); ctx.lineTo(x + 235, base - 92); ctx.lineTo(x + 280, base - 54); ctx.closePath(); ctx.fill();
+    } else if (kind === 'crane') {
+      ctx.fillRect(x + 20, base - 190, 10, 190);
+      ctx.fillRect(x - 40, base - 190, 190, 9);
+      ctx.fillRect(x + 110, base - 181, 5, 46);
+      ctx.fillRect(x + 100, base - 135, 26, 22);
+      ctx.fillRect(x + 240, base - 60, 120, 60);
+    } else if (kind === 'sign') {
+      ctx.fillRect(x + 40, base - 120, 9, 120);
+      ctx.fillRect(x + 160, base - 120, 9, 120);
+      ctx.fillRect(x + 20, base - 176, 170, 58);
+      ctx.fillRect(x + 300, base - 40, 90, 40);
+    } else if (kind === 'city') {
+      let bx = x;
+      for (let k = 0; k < 5; k++) {
+        const h = 90 + ((i*7 + k*53) % 130), w2 = 46 + ((k*31) % 30);
+        ctx.fillRect(bx, base - h, w2, h);
+        bx += w2 + 16;
+      }
+    } else if (kind === 'palm') {
+      ctx.fillRect(x + 30, base - 110, 9, 110);
+      for (let a = 0; a < 5; a++) {
+        ctx.beginPath();
+        const ang = -Math.PI/2 + (a - 2) * 0.5;
+        ctx.moveTo(x + 34, base - 112);
+        ctx.quadraticCurveTo(x + 34 + Math.cos(ang)*60, base - 112 + Math.sin(ang)*40, x + 34 + Math.cos(ang)*82, base - 100 + Math.sin(ang)*26);
+        ctx.lineTo(x + 34, base - 106); ctx.closePath(); ctx.fill();
+      }
+      ctx.fillRect(x + 250, base - 20, 60, 20);
+    } else if (kind === 'mountain') {
+      ctx.beginPath(); ctx.moveTo(x - 60, base); ctx.lineTo(x + 110, base - 230); ctx.lineTo(x + 280, base); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x + 200, base); ctx.lineTo(x + 320, base - 160); ctx.lineTo(x + 440, base); ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.restore();
 }
 function drawCloud(x, y) {
   ctx.fillStyle = 'rgba(255,255,255,.9)';
@@ -660,29 +1243,43 @@ function drawSlingFront() {
 function drawTrajectory() {
   let x = tire.position.x, y = tire.position.y;
   let vx = (SLING.x - x) * POWER, vy = (SLING.y - y) * POWER;
+  const g = (W && W.grav ? W.grav : 1) * 0.278;
+  const wa = (W && W.wind ? W.wind : 0) * 278;      // Windbeschleunigung wie in der Physik
   ctx.fillStyle = 'rgba(255,255,255,.85)';
-  for (let i = 0; i < 40; i++) {
-    vx *= 0.992; vy = vy * 0.992 + 0.278;
+  for (let i = 0; i < 44; i++) {
+    vx = vx * 0.992 + wa; vy = vy * 0.992 + g;
     x += vx; y += vy;
-    if (i % 3 === 0) { ctx.beginPath(); ctx.arc(x, y, 4.5 - i * 0.06, 0, 7); ctx.fill(); }
+    if (i % 3 === 0) { ctx.beginPath(); ctx.arc(x, y, 4.5 - i * 0.055, 0, 7); ctx.fill(); }
     if (y > GROUND_Y) break;
   }
 }
-function drawTire(b) {
+function drawTire(b, type) {
+  const T = TIRES[type] || TIRES.pkw;
+  const r = b.circleRadius || T.r;
   ctx.save();
   ctx.translate(b.position.x, b.position.y);
   ctx.rotate(b.angle);
-  ctx.fillStyle = '#22262b';
-  ctx.beginPath(); ctx.arc(0, 0, 26, 0, 7); ctx.fill();
-  ctx.fillStyle = '#c8ced4';
-  ctx.beginPath(); ctx.arc(0, 0, 12, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#5a626b'; ctx.lineWidth = 3;
+  ctx.fillStyle = T.col;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
+  // Profil
+  ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = Math.max(2, r*0.13);
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*r*0.72, Math.sin(a)*r*0.72);
+    ctx.lineTo(Math.cos(a)*r*0.98, Math.sin(a)*r*0.98);
+    ctx.stroke();
+  }
+  ctx.fillStyle = T.rim;
+  ctx.beginPath(); ctx.arc(0, 0, r*0.46, 0, 7); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 2.5;
   for (let i = 0; i < 5; i++) {
     const a = i / 5 * Math.PI * 2;
-    ctx.beginPath(); ctx.moveTo(Math.cos(a)*4, Math.sin(a)*4); ctx.lineTo(Math.cos(a)*11, Math.sin(a)*11); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(Math.cos(a)*r*0.15, Math.sin(a)*r*0.15);
+    ctx.lineTo(Math.cos(a)*r*0.42, Math.sin(a)*r*0.42); ctx.stroke();
   }
-  ctx.strokeStyle = '#3a4148'; ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.arc(0, 0, 21, 0, 7); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = Math.max(3, r*0.19);
+  ctx.beginPath(); ctx.arc(0, 0, r*0.81, 0, 7); ctx.stroke();
   ctx.restore();
 }
 function drawPart(p) {
@@ -690,7 +1287,7 @@ function drawPart(p) {
   ctx.save();
   ctx.translate(b.position.x, b.position.y);
   ctx.rotate(b.angle);
-  const dmg = 1 - p.hp / p.maxHp;
+  const dmg = p.solid ? 0 : 1 - p.hp / p.maxHp;
   if (p.kind === 'crate' || p.kind === 'plank') {
     ctx.fillStyle = p.kind === 'crate' ? '#b5793a' : '#c98d4b';
     rr(-p.w/2, -p.h/2, p.w, p.h, 4);
@@ -707,12 +1304,38 @@ function drawPart(p) {
     rr(-p.w/2, -p.h/2, p.w, p.h, 3);
     ctx.strokeStyle = '#6f7a84'; ctx.lineWidth = 2.5;
     ctx.strokeRect(-p.w/2+2, -p.h/2+2, p.w-4, p.h-4);
+  } else if (p.kind === 'ice') {
+    ctx.fillStyle = 'rgba(190,228,245,.85)';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 4);
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2.5;
+    ctx.strokeRect(-p.w/2+2, -p.h/2+2, p.w-4, p.h-4);
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-p.w/2+6, p.h/2-6); ctx.lineTo(p.w/2-8, -p.h/2+8); ctx.stroke();
+  } else if (p.kind === 'rock') {
+    ctx.fillStyle = '#6d6a63';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 8);
+    ctx.fillStyle = 'rgba(255,255,255,.10)';
+    rr(-p.w/2+5, -p.h/2+5, p.w-10, 10, 4);
+    ctx.strokeStyle = '#4c4944'; ctx.lineWidth = 3;
+    ctx.strokeRect(-p.w/2+2, -p.h/2+2, p.w-4, p.h-4);
+  } else if (p.kind === 'platform') {
+    ctx.fillStyle = '#7b6a55';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 5);
+    ctx.fillStyle = '#5c5042';
+    ctx.fillRect(-p.w/2, p.h/2-5, p.w, 5);
   } else if (p.kind === 'cone') {
     ctx.fillStyle = '#ff7a1a';
     ctx.beginPath();
     ctx.moveTo(0, -23); ctx.lineTo(20, 23); ctx.lineTo(-20, 23); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.fillRect(-12, -2, 24, 8);
     ctx.fillStyle = '#e05f00'; ctx.fillRect(-22, 20, 44, 5);
+  } else if (p.kind === 'barrel') {
+    ctx.fillStyle = '#d1541f';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 7);
+    ctx.fillStyle = '#f0a03a'; ctx.fillRect(-p.w/2, -8, p.w, 7);
+    ctx.fillStyle = '#f0a03a'; ctx.fillRect(-p.w/2, 6, p.w, 7);
+    ctx.fillStyle = '#2b2b2b'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('!', 0, -12);
   } else if (p.kind === 'blitzer') {
     ctx.fillStyle = '#7c8894';
     rr(-23, -30, 46, 60, 6);
@@ -725,9 +1348,18 @@ function drawPart(p) {
     ctx.fillStyle = '#e33';
     ctx.beginPath(); ctx.arc(14, 8, 4, 0, 7); ctx.fill();
     ctx.fillStyle = '#5b6570'; ctx.fillRect(-23, 14, 46, 6);
+  } else if (p.kind === 'civil') {
+    ctx.fillStyle = '#2b3239'; ctx.fillRect(-9, 4, 7, 25); ctx.fillRect(2, 4, 7, 25);
+    ctx.fillStyle = '#ffd23f';                      // Warnweste
+    rr(-13, -12, 26, 22, 4);
+    ctx.fillStyle = '#fff'; ctx.fillRect(-13, -4, 26, 4);
+    ctx.fillStyle = '#e8b98c';                      // Kopf
+    ctx.beginPath(); ctx.arc(0, -22, 10, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3b2a1d'; rr(-10, -30, 20, 8, 3);
+    ctx.strokeStyle = 'rgba(255,80,80,.9)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(0, -4, 26, 0, 7); ctx.stroke();
   }
-  // Risse bei Schaden
-  if (dmg > 0.35) {
+  if (dmg > 0.35 && !p.solid) {
     ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(-p.w*0.2, -p.h*0.3); ctx.lineTo(p.w*0.05, 0); ctx.lineTo(-p.w*0.15, p.h*0.3);
@@ -746,20 +1378,22 @@ function rr(x, y, w, h, r) {
   ctx.closePath(); ctx.fill();
 }
 
-// ---------- Loop ----------
+// ================= Loop =================
 let lastT = 0;
 function loop(t) {
-  requestAnimationFrame(loop); // zuerst planen → Loop überlebt Fehler
+  requestAnimationFrame(loop);
   const dt = Math.min(t - lastT, 40); lastT = t;
   try {
-    if (gameActive) {
+    if (gameActive && !paused) {
       Engine.update(engine, 1000/60);
-      processRemovals(); // Bodies erst NACH dem Physik-Schritt entfernen
+      processRemovals();
       checkGameState(dt);
       for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vy += .35; p.t -= .02; }
       particles = particles.filter(p => p.t > 0);
       for (const f of flashes) f.t -= .04;
       flashes = flashes.filter(f => f.t > 0);
+      for (const f of flakes) { f.y += f.v; f.x -= f.v * .25; if (f.y > WORLD_H) { f.y = -10; f.x = Math.random()*WORLD_W; } }
+      if (toastT > 0) { toastT -= dt; if (toastT <= 0) document.getElementById('toast').style.opacity = '0'; }
     }
     if (engine) draw();
   } catch(err) {
@@ -768,48 +1402,154 @@ function loop(t) {
 }
 requestAnimationFrame(loop);
 
-// ---------- Buttons & Menü ----------
+// ================= Bildschirme / Menüs =================
+const $ = id => document.getElementById(id);
 function hideOverlays() {
-  document.getElementById('startScreen').classList.add('hidden');
-  document.getElementById('menuScreen').classList.add('hidden');
-  document.getElementById('endScreen').classList.add('hidden');
+  ['startScreen','nameScreen','worldScreen','levelScreen','endScreen','pauseScreen','boardScreen']
+    .forEach(id => $(id).classList.add('hidden'));
 }
 function startLevel(i) {
   audio();
   hideOverlays();
-  document.getElementById('hud').classList.remove('hidden');
+  $('hud').classList.remove('hidden');
+  $('pauseBtn').classList.remove('hidden');
+  paused = false;
   loadLevel(i);
   gameActive = true;
 }
-function buildMenu() {
-  const grid = document.getElementById('levelGrid');
+function toMenu() {
+  gameActive = false; paused = false;
+  $('hud').classList.add('hidden');
+  $('pauseBtn').classList.add('hidden');
+  $('hintBox').classList.add('hidden');
+  hideOverlays();
+  buildWorlds();
+  $('worldScreen').classList.remove('hidden');
+}
+
+// -- Welten --
+function buildWorlds() {
+  const p = P(), grid = $('worldGrid');
   grid.innerHTML = '';
-  const total = Math.max(12, bestUnlocked + 1); // wächst im Endlos-Modus mit
-  for (let i = 0; i < total; i++) {
+  let st = 0, sc = 0;
+  for (const k in p.stars) st += p.stars[k];
+  for (const k in p.best) sc += p.best[k];
+  $('worldSub').textContent = '20 Welten · 500 Levels   ·   ⭐ ' + st + '/1500   ·   ' + sc + ' Punkte';
+  WORLDS.forEach((w, wi) => {
+    const first = wi * LEVELS_PER_WORLD;
+    const open = (p.unlocked || 0) >= first;
+    let stars = 0;
+    for (let i = first; i < first + LEVELS_PER_WORLD; i++) stars += (p.stars[i] || 0);
     const b = document.createElement('button');
-    b.className = 'lvlBtn' + (i > bestUnlocked ? ' locked' : (i >= 12 ? ' endless' : ''));
-    b.textContent = i > bestUnlocked ? '🔒' : (i + 1);
-    if (i <= bestUnlocked) b.addEventListener('click', () => startLevel(i));
+    b.className = 'wBtn' + (open ? '' : ' locked');
+    b.innerHTML = '<div class="wNum">Welt ' + (wi+1) + ' · Level ' + (first+1) + '–' + (first+LEVELS_PER_WORLD) + '</div>' +
+                  '<div class="wName">' + (open ? w.n : '🔒 ' + w.n) + '</div>' +
+                  '<div class="wStars">⭐ ' + stars + '/75</div>';
+    if (open) b.addEventListener('click', () => openWorld(wi));
+    grid.appendChild(b);
+  });
+}
+function openWorld(wi) {
+  const p = P();
+  hideOverlays();
+  $('levelTitle').textContent = 'Welt ' + (wi+1) + ' · ' + WORLDS[wi].n;
+  let stars = 0;
+  for (let i = wi*LEVELS_PER_WORLD; i < (wi+1)*LEVELS_PER_WORLD; i++) stars += (p.stars[i] || 0);
+  $('levelSub').textContent = '⭐ ' + stars + '/75' + (WORLDS[wi].wind ? '  ·  💨 Wind' : '') + (WORLDS[wi].grav ? '  ·  🌙 wenig Schwerkraft' : '');
+  const grid = $('levelGrid');
+  grid.innerHTML = '';
+  for (let k = 0; k < LEVELS_PER_WORLD; k++) {
+    const i = wi * LEVELS_PER_WORLD + k;
+    const open = (p.unlocked || 0) >= i;
+    const s = p.stars[i] || 0;
+    const b = document.createElement('button');
+    b.className = 'lvlBtn' + (open ? '' : ' locked');
+    b.innerHTML = open
+      ? '<span class="n">' + (i+1) + '</span><span class="s">' + '★'.repeat(s) + '☆'.repeat(3-s) + '</span>'
+      : '<span class="n">🔒</span>';
+    if (open) b.addEventListener('click', () => startLevel(i));
     grid.appendChild(b);
   }
+  $('levelScreen').classList.remove('hidden');
 }
-document.getElementById('startBtn').addEventListener('click', () => startLevel(bestUnlocked));
-document.getElementById('menuOpenBtn').addEventListener('click', () => {
-  buildMenu();
-  document.getElementById('startScreen').classList.add('hidden');
-  document.getElementById('menuScreen').classList.remove('hidden');
+
+// -- Spieler --
+function refreshPlayerBtn() { $('playerName').textContent = DATA.current || 'Spieler'; }
+function buildPlayerList() {
+  const box = $('playerList');
+  box.innerHTML = '';
+  const names = Object.keys(DATA.players);
+  if (!names.length) return;
+  const t = document.createElement('div');
+  t.className = 'scoreline'; t.textContent = 'Oder weiterspielen als:';
+  box.appendChild(t);
+  const row = document.createElement('div'); row.className = 'row';
+  names.sort((a,b) => totalScore(DATA.players[b]) - totalScore(DATA.players[a])).forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'btn sec sm';
+    b.textContent = n + ' · ' + totalScore(DATA.players[n]) + 'P';
+    b.addEventListener('click', () => { DATA.current = n; saveData(); refreshPlayerBtn(); hideOverlays(); $('startScreen').classList.remove('hidden'); });
+    row.appendChild(b);
+  });
+  box.appendChild(row);
+}
+function askName() {
+  hideOverlays();
+  buildPlayerList();
+  $('nameInput').value = '';
+  $('nameScreen').classList.remove('hidden');
+  setTimeout(() => $('nameInput').focus(), 100);
+}
+$('nameOkBtn').addEventListener('click', () => {
+  const n = ($('nameInput').value || '').trim().slice(0,14) || 'Spieler';
+  if (!DATA.players[n]) DATA.players[n] = { unlocked:0, best:{}, stars:{} };
+  DATA.current = n; saveData(); refreshPlayerBtn();
+  hideOverlays(); $('startScreen').classList.remove('hidden');
 });
-document.getElementById('menuBackBtn').addEventListener('click', () => {
-  document.getElementById('menuScreen').classList.add('hidden');
-  document.getElementById('startScreen').classList.remove('hidden');
+$('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('nameOkBtn').click(); });
+
+// -- Rangliste --
+function buildBoard() {
+  const t = $('boardTable');
+  const names = Object.keys(DATA.players);
+  let html = '<tr><th>#</th><th>Name</th><th class="r">⭐</th><th class="r">Punkte</th><th class="r">Level</th></tr>';
+  names.sort((a,b) => totalScore(DATA.players[b]) - totalScore(DATA.players[a]));
+  if (!names.length) html += '<tr><td colspan="5">Noch niemand hat gespielt.</td></tr>';
+  names.forEach((n, i) => {
+    const p = DATA.players[n];
+    html += '<tr class="' + (n === DATA.current ? 'me' : '') + '"><td>' + (i+1) + '</td><td>' + n +
+      '</td><td class="r">' + totalStars(p) + '</td><td class="r">' + totalScore(p) +
+      '</td><td class="r">' + Math.min(TOTAL_LEVELS, (p.unlocked||0)+1) + '</td></tr>';
+  });
+  t.innerHTML = html;
+}
+
+// -- Knöpfe --
+$('startBtn').addEventListener('click', () => {
+  if (!DATA.current) { askName(); return; }
+  startLevel(Math.min(P().unlocked || 0, TOTAL_LEVELS - 1));
 });
-document.getElementById('menuBtn').addEventListener('click', () => {
-  buildMenu();
-  document.getElementById('endScreen').classList.add('hidden');
-  document.getElementById('menuScreen').classList.remove('hidden');
+$('menuOpenBtn').addEventListener('click', () => { if (!DATA.current) { askName(); return; } toMenu(); });
+$('worldBackBtn').addEventListener('click', () => { hideOverlays(); $('startScreen').classList.remove('hidden'); });
+$('levelBackBtn').addEventListener('click', () => { hideOverlays(); buildWorlds(); $('worldScreen').classList.remove('hidden'); });
+$('menuBtn').addEventListener('click', toMenu);
+$('retryBtn').addEventListener('click', () => startLevel(levelIdx));
+$('nextBtn').addEventListener('click', () => startLevel(levelIdx + 1));
+$('playerBtn').addEventListener('click', askName);
+$('boardOpenBtn').addEventListener('click', () => { buildBoard(); hideOverlays(); $('boardScreen').classList.remove('hidden'); });
+$('boardBackBtn').addEventListener('click', () => { hideOverlays(); $('startScreen').classList.remove('hidden'); });
+$('pauseBtn').addEventListener('click', () => {
+  if (!gameActive) return;
+  paused = true;
+  $('pauseSub').textContent = 'Level ' + (levelIdx+1) + ' · ' + levelName(levelIdx);
+  $('pauseScreen').classList.remove('hidden');
 });
-document.getElementById('retryBtn').addEventListener('click', () => startLevel(levelIdx));
-document.getElementById('nextBtn').addEventListener('click', () => startLevel(levelIdx + 1));
+$('resumeBtn').addEventListener('click', () => { paused = false; $('pauseScreen').classList.add('hidden'); });
+$('pauseRetryBtn').addEventListener('click', () => startLevel(levelIdx));
+$('pauseMenuBtn').addEventListener('click', toMenu);
+
+refreshPlayerBtn();
+if (!DATA.current) $('startBtn').textContent = "Los geht's!";
 </script>
 </body>
 </html>
