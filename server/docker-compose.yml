@@ -11,6 +11,9 @@ services:
     volumes:
       # Hier liegen die Spielstände (spielstaende.json + Sicherungskopie)
       - /volume1/docker/spiele-server/data:/data
+      # Die Spiele selbst – so laufen Seite und Spielstand unter derselben Adresse.
+      # Neue Version = einfach die Dateien hierher kopieren, kein Neubau nötig.
+      - /volume1/docker/spiele-server/spiele:/spiele:ro
     environment:
       - NODE_ENV=production
       # Einfacher Riegel, damit nicht jeder Fremde im Internet schreiben kann.

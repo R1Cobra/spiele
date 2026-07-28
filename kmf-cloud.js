@@ -15,9 +15,12 @@
 (function () {
   "use strict";
 
-  // Adresse des Spielstand-Servers (Synology, über Tailscale öffentlich erreichbar).
-  // window.KMF_SERVER / window.KMF_ZUGANG dienen nur zum Testen auf dem eigenen Rechner.
-  var SERVER  = window.KMF_SERVER || "https://spiele.tail06709a.ts.net";
+  // Läuft die Seite schon auf der Synology, sprechen wir den Server auf derselben
+  // Adresse an (dann kann kein Browser die Anfragen als "fremde Herkunft" blockieren).
+  // Nur auf GitHub Pages brauchen wir die volle Adresse.
+  // window.KMF_SERVER / window.KMF_ZUGANG dienen zum Testen auf dem eigenen Rechner.
+  var AUSWAERTS = /github\.io$/i.test(location.hostname);
+  var SERVER  = window.KMF_SERVER || (AUSWAERTS ? "https://spiele.tail06709a.ts.net" : "");
   var ZUGANG  = window.KMF_ZUGANG || "kmf-spiele-2026";   // muss zum Wert ZUGANG auf dem Server passen
   var K_NAME  = "kmf.spieler";            // wer gerade spielt
   var K_ZEIT  = "kmf.zeit";               // {schluessel: zeitpunkt}

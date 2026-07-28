@@ -117,6 +117,9 @@ function antwort(res, code, obj) {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    // Nötig, wenn die Seite im Internet liegt und der Server über Tailscale läuft:
+    // Chrome hält die Tailscale-Adresse für "lokal" und fragt vorher um Erlaubnis.
+    "Access-Control-Allow-Private-Network": "true",
     "Cache-Control": "no-store"
   });
   res.end(text);
@@ -130,6 +133,38 @@ function leseKoerper(req) {
     req.on("error", fehler);
   });
 }
+// ------------------------------------------- Spiele-Dateien selbst ausliefern
+const SPIELE_DIR = process.env.SPIELE_DIR || "/spiele";
+const TYPEN = { ".html":"text/html; charset=utf-8", ".js":"text/javascript; charset=utf-8",
+  ".css":"text/css; charset=utf-8", ".json":"application/json; charset=utf-8", ".svg":"image/svg+xml",
+  ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".gif":"image/gif", ".webp":"image/webp",
+  ".ico":"image/x-icon", ".mp3":"audio/mpeg", ".mp4":"video/mp4", ".woff2":"font/woff2", ".txt":"text/plain; charset=utf-8" };
+function statisch(req, res, weg) {
+  var rein = decodeURIComponent(weg).replace(/\\/g, "/");
+  if (rein.indexOf("\0") >= 0 || rein.split("/").indexOf("..") >= 0) {
+    res.writeHead(400); return res.end("ungültiger Pfad");
+  }
+  var datei = path.join(SPIELE_DIR, rein);
+  if (!datei.startsWith(SPIELE_DIR)) { res.writeHead(400); return res.end("ungültiger Pfad"); }
+  try {
+    if (fs.statSync(datei).isDirectory()) datei = path.join(datei, "index.html");
+  } catch (e) {
+    if (rein === "/") {   // noch keine Spiele hochgeladen -> wenigstens den Status zeigen
+      return antwort(res, 200, { ok: true, dienst: "KMF Spiele – Spielstände",
+        hinweis: "Spiele-Ordner ist leer", spieler: Object.keys(db.spieler).length });
+    }
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); return res.end("nicht gefunden");
+  }
+  fs.readFile(datei, function (err, inhalt) {
+    if (err) { res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); return res.end("nicht gefunden"); }
+    res.writeHead(200, {
+      "Content-Type": TYPEN[path.extname(datei).toLowerCase()] || "application/octet-stream",
+      "Cache-Control": "no-cache"     // Spiele sollen sich sofort aktualisieren
+    });
+    res.end(inhalt);
+  });
+}
+
 const saubererName = n => String(n || "").replace(/[<>&"'`\\]/g, "").replace(/\s+/g, " ").trim().slice(0, MAX_NAME);
 function spielerHolen(name, anlegen) {
   const n = saubererName(name);
@@ -149,10 +184,15 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "OPTIONS") return antwort(res, 204, {});
 
-  if (weg === "/" || weg === "/api" || weg === "/api/status") {
+  if (weg === "/api" || weg === "/api/status") {
     return antwort(res, 200, { ok: true, dienst: "KMF Spiele – Spielstände",
-      spieler: Object.keys(db.spieler).length, zeit: Date.now() });
+      spieler: Object.keys(db.spieler).length, spieleOrdner: fs.existsSync(SPIELE_DIR), zeit: Date.now() });
   }
+
+  // Alles ausser /api/... sind die Spiele selbst. Werden sie von hier ausgeliefert,
+  // liegen Seite und Server auf derselben Adresse – dann kann kein Browser
+  // die Abgleich-Anfragen wegen "fremder Herkunft" blockieren.
+  if (!weg.startsWith("/api/")) return statisch(req, res, weg);
 
   // ab hier: Zugangsschlüssel nötig (steckt fest im Spiele-Client)
   const schluessel = url.searchParams.get("k") || req.headers["x-kmf-zugang"];
