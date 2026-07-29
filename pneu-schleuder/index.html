@@ -209,7 +209,10 @@ window.addEventListener('resize', resize); resize();
 
 const WORLD_W = 1900, WORLD_H = 780, GROUND_Y = 660;
 const SLING = { x: WORLD_W - 230, y: 545 };
-const MAX_DRAG = 130, POWER = 0.185;
+// Auszug der Schleuder: 150 statt 130 – damit reicht die Kraft bis ans linke
+// Weltende. Vorher blieb der Pneu bei vollem Zug rund 350 px davor liegen, und
+// hoch stehende Blitzer (z. B. Level 9) waren nur mit exakt 100 % Zug zu holen.
+const MAX_DRAG = 150, POWER = 0.185;
 const LEVELS_PER_WORLD = 25, TOTAL_LEVELS = 500;
 
 let engine, world;

@@ -28,18 +28,34 @@ node pruefung/test-physik.js
 Baut jedes Level mit echter Physik auf und lässt es 3 Sekunden in Ruhe.
 Kein Level darf von allein einstürzen oder sich selbst einen Blitzer umwerfen.
 
-## 3. Roboter-Spieler – etwa 20 Sekunden
+## 3. Roboter-Spieler – etwa 80 Sekunden
 
 ```bash
-node pruefung/test-roboter.js
+node pruefung/test-roboter.js          # jedes vierte Level
+node pruefung/test-roboter.js alle     # alle 500 Levels (etwa 5 Minuten)
 ```
 
-Spielt jedes vierte Level tatsächlich durch: Pro Pneu probiert er 70 Schüsse
+Spielt die Levels tatsächlich durch: Pro Pneu probiert er 70 Schüsse
 und nimmt den besten. Spezialfähigkeiten nutzt er nicht – ein Mensch kann also
 mehr. Schafft der Roboter ein Level nicht, heisst das nicht automatisch
 «unmöglich», aber es lohnt sich, hinzuschauen.
 
-Richtwert beim Bau dieser Version: **122 von 126 gelöst**.
+Richtwert bei dieser Version: **124 von 126** (Stichprobe) und
+**498 von 500** (`alle`). Die zwei Ausreisser (Level 321 und 473) fallen nur
+durch das grobe Zielraster des Roboters durch – mit feineren Winkel- und
+Kraftschritten löst er beide.
+
+## Reichweite der Schleuder
+
+Der Auszug ist auf 150 px begrenzt (`MAX_DRAG` in `index.html`), das ergibt
+Tempo 27.75. Damit fliegt ein Pneu bei vollem Zug bis ans linke Weltende
+(erster Aufprall etwa bei x = 40). Blitzer können also überall stehen, auch
+ganz hinten links bei x = 160.
+
+Vorher (Auszug 130, Tempo 24.05) war bei x = 360 Schluss. Ziele weiter links
+– zum Beispiel im Bauplan «Weitschuss» oder der hohe Blitzer in Level 9 –
+waren dann nur über Kettenreaktionen oder gar nicht zu erwischen.
+**Wer den Auszug ändert, muss danach alle drei Prüfungen laufen lassen.**
 
 ## Wenn etwas gemeldet wird
 Die Levels entstehen aus den Bauplänen in `index.html` (Abschnitt `PLANS`).
