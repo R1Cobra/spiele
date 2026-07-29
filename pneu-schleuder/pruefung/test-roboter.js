@@ -21,11 +21,13 @@ const sb = { Matter, console, Math, JSON, Date, parseInt, parseFloat, isNaN, set
       createGain:()=>({gain:{value:0,exponentialRampToValueAtTime(){}},connect(){}}), resume(){} }; } } };
 sb.window.localStorage = sb.localStorage;
 vm.createContext(sb);
-vm.runInContext(code + '\n;globalThis.__X={buildLevel,TOTAL_LEVELS,WORLDS,TIRES,VALUE};', sb, {filename:'ps.js'});
+vm.runInContext(code + '\n;globalThis.__X={buildLevel,TOTAL_LEVELS,WORLDS,TIRES,VALUE,MAX_DRAG,POWER};', sb, {filename:'ps.js'});
 const { buildLevel, TOTAL_LEVELS, WORLDS, TIRES } = sb.__X;
 
 const WORLD_W = 1900, WORLD_H = 780, GROUND_Y = 660;
-const SLING = { x: WORLD_W - 230, y: 545 }, MAX_V = 130 * 0.185;
+const SLING = { x: WORLD_W - 230, y: 545 };
+// Schleuderkraft direkt aus dem Spiel übernehmen – nicht doppelt pflegen
+const MAX_V = sb.__X.MAX_DRAG * sb.__X.POWER;
 
 // ---- Spiel-Regeln nachgebaut ----
 function neueWelt(def) {
@@ -138,9 +140,12 @@ function roboter(i) {
   return { ok: st.blitzer === 0, rest: st.blitzer, n: schuesse.length, von: def.tires.length, civil: st.civil, def };
 }
 
+// Standard: jedes vierte Level. Mit «node pruefung/test-roboter.js alle» werden
+// alle 500 geprüft (dauert ein paar Minuten).
+const alle = process.argv.includes('alle');
 const proben = [];
-for (let i = 0; i < TOTAL_LEVELS; i += 4) proben.push(i);
-proben.push(TOTAL_LEVELS - 1);
+for (let i = 0; i < TOTAL_LEVELS; i += (alle ? 1 : 4)) proben.push(i);
+if (!alle) proben.push(TOTAL_LEVELS - 1);
 
 let ok = 0, fail = [];
 const t0 = Date.now();
