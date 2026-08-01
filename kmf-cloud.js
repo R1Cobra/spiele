@@ -55,23 +55,33 @@
   };
 
   // ------------------------------------------------------------ Netzverkehr
+  // Die Tailscale-Verbindung zur Synology hat gelegentlich Wackel-Phasen von
+  // etwa einer Minute. Darum: grosszügiges Zeitlimit und bei einem Fehlschlag
+  // nach kurzer Pause automatisch ein zweiter Versuch.
   function ruf(weg, optionen) {
     var o = optionen || {};
     var url = SERVER + weg + (weg.indexOf("?") < 0 ? "?" : "&") + "k=" + encodeURIComponent(ZUGANG);
-    var steuer = new AbortController();
-    var abbruch = setTimeout(function () { steuer.abort(); }, o.zeit || 8000);
-    return fetch(url, {
-      method: o.methode || "GET",
-      headers: o.daten ? { "Content-Type": "application/json" } : undefined,
-      body: o.daten ? JSON.stringify(o.daten) : undefined,
-      signal: steuer.signal,
-      cache: "no-store"
-    }).then(function (r) {
-      clearTimeout(abbruch);
-      API.online = r.ok;
-      if (!r.ok) throw new Error("Server antwortet " + r.status);
-      return r.json();
-    }, function (e) { clearTimeout(abbruch); API.online = false; throw e; });
+    function einmal() {
+      var steuer = new AbortController();
+      var abbruch = setTimeout(function () { steuer.abort(); }, o.zeit || 15000);
+      return fetch(url, {
+        method: o.methode || "GET",
+        headers: o.daten ? { "Content-Type": "application/json" } : undefined,
+        body: o.daten ? JSON.stringify(o.daten) : undefined,
+        signal: steuer.signal,
+        cache: "no-store"
+      }).then(function (r) {
+        clearTimeout(abbruch);
+        API.online = r.ok;
+        if (!r.ok) throw new Error("Server antwortet " + r.status);
+        return r.json();
+      }, function (e) { clearTimeout(abbruch); throw e; });
+    }
+    return einmal().catch(function () {
+      return new Promise(function (weiter) { setTimeout(weiter, 2500); })
+        .then(einmal)
+        .catch(function (e2) { API.online = false; throw e2; });
+    });
   }
 
   // ------------------------------------------------- Herunterladen / Mischen
@@ -218,10 +228,20 @@
 
   window.KMF = API;
 
+  // War der Server beim Start nicht erreichbar: im Hintergrund regelmässig
+  // neu versuchen, bis der Abgleich klappt (Wackel-Phasen dauern ~1 Minute).
+  function nachholen() {
+    if (!API.spieler || API.online !== false) return;
+    API.abgleichen().then(function () {
+      if (API.online === false) setTimeout(nachholen, 45000);
+    });
+  }
+
   // In einem Spiel: wenn der Server einen neueren Stand hatte, einmal neu laden,
   // damit das Spiel wirklich mit dem neuen Stand startet.
   API.abgleichen().then(function (geaendert) {
     document.dispatchEvent(new CustomEvent("kmf-bereit", { detail: { geaendert: geaendert } }));
+    if (API.spieler && API.online === false) setTimeout(nachholen, 45000);
     if (!istStartseite && geaendert > 0) {
       try {
         if (!sessionStorage.getItem("kmf.neugeladen")) {
