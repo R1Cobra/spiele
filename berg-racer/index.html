@@ -153,12 +153,12 @@
 <!-- Hauptmenü -->
 <div id="homeScreen" class="overlay">
   <div class="title">🏔️ BERG-RACER</div>
-  <div class="subtitle">100 Strecken – von der sanften Wiese bis zum vereisten Bergpass,
-    und es wird immer anspruchsvoller. Feinfühlig Gas geben, sonst überschlägst du dich!</div>
+  <div class="subtitle">500 Strecken – von der Blumenwiese über Wüste, Nacht und Vulkan
+    bis zum spiegelglatten Gletscher. Feinfühlig Gas geben, sonst überschlägst du dich!</div>
   <button class="btn" id="toLevelsBtn">🏁 Strecken fahren</button>
   <button class="btn sec" id="toEndlessBtn">♾️ Endlos-Fahrt</button>
   <div class="stat" style="margin-top:12px">Gesamt gesammelt: <b id="totalCoins">0</b> 🪙
-    &nbsp;·&nbsp; <b id="totalStars">0</b>/300 ⭐</div>
+    &nbsp;·&nbsp; <b id="totalStars">0</b>/1500 ⭐</div>
 </div>
 
 <!-- Levelwahl -->
@@ -263,7 +263,17 @@ const THEMES = {
   schlamm:  { name:'Schlamm',  grip:0.60, limit:0.55, gras:'#6b5433', gras2:'#8a6f45',
               erde1:'#5e4a2e', erde2:'#3a2d1c', himmel:['#7f9bb0','#c3d3dc'], berg1:'#7d8b93', berg2:'#5f6a51', dot:'#8a6f45', staub:'rgba(90,70,42,.8)' },
   schnee:   { name:'Schnee',   grip:0.48, limit:0.44, gras:'#f2f8fc', gras2:'#ffffff',
-              erde1:'#d5e0e8', erde2:'#9db0be', himmel:['#7fb0d4','#d8e8f2'], berg1:'#7f97ad', berg2:'#6b8296', dot:'#ffffff', staub:'rgba(255,255,255,.9)' }
+              erde1:'#d5e0e8', erde2:'#9db0be', himmel:['#7fb0d4','#d8e8f2'], berg1:'#7f97ad', berg2:'#6b8296', dot:'#ffffff', staub:'rgba(255,255,255,.9)' },
+  herbst:   { name:'Herbstwald', grip:0.90, limit:0.84, gras:'#c07830', gras2:'#e09a40',
+              erde1:'#7a5230', erde2:'#4a3018', himmel:['#7fb0d0','#e8d8b8'], berg1:'#a08868', berg2:'#7a6848', dot:'#e09a40', staub:'rgba(190,140,70,.7)' },
+  wueste:   { name:'Wüste',    grip:0.66, limit:0.60, gras:'#e0c070', gras2:'#f0d890',
+              erde1:'#c8a050', erde2:'#8a6a30', himmel:['#e89850','#f8d8a0'], berg1:'#d0a868', berg2:'#a87f48', dot:'#f0d890', staub:'rgba(230,200,130,.8)' },
+  nacht:    { name:'Nachtfahrt', grip:0.92, limit:0.85, gras:'#2a5c38', gras2:'#3a7a4a',
+              erde1:'#3a3348', erde2:'#1e1a2c', himmel:['#0d1733','#2a3c66'], berg1:'#233252', berg2:'#1a2740', dot:'#5b78c0', staub:'rgba(120,130,170,.6)' },
+  vulkan:   { name:'Vulkan',   grip:0.78, limit:0.72, gras:'#8a3a28', gras2:'#e05a28',
+              erde1:'#4a3a36', erde2:'#241c1a', himmel:['#a84830','#e8a070'], berg1:'#6a4a44', berg2:'#503834', dot:'#e05a28', staub:'rgba(90,70,66,.8)' },
+  eis:      { name:'Gletscher', grip:0.38, limit:0.34, gras:'#a8dcf0', gras2:'#d8f2fc',
+              erde1:'#88b8d8', erde2:'#4a7ca0', himmel:['#6aa8d8','#c8e8f8'], berg1:'#7090b0', berg2:'#587a98', dot:'#a8dcf0', staub:'rgba(220,240,255,.9)' }
 };
 
 // ziel = Meter · a1/a2/a3 = Hügelhöhen · tank = alle N Fundstellen ein Kanister
@@ -290,47 +300,72 @@ const LEVELS = [
   { thema:'berg',     ziel:1500, a1:485, a2:160, a3:100, tank:11, veh:'lkwanh',   name:'Das grosse Finale' }
 ];
 
-// Levels 21–100: fest aus der Level-Nummer berechnet.
-// Level N ist dadurch bei jedem Spielen exakt dieselbe Strecke,
-// und je höher die Nummer, desto länger, rutschiger und knapper das Benzin.
+// Levels 21–500: fest aus der Level-Nummer berechnet.
+// Level N ist dadurch bei jedem Spielen exakt dieselbe Strecke.
+// Die Schwierigkeit steigt in Wellen (nach harten Levels kommt ein Verschnauf-Level),
+// dazu wechseln Landschaft und Strecken-Charakter für Abwechslung.
 (function(){
-  const MAX_LEVEL = 100;
+  const MAX_LEVEL = 500;
   const NAMEN = {
     wiese:    ['Blumenwiese','Hügelzug','Weidefahrt','Sommerfahrt','Grüne Welle','Heuernte','Almweg','Talrunde'],
     berg:     ['Passhöhe','Steilstück','Gipfelstürmer','Felsenweg','Panoramastrasse','Kehrenfest','Hochgebirge','Adlerhorst','Gratfahrt','Wolkenpass'],
     schotter: ['Kiesweg','Geröllhalde','Steinpiste','Baugrube','Schotterwerk','Staubfahrt','Felsbrocken','Splitterweg'],
     schlamm:  ['Matschgrube','Regenpiste','Sumpfweg','Morastfahrt','Schlammschlacht','Tiefer Boden','Pfützenritt','Lehmgrube'],
-    schnee:   ['Pulverschnee','Eispiste','Winterpass','Frostfahrt','Gletscherweg','Schneesturm','Eiskanal','Weisse Höhe']
+    schnee:   ['Pulverschnee','Eispiste','Winterpass','Frostfahrt','Schneetal','Schneesturm','Eiskanal','Weisse Höhe'],
+    herbst:   ['Herbstwald','Blätterfahrt','Pilzweg','Nebelmorgen','Kastanienallee','Drachenwetter','Erntefahrt','Goldener Oktober'],
+    wueste:   ['Sandpiste','Dünenritt','Wüstenwind','Oase','Kamelpfad','Sonnenglut','Fata Morgana','Sandsturm'],
+    nacht:    ['Nachtfahrt','Mondschein','Sternenhimmel','Mitternacht','Lichterkette','Eulenpfad','Dunkelwald','Polarlicht'],
+    vulkan:   ['Vulkanpfad','Lavafeld','Aschenpiste','Feuerberg','Kraterrand','Glutweg','Schwefelquelle','Magmakammer'],
+    eis:      ['Spiegeleis','Gletscherzunge','Eisbruch','Frostkante','Blaueis','Eiswand','Schlittschuhbahn','Ewiges Eis']
   };
-  const zaehler = { wiese:0, berg:0, schotter:0, schlamm:0, schnee:0 };
-  const roem = ['',' II',' III',' IV',' V',' VI',' VII',' VIII'];
+  // Strecken-Charakter = Art der Herausforderung
+  const CHARAKTER = [
+    { a1:300, a2:95,  a3:40, a4:22 },   // normal: gemischtes Gelände
+    { a1:440, a2:75,  a3:28, a4:16 },   // steil: lange, grosse Anstiege und Abfahrten
+    { a1:170, a2:155, a3:80, a4:24 },   // wellig: ständiges Auf und Ab
+    { a1:240, a2:90,  a3:60, a4:48 }    // holprig: Rüttelpiste mit vielen kleinen Kuppen
+  ];
+  const zaehler = {};
   for (let i = 20; i < MAX_LEVEL; i++){
-    const stufe = i - 20;                       // 0 … 79
-    const t = stufe / (MAX_LEVEL - 21);         // 0 … 1 = Fortschritt der Schwierigkeit
+    const stufe = i - 20;               // 0 … 479
     const r  = rnd1(i, 1.7), r2 = rnd1(i, 2.3), r3 = rnd1(i, 4.9);
-    // Untergrund würfeln (fest pro Level): oben raus immer öfter Schlamm und Schnee
+    // Schwierigkeit: Grund-Anstieg bis ca. Level 220, danach hoch bleibend,
+    // plus Welle -> zwischendurch immer wieder ein leichteres Level
+    const ramp  = Math.min(1, stufe / 200);
+    const welle = Math.sin(stufe * 0.45) * 0.25;
+    const schwer = Math.max(0, Math.min(1, ramp * 0.72 + welle + r3 * 0.18));
+    // Landschaft würfeln (fest pro Level); manche gibt es erst ab einer Stufe
     const wahl = [
-      ['wiese',    Math.max(0.04, 0.30 - 0.30*t)],
-      ['schotter', Math.max(0.08, 0.25 - 0.12*t)],
-      ['berg',     0.20 + 0.10*t],
-      ['schlamm',  0.12 + 0.16*t],
-      ['schnee',   0.10 + 0.24*t]
+      ['wiese',    Math.max(0.03, 0.24 - 0.22*schwer)],
+      ['herbst',   Math.max(0.04, 0.18 - 0.12*schwer)],
+      ['schotter', 0.14],
+      ['wueste',   stufe >= 15  ? 0.11 : 0],
+      ['berg',     0.14 + 0.05*schwer],
+      ['nacht',    stufe >= 60  ? 0.10 : 0],
+      ['vulkan',   stufe >= 100 ? 0.05 + 0.07*schwer : 0],
+      ['schlamm',  0.07 + 0.11*schwer],
+      ['schnee',   0.05 + 0.13*schwer],
+      ['eis',      stufe >= 180 ? 0.11*schwer : 0]
     ];
     let sum = 0; for (const w of wahl) sum += w[1];
     let pick = r * sum, thema = 'berg';
     for (const w of wahl){ pick -= w[1]; if (pick <= 0){ thema = w[0]; break; } }
-    const meilenstein = ((i+1) % 10 === 0);     // Level 30, 40, … 100 sind Extra-Etappen
-    const ziel = Math.round((800 + stufe*9 + r2*380 + (meilenstein ? 300 : 0)) / 25) * 25;
-    // Benzin wird knapper, aber auf Schnee nicht unfair
-    const tank = Math.min(thema === 'schnee' ? 12 : 14, 9 + Math.floor(stufe/14) + (r3 < 0.35 ? 1 : 0));
-    const a1 = Math.round(260 + stufe*2.6 + r3*90);
-    const a2 = Math.round(85  + stufe*1.1 + r2*40);
-    const a3 = Math.round(35  + stufe*0.9 + r*30);
+    const meilenstein = ((i+1) % 10 === 0);     // Level 30, 40, … 500 sind Extra-Etappen
+    const ziel = Math.round((750 + schwer*900 + r2*350 + (meilenstein ? 350 : 0)) / 25) * 25;
+    // Benzin wird knapper, aber auf rutschigem Untergrund nicht unfair
+    const tankMax = thema === 'eis' ? 11 : (thema === 'schnee' ? 12 : 14);
+    const tank = Math.max(8, Math.min(tankMax, 9 + Math.round(schwer*4) + (r3 < 0.3 ? 1 : 0)));
+    const K = CHARAKTER[Math.floor(rnd1(i, 6.2) * CHARAKTER.length)];
+    const f = 0.85 + schwer*0.5 + r3*0.12;      // Gelände wächst mit der Schwierigkeit
+    const a1 = Math.round(K.a1 * f), a2 = Math.round(K.a2 * f);
+    const a3 = Math.round(K.a3 * f), a4 = Math.round(K.a4 * (0.9 + schwer*0.4));
     const veh = VKEYS[Math.floor(rnd1(i, 8.6) * VKEYS.length)];
-    const n = zaehler[thema]++;
+    const liste = NAMEN[thema];
+    const n = zaehler[thema] = (zaehler[thema] || 0) + 1;
+    const wdh = Math.floor((n-1) / liste.length);
     const name = meilenstein ? ('Grosse Etappe ' + (i+1))
-                             : (NAMEN[thema][n % NAMEN[thema].length] + roem[Math.floor(n / NAMEN[thema].length)]);
-    LEVELS.push({ thema, ziel, a1, a2, a3, tank, veh, name });
+                             : (liste[(n-1) % liste.length] + (wdh ? ' ' + (wdh+1) : ''));
+    LEVELS.push({ thema, ziel, a1, a2, a3, a4, tank, veh, name });
   }
 })();
 
@@ -357,7 +392,7 @@ function makeProfile(lvIndex){
              grow:0.75, growLen:30000, k:1, thema:'wiese', limit:THEMES.wiese.limit, endX:60000 };
   }
   const L = LEVELS[lvIndex];
-  return { seed: 3.1 + lvIndex*13.7, a1:L.a1, a2:L.a2, a3:L.a3, a4:22,
+  return { seed: 3.1 + lvIndex*13.7, a1:L.a1, a2:L.a2, a3:L.a3, a4:(L.a4 || 22),
            w1:1000, w2:400, w3:225, grow:0, growLen:1, k:1,
            thema:L.thema, limit:THEMES[L.thema].limit, endX: START_X + L.ziel*PX_PER_M + 600 };
 }
@@ -1048,6 +1083,9 @@ function buildLevels(){
     lvGrid.appendChild(d);
   });
   showOnly(levelScreen);
+  // Automatisch zum ersten noch nicht geschafften Level springen
+  const akt = lvGrid.querySelector('.lv:not(.fertig):not(.zu)');
+  if (akt) akt.scrollIntoView({ block:'center' });
 }
 function openVeh(lvIndex){
   pendingLevel = lvIndex;
