@@ -835,6 +835,18 @@ function processRemovals() {
     for (const info of list) destroyPart(info);
   }
 }
+// Alles, was aus dem Bild geflogen ist, zählt als zerstört. Sonst wartet die Runde
+// ewig auf ein Ziel, das niemand mehr sehen oder treffen kann.
+function sweepOutOfBounds() {
+  for (const info of breakables) {
+    if (info.dead || info.body.isStatic) continue;
+    const p = info.body.position;
+    // rechts/links raus, unter dem Boden durch, oder hoch in den Himmel geschossen
+    if (p.x > WORLD_W + 40 || p.x < -80 || p.y > WORLD_H + 120 || p.y < -900) {
+      info.dead = true; pendingRemove.push(info);
+    }
+  }
+}
 function wakeAll() {
   for (const x of breakables) if (!x.body.isStatic) Sleeping.set(x.body, false);
   if (tire) Sleeping.set(tire, false);
@@ -1401,6 +1413,7 @@ function loop(t) {
   try {
     if (gameActive && !paused) {
       Engine.update(engine, 1000/60);
+      sweepOutOfBounds();   // was aus dem Bild geflogen ist, gilt als zerstört
       processRemovals();
       checkGameState(dt);
       for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vy += .35; p.t -= .02; }
