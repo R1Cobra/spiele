@@ -90,6 +90,18 @@
     right:calc(env(safe-area-inset-right) + 12px); width:46px; height:46px; border-radius:15px;
     background:rgba(15,23,42,.68); color:#fff; font-size:17px; cursor:pointer;
     border:1.5px solid rgba(255,255,255,.28); }
+  #tippBtn { position:fixed; z-index:6; bottom:calc(env(safe-area-inset-bottom) + 68px);
+    right:calc(env(safe-area-inset-right) + 12px); height:46px; padding:0 14px; border-radius:15px;
+    background:linear-gradient(#ffd23f,#ffb300); color:#4a2c00; font-size:15px; font-weight:800;
+    cursor:pointer; border:none; box-shadow:0 4px 0 #c47a00; }
+  #tippBtn:active { transform:translateY(2px); box-shadow:0 2px 0 #c47a00; }
+  #tippBtn:disabled { opacity:.7; }
+  #tippInfo { position:fixed; z-index:7; left:50%; transform:translateX(-50%);
+    bottom:calc(env(safe-area-inset-bottom) + 68px); max-width:min(92vw, 420px);
+    background:rgba(15,23,42,.86); color:#fff; border:1.5px solid rgba(255,210,63,.65);
+    border-radius:13px; padding:9px 15px; font-size:14px; font-weight:700; text-align:center;
+    line-height:1.35; pointer-events:none; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+  #tippInfo b { color:#ffd23f; }
   #toast { position:fixed; left:50%; top:34%; transform:translateX(-50%); z-index:7; pointer-events:none;
     font-size:min(7vw,30px); font-weight:900; color:#fff; text-shadow:0 3px 8px rgba(0,0,0,.6);
     opacity:0; transition:opacity .2s; }
@@ -160,6 +172,8 @@
 </div>
 <div id="hintBox" class="hidden"></div>
 <button id="pauseBtn" class="hidden">⏸</button>
+<button id="tippBtn" class="hidden">💡 Tipp</button>
+<div id="tippInfo" class="hidden"></div>
 <div id="toast"></div>
 
 <!-- Startbildschirm -->
@@ -242,6 +256,7 @@ const { Engine, Bodies, Body, Composite, Events, Sleeping } = Matter;
 // ================= Setup =================
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+const $ = id => document.getElementById(id);   // früh definiert: wird weiter unten überall gebraucht
 let cw = 0, ch = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
 function resize() {
   cw = window.innerWidth; ch = window.innerHeight;
@@ -309,6 +324,7 @@ function P() {
   let p = DATA.players[DATA.current];
   if (!p) { p = DATA.players[DATA.current] = { unlocked:0, best:{}, stars:{} }; }
   if (!p.best) p.best = {}; if (!p.stars) p.stars = {};
+  if (!p.fails) p.fails = {};              // Fehlversuche je Level – ab 3 gibt es den Tipp
   return p;
 }
 function totalScore(pl){ let s=0; for (const k in pl.best) s += pl.best[k]; return s; }
@@ -554,7 +570,7 @@ const PLANS = [
       }
     }
     c.P.push(blitzer(d, G - base*56 - 30));
-    for (let k = 1; k < Math.min(c.nb, 3); k++) c.P.push(blitzer(d + 240 + k*150, G - 30));
+    for (let k = 1; k < Math.min(c.nb, 3); k++) c.P.push(blitzer(d + 230 + k*120, G - 30));
     c.P.push(cone(d - 190, G - 23));
   }},
 { id:'bruecke', n:'Die Brücke', f(c){
@@ -794,14 +810,17 @@ const PLANS = [
 
 // -- ab hier die neuen Szenarien ---------------------------------------------
 { id:'schacht', n:'Der Schacht', f(c){          // nur ein steiler Bogen von oben kommt rein
+    // Vordere Wand niedriger als die hintere: so kommt man hinein, aber der Pneu
+    // fliegt nicht gleich wieder hinaus. Alle anderen Ziele stehen VOR dem Schacht –
+    // hinter einer hohen Felswand wäre ein Ziel praktisch nicht mehr zu treffen.
     const d = 1200;
-    c.P.push(rock(d - 95, G - 150, 60, 300));
-    c.P.push(rock(d + 95, G - 150, 60, 300));
+    c.P.push(rock(d - 100, G - 90, 60, 180));
+    c.P.push(rock(d + 100, G - 125, 60, 250));
     c.P.push(blitzer(d, G - 30));
     c.P.push(barrel(d, G - 87));                // das Fass im Schacht ist die Abkürzung
-    c.P.push(blitzer(d + 260, G - 30));
-    if (c.nb > 2) c.P.push(blitzer(d - 250, G - 30));
-    c.P.push(cone(d + 175, G - 23));
+    c.P.push(blitzer(d - 300, G - 30));
+    if (c.nb > 2) { c.P.push(crate(d - 430, G - 28)); c.P.push(blitzer(d - 430, G - 86)); }
+    c.P.push(cone(d - 200, G - 23));
   }},
 { id:'tunnel', n:'Der Tunnel', f(c){            // flach durchrollen statt drüberschiessen
     const d = 1150;
@@ -871,7 +890,7 @@ const PLANS = [
     c.P.push(rock(d, G - h/2, 70, h));
     c.P.push(blitzer(d + 200, G - 30)); c.P.push(barrel(d + 200, G - 87));
     c.P.push(crate(d + 330, G - 28)); c.P.push(blitzer(d + 330, G - 86));
-    if (c.nb > 2) c.P.push(blitzer(d + 460, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d + 400, G - 30));
     c.P.push(cone(d - 120, G - 23));
   }},
 { id:'pilz', n:'Der Pilz', f(c){                // den Stiel treffen, dann fällt der ganze Hut
@@ -1174,6 +1193,10 @@ function buildLevel(i) {
   // fair bleiben: immer mindestens ein Pneu Reserve (Marcos Regel: schwerer ja, unmöglich nein)
   let count = Math.max(3, nBlitz + 1, nBlitz + 2 - Math.round(hard * 1.5) - (w > 8 ? 1 : 0));
   if (P.some(p => p.kind === 'panzer')) count++;      // Panzer-Blitzer braucht einen eigenen Treffer
+  // Ganz hinten links stehende Ziele verlangen einen sehr genauen Weitschuss.
+  // Mit nur vier Pneus wird das unfair – darum gibt es dann einen Pneu mehr.
+  const weitestesZiel = Math.min(...P.filter(p => IST_ZIEL(p.kind)).map(p => p.body.position.x));
+  if (count <= 4 && weitestesZiel < 620) count++;
   count = Math.min(count, 8);
   const q = ['pkw'];
   for (let j = 1; j < count; j++) q.push(pick(rnd, avail));
@@ -1210,6 +1233,8 @@ function loadLevel(i) {
   tireQueue = def.tires.slice();
   shards = [];
   score = 0;
+  tipp = null; tippLaeuft = false; tippBenutzt = 0;
+  document.getElementById('tippInfo').classList.add('hidden');
   camX = WORLD_W; camTargetX = 0; previewTimer = 1500;   // kurzer Blick aufs Ziel
   endScheduled = false; failTimer = 0; winTimer = 0;
   tireState = 'idle'; flightTime = 0; settleTimer = 0;
@@ -1387,6 +1412,7 @@ function onUp(e) {
   Body.setVelocity(tire, { x: dx * POWER, y: dy * POWER });
   tireState = 'flight';
   flightTime = 0; settleTimer = 0;
+  tippVerbergen();
   tireQueue.shift();
   sfx.launch();
   updateHud();
@@ -1482,7 +1508,9 @@ function endLevel(won) {
   if (!gameActive) return;
   gameActive = false;
   document.getElementById('pauseBtn').classList.add('hidden');
+  document.getElementById('tippBtn').classList.add('hidden');
   document.getElementById('hintBox').classList.add('hidden');
+  tippVerbergen();
   if (won) score += tireQueue.length * 200;
   const st = won ? starsFor(score) : 0;
   if (won) sfx.win(); else sfx.lose();
@@ -1493,16 +1521,24 @@ function endLevel(won) {
     p.best[key] = Math.max(p.best[key] || 0, Math.max(0, score));
     p.stars[key] = Math.max(p.stars[key] || 0, st);
     p.unlocked = Math.max(p.unlocked || 0, Math.min(TOTAL_LEVELS - 1, levelIdx + 1));
+    p.fails[key] = 0;                       // geschafft – der Zähler darf wieder bei null starten
+    saveData();
+  } else {
+    p.fails[key] = (p.fails[key] || 0) + 1; // ab drei Fehlversuchen gibt es den Tipp-Knopf
     saveData();
   }
 
   document.getElementById('endTitle').textContent = won
     ? (levelIdx === TOTAL_LEVELS - 1 ? 'Alle ' + TOTAL_LEVELS + ' Levels geschafft! 🏆' : 'Level geschafft! 🎉')
-    : 'Alle Pneus verschossen 😅';
+    : ((p.fails[key] || 0) >= TIPP_AB ? 'Hartnäckig? Dann hilft der Tipp 💡' : 'Alle Pneus verschossen 😅');
   document.getElementById('endStars').textContent = won ? '⭐'.repeat(st) + '☆'.repeat(3-st) : '☆☆☆';
-  document.getElementById('endScore').textContent =
+  document.getElementById('endScore').innerHTML =
     'Punkte: ' + Math.max(0, score) + (civilHits ? '  (−' + (civilHits*750) + ' für Fahrschüler)' : '') +
-    '   ·   Bester: ' + (p.best[key] || 0);
+    '   ·   Bester: ' + (p.best[key] || 0) +
+    (!won && (p.fails[key] || 0) >= TIPP_AB
+      ? '<br><b>Neu: Der Knopf «💡 Tipp» rechnet dir einen Schuss aus – er zeigt, ' +
+        'wie weit du ziehen musst und wo der Pneu durchfliegt.</b>'
+      : '');
   const pct = Math.max(0, Math.min(1, score / levelMax));
   document.getElementById('endBar').style.width = (pct*100).toFixed(0) + '%';
   document.getElementById('endM2').style.left = '50%';
@@ -1586,6 +1622,7 @@ function draw() {
   for (const s of shards) drawTire(s, 'winter');
   if (tire) drawTire(tire, curTire);
   drawSlingFront();
+  drawTipp();
   if (dragging && tire) drawTrajectory();
 
   for (const p of particles) {
@@ -2017,6 +2054,207 @@ function rr(x, y, w, h, r) {
   ctx.closePath(); ctx.fill();
 }
 
+// =========================================================
+// Tipp: Lösungsweg suchen
+// Ab drei Fehlversuchen im gleichen Level darf man sich einen Schuss zeigen
+// lassen. Gesucht wird, indem eine KOPIE der aktuellen Lage durchgerechnet wird:
+// verschiedene Winkel und Kräfte werden simuliert, der beste Schuss gewinnt.
+// Die Suche läuft in kleinen Häppchen, damit das Spiel nicht einfriert.
+// =========================================================
+let tipp = null;            // { winkel, kraft, bahn:[{x,y}], ziele:n }
+let tippLaeuft = false;
+let tippBenutzt = 0;        // wie oft in diesem Level
+
+const TIPP_AB = 3;          // ab so vielen Fehlversuchen erscheint der Knopf
+const TIPP_WINKEL = []; for (let g = 8; g <= 84; g += 6) TIPP_WINKEL.push(g * Math.PI/180);
+const TIPP_KRAFT  = [0.42, 0.54, 0.64, 0.73, 0.81, 0.88, 0.94, 1.0];
+
+/* Eine Kopie der jetzigen Lage – gleiche Formen, gleiche Positionen, gleiche Winkel. */
+function tippWelt() {
+  const e = Engine.create({ enableSleeping: true });
+  e.gravity.y = W.grav || 1;
+  Composite.add(e.world, [
+    Bodies.rectangle(WORLD_W/2, GROUND_Y + 60, WORLD_W*2, 120, { isStatic:true, friction:.9 }),
+    Bodies.rectangle(-60, WORLD_H/2, 120, WORLD_H*2, { isStatic:true })]);
+  const st = { engine:e, teile:[], pending:[] };
+  for (const info of breakables) {
+    const b = info.body;
+    const o = { friction:b.friction, frictionAir:b.frictionAir, frictionStatic:b.frictionStatic,
+                restitution:b.restitution, density:b.density, isStatic:b.isStatic };
+    let n;
+    if (info.r)                    n = Bodies.circle(b.position.x, b.position.y, info.r, o);
+    else if (info.kind === 'keil') n = Bodies.trapezoid(b.position.x, b.position.y, info.w, info.h, .98, o);
+    else if (info.kind === 'cone') n = Bodies.trapezoid(b.position.x, b.position.y, info.w, info.h, .9, o);
+    else                           n = Bodies.rectangle(b.position.x, b.position.y, info.w, info.h, o);
+    Body.setAngle(n, b.angle);
+    const kopie = { kind:info.kind, hp:info.hp, solid:info.solid, w:info.w, h:info.h, r:info.r, body:n, dead:false };
+    n.plugin.info = kopie;
+    st.teile.push(kopie);
+    Composite.add(e.world, n);
+  }
+  Events.on(e, 'collisionStart', ev => {
+    for (const pair of ev.pairs) {
+      const a = pair.bodyA, b = pair.bodyB;
+      const rel = Math.hypot(a.velocity.x - b.velocity.x, a.velocity.y - b.velocity.y);
+      if (rel < 3) continue;
+      const isT = a.plugin.isTire || b.plugin.isTire;
+      const mult = isT ? (TIRES[(a.plugin.type || b.plugin.type)] || TIRES.pkw).dmg : 1;
+      const impact = rel * Math.min(a.mass, b.mass) * mult * 1.4;
+      for (const body of [a, b]) {
+        const i2 = body.plugin.info;
+        if (!i2 || i2.solid || i2.dead || impact < 4) continue;
+        i2.hp -= impact;
+        if (i2.hp <= 0) { i2.dead = true; st.pending.push(i2); }
+      }
+    }
+  });
+  return st;
+}
+function tippAufraeumen(st) {
+  for (const i2 of st.teile) {
+    if (i2.dead || i2.body.isStatic) continue;
+    const p = i2.body.position;
+    if (p.x > WORLD_W + 40 || p.x < -80 || p.y > WORLD_H + 120 || p.y < -900) { i2.dead = true; st.pending.push(i2); }
+  }
+  let g = 0;
+  while (st.pending.length && g++ < 40) {
+    const liste = st.pending; st.pending = [];
+    for (const i2 of liste) {
+      const p = i2.body.position;
+      Composite.remove(st.engine.world, i2.body);
+      st.teile = st.teile.filter(x => x !== i2);
+      for (const x of st.teile) if (!x.body.isStatic) Sleeping.set(x.body, false);
+      if (i2.kind === 'barrel') tippExplosion(st, p.x, p.y, 210, 1);
+    }
+  }
+}
+function tippExplosion(st, x, y, radius, power) {
+  for (const p of st.teile) {
+    if (p.body.isStatic) continue;
+    const dx = p.body.position.x - x, dy = p.body.position.y - y;
+    const dist = Math.max(20, Math.hypot(dx, dy));
+    if (dist > radius) continue;
+    const f = (1 - dist / radius) * power;
+    Sleeping.set(p.body, false);
+    Body.applyForce(p.body, p.body.position, { x: dx/dist*f*p.body.mass*.55, y: dy/dist*f*p.body.mass*.55 - p.body.mass*.12 });
+    if (!p.solid && !p.dead) { p.hp -= f*95; if (p.hp <= 0) { p.dead = true; st.pending.push(p); } }
+  }
+}
+
+/* Einen Schuss durchrechnen. Gibt zurück, wie viele Ziele fallen und wo der Pneu langfliegt. */
+function tippSchuss(winkel, kraft, typ) {
+  const st = tippWelt();
+  const T = TIRES[typ] || TIRES.pkw;
+  const t = Bodies.circle(SLING.x, SLING.y - (T.r - 26), T.r,
+    { density:T.dens, friction:.7, restitution:T.rest, frictionAir:.008 });
+  t.plugin.isTire = true; t.plugin.type = typ;
+  Composite.add(st.engine.world, t);
+  const v = MAX_DRAG * POWER * kraft;
+  Body.setVelocity(t, { x: -v * Math.cos(winkel), y: -v * Math.sin(winkel) });
+  const bahn = [];
+  for (let s = 0; s < 260; s++) {
+    if (W.wind) Body.applyForce(t, t.position, { x: W.wind * t.mass, y: 0 });
+    Engine.update(st.engine, 1000/60);
+    tippAufraeumen(st);
+    if (s % 4 === 0) bahn.push({ x:t.position.x, y:t.position.y });
+    if (t.position.y > WORLD_H + 200 || t.position.x < -200) break;
+  }
+  for (let s = 0; s < 70; s++) { Engine.update(st.engine, 1000/60); tippAufraeumen(st); }
+  let ziele = 0, wert = 0;
+  for (const i2 of st.teile) if (!i2.dead && IST_ZIEL(i2.kind)) ziele++;
+  const vorher = breakables.filter(x => IST_ZIEL(x.kind)).length;
+  for (const i2 of st.teile) if (i2.dead) wert += VALUE[i2.kind] || 0;
+  // Fahrschüler treffen wäre schlecht – solche Schüsse fallen durch
+  const civilTot = st.teile.some(i2 => i2.dead && i2.kind === 'civil');
+  return { getroffen: vorher - ziele, wert, bahn, civilTot };
+}
+
+function tippSuchen() {
+  if (tippLaeuft || !gameActive || tireState === 'flight' || !tire) return;
+  tippLaeuft = true;
+  tipp = null;
+  const typ = curTire;
+  const kandidaten = [];
+  for (const w of TIPP_WINKEL) for (const k of TIPP_KRAFT) kandidaten.push({ w, k });
+  let i = 0, best = null;
+  $('tippBtn').disabled = true;
+  const zeigeFortschritt = () => {
+    const el = $('tippInfo');
+    el.classList.remove('hidden');
+    el.innerHTML = '🔎 Suche einen guten Schuss … ' + Math.round(i / kandidaten.length * 100) + ' %';
+  };
+  zeigeFortschritt();
+
+  function haeppchen() {
+    const bis = Math.min(i + 4, kandidaten.length);
+    for (; i < bis; i++) {
+      const c = kandidaten[i];
+      const r = tippSchuss(c.w, c.k, typ);
+      if (r.civilTot) continue;
+      const punkte = r.getroffen * 100000 + r.wert;
+      if (!best || punkte > best.punkte) best = { punkte, winkel:c.w, kraft:c.k, bahn:r.bahn, ziele:r.getroffen };
+    }
+    if (i < kandidaten.length) { zeigeFortschritt(); setTimeout(haeppchen, 0); return; }
+
+    tippLaeuft = false;
+    $('tippBtn').disabled = false;
+    if (!best || best.ziele === 0) {
+      $('tippInfo').innerHTML = 'Mit diesem Pneu ist von hier aus <b>kein Ziel</b> zu erwischen. '
+        + 'Räum zuerst etwas weg – oder starte das Level neu.';
+      setTimeout(() => $('tippInfo').classList.add('hidden'), 4200);
+      return;
+    }
+    tipp = best;
+    tippBenutzt++;
+    const grad = Math.round(best.winkel * 180 / Math.PI);
+    $('tippInfo').innerHTML = '💡 Zieh den Pneu bis zum <b>gelben Ring</b> – das sind '
+      + '<b>' + Math.round(best.kraft * 100) + '% Kraft</b> bei <b>' + grad + '°</b>. '
+      + 'Die Punktlinie zeigt den Flug' + (best.ziele > 1 ? ' – das gibt gleich ' + best.ziele + ' Ziele.' : '.');
+  }
+  setTimeout(haeppchen, 30);
+}
+
+$('tippBtn').addEventListener('click', tippSuchen);
+
+/* Der gelbe Ring: dorthin muss der Pneu gezogen werden.
+   Beim Abschuss gilt Tempo = (Schleuder − Pneu) × POWER, also liegt der Punkt
+   genau um «Kraft × MAX_DRAG» in Richtung Winkel hinter der Schleuder. */
+function tippZugPunkt() {
+  return { x: SLING.x + Math.cos(tipp.winkel) * MAX_DRAG * tipp.kraft,
+           y: SLING.y + Math.sin(tipp.winkel) * MAX_DRAG * tipp.kraft };
+}
+function drawTipp() {
+  if (!tipp) return;
+  const z = tippZugPunkt();
+  ctx.save();
+  ctx.setLineDash([9, 9]); ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(255,210,63,.85)';
+  ctx.beginPath(); ctx.moveTo(SLING.x, SLING.y); ctx.lineTo(z.x, z.y); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(z.x, z.y, 21, 0, 7); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,210,63,.22)';
+  ctx.beginPath(); ctx.arc(z.x, z.y, 21, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,210,63,.9)';
+  for (let i = 0; i < tipp.bahn.length; i++) {
+    const p = tipp.bahn[i];
+    ctx.globalAlpha = Math.max(.25, 1 - i / tipp.bahn.length);
+    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+function tippVerbergen() {
+  tipp = null;
+  $('tippInfo').classList.add('hidden');
+}
+function tippKnopfPruefen() {
+  const p = P();
+  const offen = (p.fails && p.fails[levelIdx]) || 0;
+  const zeigen = gameActive && !paused && offen >= TIPP_AB && tireState !== 'flight' && !!tire;
+  $('tippBtn').classList.toggle('hidden', !zeigen);
+}
+
 // ================= Loop =================
 let lastT = 0;
 function loop(t) {
@@ -2034,6 +2272,7 @@ function loop(t) {
       flashes = flashes.filter(f => f.t > 0);
       for (const f of flakes) { f.y += f.v; f.x -= f.v * .25; if (f.y > WORLD_H) { f.y = -10; f.x = Math.random()*WORLD_W; } }
       if (toastT > 0) { toastT -= dt; if (toastT <= 0) document.getElementById('toast').style.opacity = '0'; }
+      tippKnopfPruefen();
     }
     if (engine) draw();
   } catch(err) {
@@ -2043,7 +2282,6 @@ function loop(t) {
 requestAnimationFrame(loop);
 
 // ================= Bildschirme / Menüs =================
-const $ = id => document.getElementById(id);
 function hideOverlays() {
   ['startScreen','nameScreen','worldScreen','levelScreen','endScreen','pauseScreen','boardScreen']
     .forEach(id => $(id).classList.add('hidden'));

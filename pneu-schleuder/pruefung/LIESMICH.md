@@ -1,6 +1,6 @@
 # Pneu-Schleuder – automatische Prüfung der 600 Levels
 
-Diese vier Skripte prüfen die Levels, ohne dass man sie von Hand durchspielen muss.
+Diese sechs Skripte prüfen die Levels, ohne dass man sie von Hand durchspielen muss.
 **Nach jeder Änderung an den Bauplänen laufen lassen.**
 
 ## Zielobjekte
@@ -97,6 +97,44 @@ alle 21 Bauteil-Arten und alle 24 Kulissen vorkommen, bei 0 Fehlern.
 
 **Achtung:** Der Test prüft nur, dass nichts abstürzt – ob es *schön* aussieht,
 sieht man nur im Spiel.
+
+## 5. Fairness – etwa eine Minute
+
+```bash
+node pruefung/test-fairness.js            # 3 Levels je Bauplan
+node pruefung/test-fairness.js 20 587     # einzelne Levels, ausführlich
+```
+
+**Der wichtigste Test.** Der Roboter-Test sagt nur, ob ein Level *überhaupt*
+lösbar ist – er hat unendlich Geduld. Ein Mensch nicht. Dieser Test misst, mit
+wie vielen von vielen probierten ersten Schüssen jedes Ziel fällt.
+
+Bewertet wird nur, was **frei steht** (nichts direkt darüber). Ziele in Bunkern
+oder Türmen sind absichtlich nicht direkt erreichbar und werden übersprungen.
+Erst wird grob gemessen, auffällige Ziele danach fein nachgemessen.
+
+Grenzwerte, geeicht an einem echten Fehler: **Level 20 («Der Schacht») war mit
+1.3 % bei 4 Pneus unspielbar** – ein Ziel stand im Schatten einer 300 px hohen
+Felswand. Level 587 liegt bei 3.4 %, hat aber 6 Pneus und ist machbar. Darum:
+mindestens **2 %** bei 5+ Pneus, **3.5 %** bei 4 oder weniger.
+
+Wird etwas gemeldet, sind das die üblichen Hebel:
+- Ziel hinter einer hohen, unzerstörbaren Wand → Ziel auf die Schleuder-Seite
+  stellen oder die Wand niedriger machen
+- Ziel sehr weit links → näher heranholen (in `buildLevel` gibt es dafür schon
+  automatisch einen Pneu extra, wenn ein Ziel weiter links als x = 620 steht)
+
+## 6. Tipp-Funktion – Sekunden
+
+```bash
+node pruefung/test-tipp.js
+```
+
+Prüft den Knopf «💡 Tipp», der ab drei Fehlversuchen im gleichen Level erscheint:
+Ist die durchgerechnete Kopie der Lage identisch mit der echten? Findet die Suche
+in verschiedenen Levels wirklich einen Treffer? Liegt der gelbe Ring innerhalb des
+erlaubten Auszugs? Und – wichtig – bleibt die echte Spiellage vom Durchrechnen
+unberührt?
 
 ## Reichweite der Schleuder
 
