@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Pneu-Schleuder</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script src="../matter.min.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { width:100%; height:100%; overflow:hidden; position:fixed; touch-action:none;
@@ -68,12 +68,17 @@
   .scrollbox { max-height:52vh; overflow-y:auto; touch-action:pan-y; width:100%; display:flex;
     flex-direction:column; align-items:center; }
 
-  #hud { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between;
-    align-items:flex-start; flex-wrap:wrap; gap:6px;
-    padding:calc(env(safe-area-inset-top) + 10px) 14px 0 108px; z-index:5;
+  /* Anzeige oben RECHTS – links oben sitzt der Zurück-Knopf, da darf nichts hin. */
+  #hud { position:fixed; top:0; right:0; display:flex; justify-content:flex-end;
+    align-items:center; flex-wrap:nowrap; gap:6px; max-width:calc(100% - 130px);
+    padding:calc(env(safe-area-inset-top) + 10px) calc(env(safe-area-inset-right) + 12px) 0 0; z-index:5;
     pointer-events:none; font-weight:800; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.45); }
-  #scoreHud { margin-left:auto; }
-  @media (max-width:520px) { .hudbox { font-size:13px; padding:5px 9px; } #levelHud { max-width:150px; } }
+  #levelHud { min-width:0; }
+  @media (max-width:600px) {
+    .hudbox { font-size:12px; padding:4px 8px; }
+    #levelHud .hudsub { display:none; }         /* auf dem Handy nur Level + Ziele */
+    .thumb { width:15px; height:15px; border-width:2px; }
+  }
   .hudbox { background:rgba(0,0,0,.30); border-radius:12px; padding:6px 11px; font-size:14px; }
   #tiresHud { display:flex; gap:5px; align-items:center; padding:6px 10px; }
   .thumb { width:20px; height:20px; border-radius:50%; border:3px solid #22262b; box-sizing:border-box; }
@@ -105,11 +110,45 @@
     -webkit-tap-highlight-color:transparent;
   }
   .kmf-back:active{ transform:scale(.94); }
+
+  /* ---------- Firmen-Logo, klein und dezent ---------- */
+  .kmf-logo{
+    position:fixed; z-index:6; pointer-events:none;
+    left:calc(env(safe-area-inset-left, 0px) + 10px);
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    width:118px; padding:4px 6px; border-radius:9px;
+    background:rgba(255,255,255,.72); opacity:.9;
+    box-shadow:0 2px 8px rgba(0,0,0,.22);
+  }
+  .kmf-logo img{ display:block; width:100%; height:auto; }
+  @media (max-width:600px){ .kmf-logo{ width:88px; } }
+
+  /* ---------- Bitte quer halten ---------- */
+  #dreh{ position:fixed; inset:0; z-index:30; display:none;
+    align-items:center; justify-content:center; text-align:center;
+    background:rgba(12,26,40,.93); color:#fff; padding:22px; }
+  #dreh.an{ display:flex; }
+  #dreh .box{ max-width:340px; }
+  #dreh .sym{ font-size:64px; line-height:1; animation:kipp 1.8s ease-in-out infinite; display:inline-block; }
+  #dreh h2{ margin:14px 0 8px; font-size:22px; font-weight:900; }
+  #dreh p{ margin:0 0 18px; font-size:15px; line-height:1.45; opacity:.9; }
+  @keyframes kipp { 0%,45% { transform:rotate(0deg); } 60%,100% { transform:rotate(-90deg); } }
 </style>
 </head>
 <body>
 <a href="../" class="kmf-back" aria-label="Zurück zur Spiele-Auswahl">🎮 Spiele</a>
 <canvas id="game"></canvas>
+<div class="kmf-logo"><img src="../kmf-logo.jpg" alt="Kuster Marco Fahrschule"></div>
+
+<div id="dreh">
+  <div class="box">
+    <div class="sym">📱</div>
+    <h2>Bitte das Handy quer halten</h2>
+    <p>Pneu-Schleuder braucht Breite: quer siehst du die Schleuder <b>und</b> das Ziel
+       gleichzeitig – und triffst viel besser.</p>
+    <button class="btn sec" id="drehOk">Trotzdem hochkant spielen</button>
+  </div>
+</div>
 
 <div id="hud" class="hidden">
   <div class="hudbox" id="levelHud">Level 1</div>
@@ -207,6 +246,22 @@ function resize() {
   canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
 }
 window.addEventListener('resize', resize); resize();
+
+// ---- Hinweis: Handy bitte quer halten ----
+// Nur auf kleinen Geräten und nur im Hochformat. Wer trotzdem hochkant spielen
+// will, tippt einmal auf den Knopf und wird nicht mehr gefragt.
+let drehEgal = false;
+function drehPruefen() {
+  const el = document.getElementById('dreh');
+  if (!el) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  const handy = Math.min(w, h) < 820;
+  el.classList.toggle('an', handy && h > w && !drehEgal);
+}
+document.getElementById('drehOk').addEventListener('click', () => { drehEgal = true; drehPruefen(); });
+window.addEventListener('resize', drehPruefen);
+window.addEventListener('orientationchange', () => setTimeout(drehPruefen, 250));
+drehPruefen();
 
 const WORLD_W = 1900, WORLD_H = 780, GROUND_Y = 660;
 const SLING = { x: WORLD_W - 230, y: 545 };
@@ -1457,7 +1512,7 @@ function updateHud() {
   const w = levelWorld(levelIdx);
   document.getElementById('levelHud').innerHTML =
     'Level ' + (levelIdx + 1) + ' · 🎯 ' + ziele.length +
-    '<div style="font-size:11px;opacity:.85;font-weight:700">' + WORLDS[w].n + ' · ' + levelName(levelIdx) +
+    '<div class="hudsub" style="font-size:11px;opacity:.85;font-weight:700">' + WORLDS[w].n + ' · ' + levelName(levelIdx) +
     (W && W.wind ? ' · 💨' : '') + '</div>';
   const box = document.getElementById('tiresHud');
   box.innerHTML = '';
