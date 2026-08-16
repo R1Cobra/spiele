@@ -91,8 +91,9 @@ const REKORDE = [
       let b = 0; for (const x in k) if (x.startsWith("spider-best-")) b = Math.max(b, zahl(k[x]));
       return b ? { wert: b } : null;
     }},
-  { spiel: "Schiffe versenken", icon: "🚢", einheit: "Züge", hochBesser: false, lies(k) {
-      let b = 0; for (const x in k) if (x.startsWith("kmf-schiffe-best-")) {
+  { spiel: "Fahrzeug versenken", icon: "🚗", einheit: "Versuche", hochBesser: false, lies(k) {
+      // alte Schlüssel (kmf-schiffe-best-*) zaehlen weiter mit, damit alte Rekorde nicht verschwinden
+      let b = 0; for (const x in k) if (x.startsWith("kmf-fahrzeuge-best-") || x.startsWith("kmf-schiffe-best-")) {
         const v = zahl(k[x]); if (v && (!b || v < b)) b = v; }
       return b ? { wert: b } : null;
     }}
