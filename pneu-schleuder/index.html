@@ -112,16 +112,19 @@
   .kmf-back:active{ transform:scale(.94); }
 
   /* ---------- Firmen-Logo, klein und dezent ---------- */
+  /* Oben Mitte, leicht nach links – zwischen Zurück-Knopf (links) und Anzeige (rechts). */
   .kmf-logo{
     position:fixed; z-index:6; pointer-events:none;
-    left:calc(env(safe-area-inset-left, 0px) + 10px);
-    bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    top:calc(env(safe-area-inset-top, 0px) + 8px);
+    left:46%; transform:translateX(-50%);
     width:118px; padding:4px 6px; border-radius:9px;
     background:rgba(255,255,255,.72); opacity:.9;
     box-shadow:0 2px 8px rgba(0,0,0,.22);
   }
   .kmf-logo img{ display:block; width:100%; height:auto; }
-  @media (max-width:600px){ .kmf-logo{ width:88px; } }
+  @media (max-width:600px){ .kmf-logo{ width:84px; top:calc(env(safe-area-inset-top, 0px) + 10px); } }
+  /* ganz schmale Geräte: kein Platz zwischen den beiden Ecken, dann lieber weg */
+  @media (max-width:420px){ .kmf-logo{ display:none; } }
 
   /* ---------- Bitte quer halten ---------- */
   #dreh{ position:fixed; inset:0; z-index:30; display:none;
