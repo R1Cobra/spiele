@@ -22,8 +22,8 @@ const sandbox = { Matter, console, Math, JSON, Date, parseInt, parseFloat, isNaN
       createGain:()=>({gain:{value:0,exponentialRampToValueAtTime(){}},connect(){}}), resume(){} }; } } };
 sandbox.window.localStorage = sandbox.localStorage;
 vm.createContext(sandbox);
-vm.runInContext(code + '\n;globalThis.__X={buildLevel,TOTAL_LEVELS,WORLDS,LEVELS_PER_WORLD,VALUE};', sandbox, {filename:'ps.js'});
-const { buildLevel, TOTAL_LEVELS, WORLDS, LEVELS_PER_WORLD } = sandbox.__X;
+vm.runInContext(code + '\n;globalThis.__X={buildLevel,TOTAL_LEVELS,WORLDS,LEVELS_PER_WORLD,VALUE,IST_ZIEL};', sandbox, {filename:'ps.js'});
+const { buildLevel, TOTAL_LEVELS, WORLDS, LEVELS_PER_WORLD, IST_ZIEL } = sandbox.__X;
 
 const { Engine, Bodies, Composite, Events } = Matter;
 const WORLD_W = 1900, WORLD_H = 780, GROUND_Y = 660;
@@ -58,7 +58,7 @@ for (let i = 0; i < TOTAL_LEVELS; i++) {
         if (!info || info.solid || info.dead || impact < 4) continue;
         info.hp -= impact;
         if (info.hp <= 0) { info.dead = true;
-          zerstoert[info.kind === 'blitzer' ? 'blitzer' : info.kind === 'civil' ? 'civil' : 'andere']++; }
+          zerstoert[IST_ZIEL(info.kind) ? 'blitzer' : info.kind === 'civil' ? 'civil' : 'andere']++; }
       }
     }
   });
@@ -73,7 +73,7 @@ for (let i = 0; i < TOTAL_LEVELS; i++) {
   }
   driftSum += drift; if (drift > maxDrift) { maxDrift = drift; var maxLevel = i + 1; }
   if (wandert >= 3) einbrueche.push('Level ' + (i+1) + ': ' + wandert + ' Teile verrutscht (max ' + Math.round(drift) + 'px)');
-  if (zerstoert.blitzer) selbstzerstoerung.push('Level ' + (i+1) + ': ' + zerstoert.blitzer + ' Blitzer fallen von selbst um');
+  if (zerstoert.blitzer) selbstzerstoerung.push('Level ' + (i+1) + ': ' + zerstoert.blitzer + ' Ziele fallen von selbst um');
   if (zerstoert.civil) selbstzerstoerung.push('Level ' + (i+1) + ': Fahrschüler stirbt von selbst!');
 }
 

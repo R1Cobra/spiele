@@ -21,8 +21,8 @@ const sb = { Matter, console, Math, JSON, Date, parseInt, parseFloat, isNaN, set
       createGain:()=>({gain:{value:0,exponentialRampToValueAtTime(){}},connect(){}}), resume(){} }; } } };
 sb.window.localStorage = sb.localStorage;
 vm.createContext(sb);
-vm.runInContext(code + '\n;globalThis.__X={buildLevel,TOTAL_LEVELS,WORLDS,TIRES,VALUE,MAX_DRAG,POWER};', sb, {filename:'ps.js'});
-const { buildLevel, TOTAL_LEVELS, WORLDS, TIRES } = sb.__X;
+vm.runInContext(code + '\n;globalThis.__X={buildLevel,TOTAL_LEVELS,WORLDS,TIRES,VALUE,MAX_DRAG,POWER,IST_ZIEL,ZIELE};', sb, {filename:'ps.js'});
+const { buildLevel, TOTAL_LEVELS, WORLDS, TIRES, IST_ZIEL, ZIELE } = sb.__X;
 
 const WORLD_W = 1900, WORLD_H = 780, GROUND_Y = 660;
 const SLING = { x: WORLD_W - 230, y: 545 };
@@ -42,7 +42,7 @@ function neueWelt(def) {
     p.body.plugin.info = p;
     Composite.add(engine.world, p.body);
     st.parts.push(p);
-    if (p.kind === 'blitzer') st.blitzer++;
+    if (IST_ZIEL(p.kind)) st.blitzer++;
   }
   Events.on(engine, 'collisionStart', ev => {
     for (const pair of ev.pairs) {
@@ -63,6 +63,14 @@ function schaden(st, info, dmg) {
   if (info.hp <= 0) { info.dead = true; st.pending.push(info); }
 }
 function abraeumen(st) {
+  // gleiche Regel wie im Spiel: was aus dem Bild geflogen ist, gilt als zerstört
+  for (const info of st.parts) {
+    if (info.dead || info.body.isStatic) continue;
+    const p = info.body.position;
+    if (p.x > WORLD_W + 40 || p.x < -80 || p.y > WORLD_H + 120 || p.y < -900) {
+      info.dead = true; st.pending.push(info);
+    }
+  }
   let g = 0;
   while (st.pending.length && g++ < 40) {
     const list = st.pending; st.pending = [];
@@ -71,7 +79,7 @@ function abraeumen(st) {
       Composite.remove(st.engine.world, info.body);
       st.parts = st.parts.filter(x => x !== info);
       for (const x of st.parts) if (!x.body.isStatic) Sleeping.set(x.body, false);
-      if (info.kind === 'blitzer') { st.blitzer--; st.punkte += 500; }
+      if (IST_ZIEL(info.kind)) { st.blitzer--; st.punkte += ZIELE[info.kind].val; }
       else if (info.kind === 'civil') { st.civil++; st.punkte -= 750; }
       else if (info.kind === 'barrel') { st.punkte += 150; explode(st, p.x, p.y, 210, 1); }
       else st.punkte += 50;

@@ -1,7 +1,24 @@
 # Pneu-Schleuder – automatische Prüfung der 500 Levels
 
-Diese drei Skripte prüfen die Levels, ohne dass man sie von Hand durchspielen muss.
+Diese vier Skripte prüfen die Levels, ohne dass man sie von Hand durchspielen muss.
 **Nach jeder Änderung an den Bauplänen laufen lassen.**
+
+## Zielobjekte
+
+Es gibt fünf Zielarten (Tabelle `ZIELE` in `index.html`). Alle sind **gleich gross
+(46×60)** – so bleiben die Bauwerke gleich stabil, egal welche Art gewürfelt wird.
+Unterschiedlich sind Aussehen, Zähigkeit und Punkte:
+
+| Ziel | ab Welt | Leben | Punkte |
+|---|---|---|---|
+| 📸 Blitzer | 1 | 30 | 500 |
+| 🚦 Ampel | 2 | 26 | 400 |
+| 🅿️ Parkuhr | 3 | 20 | 350 |
+| ⛔ Verbotstafel | 4 | 24 | 400 |
+| 🛡️ Panzer-Blitzer | 6 | 78 | 1100 |
+
+Der Panzer-Blitzer kommt höchstens **einmal pro Level** vor, nie weiter hinten als
+d = 1350 (sonst unfair), und das Level bekommt dafür einen Pneu extra.
 
 Einmalig vorbereiten (nur für die Physik-Prüfungen nötig):
 
@@ -20,8 +37,9 @@ ausserhalb der Welt oder in der Schleuder? Genug Pneus? Kommt in einer Welt kein
 Bauplan doppelt vor und jeder Bauplan im ganzen Spiel oft genug?
 Ist jedes Level reproduzierbar (Level 99 überall gleich)?
 
-Es gibt 40 Baupläne, aber nur 25 Levels pro Welt – jede Welt spielt also eine
+Es gibt 48 Baupläne, aber nur 25 Levels pro Welt – jede Welt spielt also eine
 andere Auswahl davon. Darum fühlt sich keine Welt gleich an wie die vorige.
+Zusätzlich wird geprüft, dass jede der fünf Zielarten wirklich vorkommt.
 
 ## 2. Standfestigkeit – etwa eine Minute
 
@@ -44,8 +62,21 @@ und nimmt den besten. Spezialfähigkeiten nutzt er nicht – ein Mensch kann als
 mehr. Schafft der Roboter ein Level nicht, heisst das nicht automatisch
 «unmöglich», aber es lohnt sich, hinzuschauen.
 
-Richtwert bei dieser Version (40 Baupläne): **126 von 126** (Stichprobe) und
-**500 von 500** (`alle`).
+Der Roboter kennt auch die Regel «aus dem Bild geflogen = zerstört», sonst
+meldet er Levels als unlösbar, die man in Wirklichkeit längst gewonnen hat.
+
+Richtwert bei dieser Version (48 Baupläne, 5 Zielarten): **126 von 126**
+(Stichprobe) und **500 von 500** (`alle`).
+
+## 4. Grafik – dauert etwa eine Minute
+
+```bash
+node pruefung/test-grafik.js
+```
+
+Zeichnet jedes Bauteil aus allen 500 Levels einmal auf ein Schein-Canvas.
+Findet Tippfehler in der Zeichen-Routine, ohne das Spiel zu öffnen. Es sollten
+alle 17 Arten vorkommen und 0 Fehler gemeldet werden.
 
 ## Reichweite der Schleuder
 
@@ -66,3 +97,5 @@ Häufigste Ursachen:
 - Level stürzt von selbst ein → Bauteile überlappen sich; Höhen nachrechnen
   (ein Kistenstapel ist `n × 56` hoch, nicht die gewünschte Höhe)
 - Roboter schafft es nicht → mehr Pneus geben oder das Ziel freier stellen
+- Neues Bauteil zeichnet nicht → fehlt der `else if (p.kind === '…')`-Zweig in
+  `drawPart`? Der Grafik-Test zeigt, welche Arten er gesehen hat.

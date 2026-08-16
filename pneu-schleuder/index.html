@@ -123,7 +123,8 @@
 <!-- Startbildschirm -->
 <div id="startScreen" class="overlay">
   <div class="title">🛞 PNEU-<br>SCHLEUDER</div>
-  <div class="subtitle">Zieh den Pneu mit dem Finger zurück, lass los – und räum alle 📸 Blitzer ab.
+  <div class="subtitle">Zieh den Pneu mit dem Finger zurück, lass los – und räum alle 🎯 Ziele ab:
+    Blitzer, Ampeln, Parkuhren und Verbotstafeln.
     Im Flug antippen = Spezialfähigkeit. Aber Achtung: Fahrschüler nie treffen!</div>
   <div class="row">
     <button class="btn" id="startBtn">Weiterspielen</button>
@@ -219,7 +220,7 @@ let engine, world;
 let tire = null, tireState = 'idle';       // idle | aiming | flight
 let tireQueue = [], curTire = null, specialUsed = false;
 let score = 0, levelIdx = 0;
-let breakables = [], blitzers = [], particles = [], flashes = [], flakes = [];
+let breakables = [], ziele = [], particles = [], flashes = [], flakes = [];
 let camX = 0, camTargetX = 0, scale = 1, offY = 0;
 let dragging = false, dragPos = null;
 let settleTimer = 0, flightTime = 0, previewTimer = 0;
@@ -334,7 +335,20 @@ const TIRE_FROM = { pkw:0, lkw:1, renn:2, winter:3, traktor:4 };
 // ================= Bauteile =================
 // Distanz -> Weltkoordinate (Schleuder rechts). Geklemmt, damit nie etwas aus der Welt fällt.
 const MX = d => WORLD_W - Math.max(320, Math.min(d, 1740));
-const VALUE = { crate:50, plank:50, stone:120, ice:60, cone:30, barrel:150, blitzer:500, civil:0, rock:0, platform:0 };
+// Zielobjekte. Alle gleich gross (46×60), damit die Bauwerke gleich stabil bleiben –
+// aber unterschiedlich zäh, unterschiedlich wertvoll und ganz anders anzusehen.
+// «ab» = ab welcher Welt (0-basiert) die Art vorkommt.
+const ZIELE = {
+  blitzer: { n:'Blitzer',        hp:30, val:500,  ab:0 },
+  ampel:   { n:'Ampel',          hp:26, val:400,  ab:1 },
+  parkuhr: { n:'Parkuhr',        hp:20, val:350,  ab:2 },
+  tafel:   { n:'Verbotstafel',   hp:24, val:400,  ab:3 },
+  panzer:  { n:'Panzer-Blitzer', hp:78, val:1100, ab:5 }
+};
+const IST_ZIEL = k => !!ZIELE[k];
+const VALUE = { crate:50, plank:50, stone:120, ice:60, cone:30, barrel:150,
+                keil:60, kugel:130, civil:0, rock:0, platform:0, huegel:0 };
+for (const k in ZIELE) VALUE[k] = ZIELE[k].val;
 const G = GROUND_Y;
 
 function crate(d, y, s=56) {
@@ -361,9 +375,28 @@ function barrel(d, y) {
   return { body: Bodies.rectangle(MX(d), y, 40, 54, { friction:.5, restitution:.08, density:.0015 }),
     kind:'barrel', hp:22, maxHp:22, w:40, h:54 };
 }
+// Ein Ziel. Welche Art es wird, entscheidet die Mischung des Levels (zielMix).
+// Die Baupläne rufen weiterhin einfach blitzer(...) auf – die Grösse bleibt gleich.
+let zielMix = null;
 function blitzer(d, y) {
+  const kind = zielMix ? zielMix(d) : 'blitzer';
+  const Z = ZIELE[kind];
   return { body: Bodies.rectangle(MX(d), y, 46, 60, { friction:.6, restitution:.05, density:.002 }),
-    kind:'blitzer', hp:30, maxHp:30, w:46, h:60 };
+    kind, hp:Z.hp, maxHp:Z.hp, w:46, h:60 };
+}
+function keil(d, y, w, h, m) {    // Dreieck / Spitzdach aus Holz, Eis oder Stein
+  const hp = m === 'stone' ? 90 : m === 'ice' ? 20 : 34;
+  return { body: Bodies.trapezoid(MX(d), y, w, h, .98,
+      { friction:.6, restitution:.05, density: m === 'stone' ? .0035 : m === 'ice' ? .0012 : .0016 }),
+    kind:'keil', mat:m, hp, maxHp:hp, w, h };
+}
+function kugel(d, y, r) {         // Steinkugel – rollt und räumt alles um, was im Weg steht
+  return { body: Bodies.circle(MX(d), y, r, { friction:.35, restitution:.2, density:.0035 }),
+    kind:'kugel', hp:110, maxHp:110, w:r*2, h:r*2, r };
+}
+function huegel(d, y, w, h) {     // Gelände: Erdhügel / Plateau (unzerstörbar)
+  return { body: Bodies.rectangle(MX(d), y, w, h, { isStatic:true, friction:.9 }),
+    kind:'huegel', hp:1e9, maxHp:1e9, w, h, solid:true };
 }
 function civil(d, y) {
   return { body: Bodies.rectangle(MX(d), y, 26, 58, { friction:.7, restitution:.02, density:.0011 }),
@@ -836,6 +869,93 @@ const PLANS = [
     c.P.push(blitzer(d, G - 104));
     if (c.nb > 2) c.P.push(blitzer(d - 300, G - 30));
     c.P.push(cone(d + 260, G - 23));
+  }},
+
+// -- Gelände, Spitzdächer und Steinkugeln ------------------------------------
+{ id:'schlucht', n:'Die Schlucht', f(c){        // was in die Schlucht fällt, ist weg
+    const d = 1180, ph = 150;
+    c.P.push(huegel(d - 230, G - ph/2, 260, ph));
+    c.P.push(huegel(d + 230, G - ph/2, 260, ph));
+    c.P.push(blitzer(d - 230, G - ph - 30)); c.P.push(crate(d - 305, G - ph - 28));
+    c.P.push(blitzer(d + 230, G - ph - 30)); c.P.push(crate(d + 305, G - ph - 28));
+    if (c.nb > 2) c.P.push(blitzer(d, G - 30));
+    c.P.push(cone(d - 430, G - 23));
+  }},
+{ id:'plateau', n:'Burg auf dem Hügel', f(c){   // hoch gelegen – flache Schüsse prallen ab
+    const d = 1220, ph = 190, t = G - ph;
+    c.P.push(huegel(d, G - ph/2, 420, ph));
+    c.P.push(stone(d - 110, t - 55, 40, 110)); c.P.push(stone(d + 110, t - 55, 40, 110));
+    c.P.push(plank(d, t - 119, 280, 18));
+    c.P.push(blitzer(d, t - 30));
+    c.P.push(blitzer(d, t - 158));
+    if (c.nb > 2) c.P.push(blitzer(d - 330, G - 30));
+    c.P.push(barrel(d + 270, G - 27));
+    c.P.push(cone(d - 290, G - 23));
+  }},
+{ id:'haus', n:'Haus mit Spitzdach', f(c){      // das Dach rutscht seitlich weg
+    const d = 1170;
+    const t = pillars(c, d, 70, G, 112);
+    c.P.push(plank(d, t - 9, 220, 18));
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(keil(d, t - 78, 210, 120, 'crate'));
+    c.P.push(blitzer(d + 280, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d - 280, G - 30));
+    c.P.push(cone(d - 160, G - 23));
+  }},
+{ id:'haeuserzeile', n:'Die Häuserzeile', f(c){ // zwei Häuser hintereinander
+    let d = 1040;
+    for (let i = 0; i < 2; i++) {
+      const t = pillars(c, d, 70, G, 112);
+      c.P.push(plank(d, t - 9, 210, 18));
+      c.P.push(blitzer(d, G - 30));
+      c.P.push(keil(d, t - 68, 195, 100, 'crate'));
+      d += 320;
+    }
+    c.P.push(blitzer(d - 160, G - 30));
+    c.P.push(cone(d - 480, G - 23));
+  }},
+{ id:'kugelbahn', n:'Die Steinkugel', f(c){     // Turm weg – die Kugel walzt die Reihe nieder
+    const d = 1320;
+    const t = pillars(c, d, 60, G, 112);
+    c.P.push(plank(d, t - 9, 190, 18));
+    c.P.push(kugel(d, t - 52, 34));
+    let x = d - 210;
+    for (let i = 0; i < 3; i++) { c.P.push(crate(x, G - 28)); c.P.push(blitzer(x, G - 86)); x -= 130; }
+    c.P.push(blitzer(d + 230, G - 30));
+    c.P.push(cone(d + 120, G - 23));
+  }},
+{ id:'glasburg', n:'Die Glasburg', f(c){        // alles aus Eis – ein Streifschuss reicht
+    const d = 1180;
+    c.P.push(ice(d - 120, G - 60, 34, 120)); c.P.push(ice(d + 120, G - 60, 34, 120));
+    c.P.push(ice(d, G - 132, 310, 24));
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(blitzer(d, G - 174));
+    c.P.push(keil(d - 100, G - 184, 110, 80, 'ice'));
+    c.P.push(keil(d + 100, G - 184, 110, 80, 'ice'));
+    if (c.nb > 2) c.P.push(blitzer(d - 290, G - 30));
+    c.P.push(barrel(d + 240, G - 27));
+    c.P.push(cone(d - 200, G - 23));
+  }},
+{ id:'huegelkette', n:'Drei Hügel', f(c){       // jeder Hügel braucht einen anderen Bogen
+    let d = 980;
+    const hs = [80, 140, 200];
+    for (let i = 0; i < 3; i++) {
+      c.P.push(huegel(d, G - hs[i]/2, 200, hs[i]));
+      c.P.push(blitzer(d, G - hs[i] - 30));
+      if (i < 2) c.P.push(barrel(d + 60, G - hs[i] - 27));
+      d += 210;
+    }
+    if (c.nb > 3) c.P.push(blitzer(1520, G - 30));
+    c.P.push(cone(850, G - 23));
+  }},
+{ id:'steilhang', n:'Über den Hang', f(c){      // der Hang deckt alles dahinter zu
+    const d = 1120, ph = 230;
+    c.P.push(huegel(d, G - ph/2, 300, ph));
+    c.P.push(blitzer(d, G - ph - 30));
+    c.P.push(blitzer(d + 260, G - 30)); c.P.push(barrel(d + 260, G - 87));
+    c.P.push(crate(d + 390, G - 28)); c.P.push(blitzer(d + 390, G - 86));
+    if (c.nb > 3) c.P.push(blitzer(d + 500, G - 30));
+    c.P.push(cone(d - 230, G - 23));
   }}
 ];
 
@@ -864,9 +984,20 @@ function buildLevel(i) {
   const mat = () => { const r = rnd(); return r < stoneP ? 'stone' : (r < stoneP + iceP ? 'ice' : 'crate'); };
   const sup = () => { const r = rnd(); return r < stoneP * .9 ? 'stone' : (r < stoneP * .9 + iceP * .6 ? 'ice' : 'crate'); };
 
+  // Zielmischung: in den ersten Welten nur Blitzer, danach kommen Ampel, Parkuhr,
+  // Verbotstafel dazu – und ab Welt 6 höchstens ein gepanzerter Blitzer pro Level.
+  const arten = Object.keys(ZIELE).filter(k => k !== 'panzer' && ZIELE[k].ab <= w);
+  let panzerFrei = w >= ZIELE.panzer.ab ? 1 : 0;
+  zielMix = (d) => {
+    // Der gepanzerte Blitzer steht nie ganz hinten – sonst wird es unfair.
+    if (panzerFrei && d <= 1350 && rnd() < .14) { panzerFrei--; return 'panzer'; }
+    return rnd() < .40 ? 'blitzer' : pick(rnd, arten);
+  };
+
   const P = [];
   const c = { P, rnd, diff, hard, mat, sup, nb };
   PLANS[planIndex(i)].f(c);
+  zielMix = null;
 
   // Fässer je nach Fortschritt zusätzlich
   if (i >= 30 && rnd() < .35 + diff * .3) P.push(barrel(1000 + Math.floor(rnd()*450), G - 27));
@@ -876,7 +1007,8 @@ function buildLevel(i) {
     const n = 1 + (rnd() < diff * .8 ? 1 : 0);
     const spots = [860, 920, 980, 1040, 1420, 1490, 1560, 1630, 1690];
     const taken = [];
-    const frei = d => P.every(p => p.body.position.y < G - 95 || Math.abs(p.body.position.x - MX(d)) > 64)
+    const frei = d => P.every(p => p.body.position.y < G - 95
+                                || Math.abs(p.body.position.x - MX(d)) > (p.w || 0)/2 + 36)
                    && taken.every(t => Math.abs(t - d) > 90);
     for (let j = 0; j < n; j++) {
       const offen = spots.filter(frei);
@@ -889,9 +1021,10 @@ function buildLevel(i) {
 
   // Pneus zusammenstellen
   const avail = TIRE_ORDER.filter(t => TIRE_FROM[t] <= w);
-  const nBlitz = P.filter(p => p.kind === 'blitzer').length;
+  const nBlitz = P.filter(p => IST_ZIEL(p.kind)).length;
   // fair bleiben: immer mindestens ein Pneu Reserve (Marcos Regel: schwerer ja, unmöglich nein)
   let count = Math.max(3, nBlitz + 1, nBlitz + 2 - Math.round(hard * 1.5) - (w > 8 ? 1 : 0));
+  if (P.some(p => p.kind === 'panzer')) count++;      // Panzer-Blitzer braucht einen eigenen Treffer
   count = Math.min(count, 8);
   const q = ['pkw'];
   for (let j = 1; j < count; j++) q.push(pick(rnd, avail));
@@ -917,12 +1050,12 @@ function loadLevel(i) {
   const wallL = Bodies.rectangle(-60, WORLD_H/2, 120, WORLD_H*2, { isStatic:true });
   Composite.add(world, [ground, wallL]);
 
-  breakables = []; blitzers = []; particles = []; flashes = []; pendingRemove = [];
+  breakables = []; ziele = []; particles = []; flashes = []; pendingRemove = [];
   for (const p of def.parts) {
     Composite.add(world, p.body);
     p.body.plugin.info = p;
     breakables.push(p);
-    if (p.kind === 'blitzer') blitzers.push(p);
+    if (IST_ZIEL(p.kind)) ziele.push(p);
   }
 
   tireQueue = def.tires.slice();
@@ -1014,17 +1147,20 @@ function wakeAll() {
 }
 const PART_COLORS = { crate:['#b5793a','#8a5a26'], plank:['#c98d4b','#9c6a30'], stone:['#9aa4ad','#6f7a84'],
   ice:['#cfeaf7','#9ecfe8'], cone:['#ff7a1a','#ffffff'], barrel:['#ff9a2e','#c23b16'],
-  blitzer:['#7c8894','#2e6bd6'], civil:['#ffd23f','#4a86c8'] };
+  blitzer:['#7c8894','#2e6bd6'], civil:['#ffd23f','#4a86c8'],
+  ampel:['#3a4149','#37d67a','#e33'], parkuhr:['#3f6fb5','#dbe6f2'],
+  tafel:['#d92b2b','#ffffff'], panzer:['#4a5259','#c8ced4','#2e6bd6'],
+  keil:['#c98d4b','#9c6a30'], kugel:['#8b939c','#5f676e'] };
 function destroyPart(info) {
   info.hp = 0;
   const p = info.body.position;
-  spawnParticles(p.x, p.y, PART_COLORS[info.kind] || ['#fff'], info.kind === 'blitzer' ? 26 : 14);
+  spawnParticles(p.x, p.y, PART_COLORS[info.kind] || ['#fff'], IST_ZIEL(info.kind) ? 26 : 14);
   Composite.remove(world, info.body);
   breakables = breakables.filter(x => x !== info);
   wakeAll();
-  if (info.kind === 'blitzer') {
-    blitzers = blitzers.filter(x => x !== info);
-    score += 500; flashes.push({ x:p.x, y:p.y, t:1 }); sfx.blitz();
+  if (IST_ZIEL(info.kind)) {
+    ziele = ziele.filter(x => x !== info);
+    score += ZIELE[info.kind].val; flashes.push({ x:p.x, y:p.y, t:1 }); sfx.blitz();
   } else if (info.kind === 'barrel') {
     score += 150; explode(p.x, p.y, 210, 1);
   } else if (info.kind === 'civil') {
@@ -1155,7 +1291,7 @@ function checkGameState(dt) {
     if (previewTimer <= 0) camTargetX = WORLD_W;
   }
 
-  if (blitzers.length === 0 && pendingRemove.length === 0) {
+  if (ziele.length === 0 && pendingRemove.length === 0) {
     winTimer += dt;
     if (winTimer > 800) { endScheduled = true; endLevel(true); }
     return;
@@ -1227,7 +1363,7 @@ function endLevel(won) {
 function updateHud() {
   const w = levelWorld(levelIdx);
   document.getElementById('levelHud').innerHTML =
-    'Level ' + (levelIdx + 1) + ' · 📸 ' + blitzers.length +
+    'Level ' + (levelIdx + 1) + ' · 🎯 ' + ziele.length +
     '<div style="font-size:11px;opacity:.85;font-weight:700">' + WORLDS[w].n + ' · ' + levelName(levelIdx) +
     (W && W.wind ? ' · 💨' : '') + '</div>';
   const box = document.getElementById('tiresHud');
@@ -1536,6 +1672,79 @@ function drawPart(p) {
     ctx.fillStyle = '#e33';
     ctx.beginPath(); ctx.arc(14, 8, 4, 0, 7); ctx.fill();
     ctx.fillStyle = '#5b6570'; ctx.fillRect(-23, 14, 46, 6);
+  } else if (p.kind === 'panzer') {               // Blitzer mit Schutzgitter – sehr zäh
+    ctx.fillStyle = '#4a5259';
+    rr(-23, -30, 46, 60, 6);
+    ctx.fillStyle = '#2b3239';
+    rr(-17, -25, 34, 25, 4);
+    ctx.fillStyle = '#2e6bd6';
+    ctx.beginPath(); ctx.arc(0, -12, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = '#9fc4ff';
+    ctx.beginPath(); ctx.arc(-3, -15, 3, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#c8ced4'; ctx.lineWidth = 3;
+    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i*11, -28); ctx.lineTo(i*11, 3); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(-20, -13); ctx.lineTo(20, -13); ctx.stroke();
+    ctx.fillStyle = '#5b6570'; ctx.fillRect(-23, 12, 46, 7);
+    ctx.fillStyle = '#ffd23f'; ctx.fillRect(-23, 19, 46, 5);
+  } else if (p.kind === 'ampel') {
+    ctx.fillStyle = '#5b6570'; ctx.fillRect(-6, 12, 12, 18);
+    ctx.fillStyle = '#3a4149'; ctx.fillRect(-20, 26, 40, 6);
+    ctx.fillStyle = '#3a4149';
+    rr(-15, -30, 30, 46, 7);
+    ctx.fillStyle = '#191d22';
+    rr(-12, -27, 24, 40, 5);
+    const AC = ['#e33', '#ffd23f', '#37d67a'];
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = AC[i];
+      ctx.beginPath(); ctx.arc(0, -20 + i*13, 5.5, 0, 7); ctx.fill();
+    }
+  } else if (p.kind === 'parkuhr') {
+    ctx.fillStyle = '#8d949b'; ctx.fillRect(-5, -8, 10, 34);
+    ctx.fillStyle = '#5b6570'; ctx.fillRect(-16, 24, 32, 7);
+    ctx.fillStyle = '#3f6fb5';
+    rr(-17, -30, 34, 26, 7);
+    ctx.fillStyle = '#dbe6f2';
+    rr(-12, -26, 24, 15, 3);
+    ctx.fillStyle = '#1e2a38'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('P', 0, -14);
+  } else if (p.kind === 'tafel') {
+    ctx.fillStyle = '#8d949b'; ctx.fillRect(-4, -2, 8, 30);
+    ctx.fillStyle = '#5b6570'; ctx.fillRect(-15, 24, 30, 7);
+    ctx.fillStyle = '#d92b2b';
+    ctx.beginPath(); ctx.arc(0, -13, 18, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(0, -13, 12.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#22272c'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('50', 0, -8);
+  } else if (p.kind === 'keil') {                 // Spitzdach / Dreieck
+    const f = p.mat === 'stone' ? '#9aa4ad' : p.mat === 'ice' ? 'rgba(190,228,245,.85)' : '#c98d4b';
+    const s = p.mat === 'stone' ? '#6f7a84' : p.mat === 'ice' ? 'rgba(255,255,255,.9)' : '#7a5222';
+    ctx.beginPath();
+    ctx.moveTo(0, -p.h/2); ctx.lineTo(p.w/2, p.h/2); ctx.lineTo(-p.w/2, p.h/2); ctx.closePath();
+    ctx.fillStyle = f; ctx.fill();
+    ctx.strokeStyle = s; ctx.lineWidth = 3; ctx.stroke();
+    ctx.strokeStyle = p.mat === 'ice' ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.18)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -p.h/2 + 8); ctx.lineTo(0, p.h/2 - 4); ctx.stroke();
+  } else if (p.kind === 'kugel') {                // Steinkugel
+    ctx.fillStyle = '#8b939c';
+    ctx.beginPath(); ctx.arc(0, 0, p.r, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.20)';
+    ctx.beginPath(); ctx.arc(-p.r*.32, -p.r*.32, p.r*.42, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#5f676e'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, p.r - 1.5, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-p.r*.62, 0); ctx.lineTo(p.r*.62, 0); ctx.stroke();
+  } else if (p.kind === 'huegel') {               // Gelände: Erde mit Grasnarbe
+    ctx.fillStyle = '#5a4530';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 14);
+    ctx.fillRect(-p.w/2, p.h/2 - 18, p.w, 18);    // unten bündig auf dem Boden
+    ctx.fillStyle = 'rgba(0,0,0,.16)';            // ein paar Erdschichten
+    for (let i = 1; i * 46 < p.h - 30; i++) ctx.fillRect(-p.w/2 + 10, -p.h/2 + 26 + i*46, p.w - 20, 3);
+    ctx.fillStyle = (W && W.gr) || '#6fae5e';
+    rr(-p.w/2, -p.h/2, p.w, 24, 10);
+    ctx.fillStyle = 'rgba(0,0,0,.12)';
+    ctx.fillRect(-p.w/2, -p.h/2 + 22, p.w, 3);
   } else if (p.kind === 'civil') {
     ctx.fillStyle = '#2b3239'; ctx.fillRect(-9, 4, 7, 25); ctx.fillRect(2, 4, 7, 25);
     ctx.fillStyle = '#ffd23f';                      // Warnweste

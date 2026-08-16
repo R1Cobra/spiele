@@ -57,11 +57,12 @@ const sandbox = {
 sandbox.window.localStorage = sandbox.localStorage;
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
-vm.runInContext(code + '\n;globalThis.__X = { buildLevel, PLANS, WORLDS, LEVELS_PER_WORLD, TOTAL_LEVELS, planIndex, TIRES, levelName };',
+vm.runInContext(code + '\n;globalThis.__X = { buildLevel, PLANS, WORLDS, LEVELS_PER_WORLD, TOTAL_LEVELS, planIndex, TIRES, levelName, IST_ZIEL, ZIELE };',
   sandbox, { filename: 'pneu-schleuder.js' });
 
 // ---- Prüfung ----
-const { buildLevel, PLANS, WORLDS, LEVELS_PER_WORLD, TOTAL_LEVELS, planIndex, TIRES } = sandbox.__X;
+const { buildLevel, PLANS, WORLDS, LEVELS_PER_WORLD, TOTAL_LEVELS, planIndex, TIRES, IST_ZIEL, ZIELE } = sandbox.__X;
+const zielZahl = {};
 const SLING_X = 1900 - 230;
 let fehler = [], warn = [];
 const planCount = {}, worldPlans = {};
@@ -78,9 +79,10 @@ for (let i = 0; i < TOTAL_LEVELS; i++) {
   planCount[pi] = (planCount[pi] || 0) + 1;
   (worldPlans[w] = worldPlans[w] || []).push(pi);
 
-  const blitz = def.parts.filter(p => p.kind === 'blitzer').length;
+  const blitz = def.parts.filter(p => IST_ZIEL(p.kind)).length;
+  for (const p of def.parts) if (IST_ZIEL(p.kind)) zielZahl[p.kind] = (zielZahl[p.kind] || 0) + 1;
   const civils = def.parts.filter(p => p.kind === 'civil').length;
-  if (blitz === 0) fehler.push('Level ' + (i+1) + ': KEIN Blitzer');
+  if (blitz === 0) fehler.push('Level ' + (i+1) + ': KEIN Ziel');
   if (!def.parts.length) fehler.push('Level ' + (i+1) + ': leer');
   if (def.tires.length < 2) fehler.push('Level ' + (i+1) + ': nur ' + def.tires.length + ' Pneu(s)');
   if (def.tires.length < blitz) warn.push('Level ' + (i+1) + ': ' + def.tires.length + ' Pneus für ' + blitz + ' Blitzer');
@@ -131,6 +133,8 @@ console.log('Teile pro Level:', minTeile + '–' + maxTeile, '· Blitzer:', minB
 console.log('höchster Punkt y=' + Math.round(hoechstesTeil), '· weitestes Ziel d=' + Math.round(weitestesTeil), '· nächstes Teil x=' + Math.round(naechstesTeil));
 const nutzung = Object.values(planCount);
 console.log('Bauplan-Nutzung: ' + Math.min(...nutzung) + '–' + Math.max(...nutzung) + '× pro Bauplan · verschiedene Baupläne pro Welt: ' + LEVELS_PER_WORLD);
+console.log('Zielarten: ' + Object.keys(ZIELE).map(k => ZIELE[k].n + ' ' + (zielZahl[k] || 0) + '×').join(' · '));
+for (const k in ZIELE) if (!zielZahl[k]) fehler.push('Zielart "' + ZIELE[k].n + '" kommt nie vor');
 console.log('\nFEHLER: ' + fehler.length);
 fehler.slice(0, 25).forEach(f => console.log('  ✗ ' + f));
 console.log('WARNUNGEN: ' + warn.length);
