@@ -21,7 +21,7 @@ set -e
 
 QUELLE="$HOME/spiele"
 ZIEL="$HOME/Documents/GitHub/KMF-App-/public/spiele"
-SPIELE="pneu-schleuder parkplatz-chaos"
+SPIELE="pneu-schleuder parkplatz-chaos fahrzeug-versenken"
 
 [ -d "$ZIEL" ] || { echo "KMF-App nicht gefunden: $ZIEL"; exit 1; }
 
