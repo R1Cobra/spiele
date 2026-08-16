@@ -16,8 +16,12 @@ node pruefung/test-levels.js
 ```
 
 Prüft alle 500 Levels: Hat jedes Level mindestens einen Blitzer? Steht nichts
-ausserhalb der Welt oder in der Schleuder? Genug Pneus? Spielt jede Welt jeden
-Bauplan genau einmal? Ist jedes Level reproduzierbar (Level 99 überall gleich)?
+ausserhalb der Welt oder in der Schleuder? Genug Pneus? Kommt in einer Welt kein
+Bauplan doppelt vor und jeder Bauplan im ganzen Spiel oft genug?
+Ist jedes Level reproduzierbar (Level 99 überall gleich)?
+
+Es gibt 40 Baupläne, aber nur 25 Levels pro Welt – jede Welt spielt also eine
+andere Auswahl davon. Darum fühlt sich keine Welt gleich an wie die vorige.
 
 ## 2. Standfestigkeit – etwa eine Minute
 
@@ -40,10 +44,8 @@ und nimmt den besten. Spezialfähigkeiten nutzt er nicht – ein Mensch kann als
 mehr. Schafft der Roboter ein Level nicht, heisst das nicht automatisch
 «unmöglich», aber es lohnt sich, hinzuschauen.
 
-Richtwert bei dieser Version: **124 von 126** (Stichprobe) und
-**498 von 500** (`alle`). Die zwei Ausreisser (Level 321 und 473) fallen nur
-durch das grobe Zielraster des Roboters durch – mit feineren Winkel- und
-Kraftschritten löst er beide.
+Richtwert bei dieser Version (40 Baupläne): **126 von 126** (Stichprobe) und
+**500 von 500** (`alle`).
 
 ## Reichweite der Schleuder
 

@@ -676,6 +676,166 @@ const PLANS = [
       d += 180 + ri(c.rnd, 0, 60);
     }
     c.P.push(blitzer(d, G - 30));
+  }},
+
+// -- ab hier die neuen Szenarien ---------------------------------------------
+{ id:'schacht', n:'Der Schacht', f(c){          // nur ein steiler Bogen von oben kommt rein
+    const d = 1200;
+    c.P.push(rock(d - 95, G - 150, 60, 300));
+    c.P.push(rock(d + 95, G - 150, 60, 300));
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(barrel(d, G - 87));                // das Fass im Schacht ist die Abkürzung
+    c.P.push(blitzer(d + 260, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d - 250, G - 30));
+    c.P.push(cone(d + 175, G - 23));
+  }},
+{ id:'tunnel', n:'Der Tunnel', f(c){            // flach durchrollen statt drüberschiessen
+    const d = 1150;
+    c.P.push(platform(d, G - 130, 340));         // Decke – der Pneu rollt darunter durch
+    c.P.push(stone(d - 90, G - 190, 44, 100)); c.P.push(stone(d + 90, G - 190, 44, 100));
+    c.P.push(plank(d, G - 249, 300, 18));
+    c.P.push(blitzer(d, G - 288));               // oben auf dem Dach
+    c.P.push(barrel(d - 40, G - 27));            // Fass gleich hinter der Einfahrt
+    c.P.push(blitzer(d + 40, G - 30));           // dahinter im Tunnel
+    if (c.nb > 2) c.P.push(blitzer(d - 300, G - 30));
+    c.P.push(cone(d - 250, G - 23));
+  }},
+{ id:'domino', n:'Dominoreihe', f(c){           // einer kippt, alle kippen
+    const start = 1010, n = 4 + Math.round(c.diff*2);
+    let d = start;
+    for (let i = 0; i < n; i++) { c.P.push(plank(d, G - 70, 24, 140)); d += 92; }
+    c.P.push(blitzer(d + 10, G - 30));
+    if (c.nb > 1) c.P.push(blitzer(start - 130, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d + 80, G - 30));
+    c.P.push(cone(start - 60, G - 23));
+  }},
+{ id:'balken', n:'Die Balancierstange', f(c){   // ein Ende treffen, das andere fliegt mit
+    const d = 1180;
+    c.P.push(rock(d, G - 60, 46, 120));
+    c.P.push(plank(d, G - 130, 470, 20));
+    c.P.push(blitzer(d - 190, G - 170)); c.P.push(blitzer(d + 190, G - 170));
+    if (c.nb > 2) { c.P.push(crate(d, G - 168)); c.P.push(blitzer(d, G - 226)); }
+    c.P.push(barrel(d + 290, G - 27));
+    c.P.push(cone(d - 290, G - 23));
+  }},
+{ id:'kaefig', n:'Der Eiskäfig', f(c){          // Eis ist dünn – ein Streifschuss genügt
+    const d = 1160;
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(ice(d - 52, G - 40, 24, 80)); c.P.push(ice(d + 52, G - 40, 24, 80));
+    c.P.push(ice(d, G - 90, 150, 20));
+    c.P.push(crate(d, G - 128));
+    c.P.push(blitzer(d, G - 186));
+    if (c.nb > 2) c.P.push(blitzer(d - 260, G - 30));
+    c.P.push(barrel(d + 200, G - 27));
+    c.P.push(cone(d + 120, G - 23));
+  }},
+{ id:'fassturm', n:'Fässerturm', f(c){          // Kettenexplosion von unten nach oben
+    const d = 1170;
+    c.P.push(stone(d - 62, G - 82, 40, 164)); c.P.push(stone(d + 62, G - 82, 40, 164));
+    for (let i = 0; i < 3; i++) c.P.push(barrel(d, G - 27 - i*54));
+    c.P.push(plank(d, G - 173, 220, 18));
+    c.P.push(blitzer(d, G - 212));
+    c.P.push(blitzer(d + 260, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d - 250, G - 30));
+    c.P.push(cone(d + 150, G - 23));
+  }},
+{ id:'skyline', n:'Die Skyline', f(c){          // fünf Häuser, jedes anders hoch
+    let d = 990;
+    const hs = [112, 168, 56, 224, 140];        // jedes Haus aus EINEM Material – sonst wackelt es
+    const m = c.sup();
+    for (let i = 0; i < 5; i++) {
+      const t = pillar(c, d, G, hs[i], m);
+      if (i === 1 || i === 3) c.P.push(blitzer(d, t - 30));
+      d += 130;
+    }
+    c.P.push(blitzer(1540, G - 30));
+    if (c.nb > 3) c.P.push(blitzer(930, G - 30));
+    c.P.push(cone(1055, G - 23));
+  }},
+{ id:'mauerhoch', n:'Über die Mauer', f(c){     // Felswand davor – nur ein hoher Bogen
+    const d = 1060, h = 300 + c.diff*90;
+    c.P.push(rock(d, G - h/2, 70, h));
+    c.P.push(blitzer(d + 200, G - 30)); c.P.push(barrel(d + 200, G - 87));
+    c.P.push(crate(d + 330, G - 28)); c.P.push(blitzer(d + 330, G - 86));
+    if (c.nb > 2) c.P.push(blitzer(d + 460, G - 30));
+    c.P.push(cone(d - 120, G - 23));
+  }},
+{ id:'pilz', n:'Der Pilz', f(c){                // den Stiel treffen, dann fällt der ganze Hut
+    const d = 1190;
+    c.P.push(stone(d, G - 95, 38, 190));
+    c.P.push(stone(d, G - 202, 300, 24));
+    c.P.push(blitzer(d - 100, G - 244)); c.P.push(blitzer(d + 100, G - 244));
+    if (c.nb > 2) { c.P.push(crate(d, G - 242)); c.P.push(blitzer(d, G - 300)); }
+    c.P.push(blitzer(d + 280, G - 30));
+    c.P.push(cone(d - 200, G - 23));
+  }},
+{ id:'zickzack', n:'Zickzack', f(c){            // drei Höhen – jeder Schuss ein anderer Winkel
+    const d = 1120;
+    c.P.push(platform(d - 210, G - 130, 200));
+    c.P.push(platform(d,       G - 260, 200));
+    c.P.push(platform(d + 210, G - 390, 200));
+    c.P.push(blitzer(d - 210, G - 170));
+    c.P.push(blitzer(d,       G - 300));
+    c.P.push(blitzer(d + 210, G - 430));
+    if (c.nb > 3) c.P.push(blitzer(d, G - 30));
+    c.P.push(cone(d - 100, G - 23)); c.P.push(cone(d + 100, G - 23));
+  }},
+{ id:'tresor', n:'Der Tresor', f(c){            // Steinkiste – das Fass obendrauf ist der Schlüssel
+    const d = 1200;
+    c.P.push(stone(d - 68, G - 55, 40, 110)); c.P.push(stone(d + 68, G - 55, 40, 110));
+    c.P.push(stone(d, G - 125, 216, 30));
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(barrel(d, G - 167));
+    c.P.push(blitzer(d - 250, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d + 250, G - 30));
+    c.P.push(cone(d + 150, G - 23));
+  }},
+{ id:'leuchtturm', n:'Der Leuchtturm', f(c){    // schmal und hoch, oben zwei Blitzer nebeneinander
+    const d = 1250; let y = G;
+    const fl = 3 + Math.round(c.diff*2);
+    for (let i = 0; i < fl; i++) {
+      const t = pillars(c, d, 40, y, 60);
+      c.P.push(plank(d, t - 9, 150, 18));
+      y = t - 18;
+    }
+    c.P.push(plank(d, y - 9, 176, 18)); y -= 18;    // Laterne knapp breiter als der Turm
+    c.P.push(blitzer(d - 48, y - 30)); c.P.push(blitzer(d + 48, y - 30));
+    c.P.push(blitzer(d - 300, G - 30));
+    if (c.nb > 3) c.P.push(blitzer(d + 280, G - 30));
+    c.P.push(cone(d + 120, G - 23));
+  }},
+{ id:'doppelgrube', n:'Zwei Gruben', f(c){      // zwei getrennte Löcher, jedes einzeln holen
+    const d = 1180;
+    c.P.push(rock(d - 230, G - 55, 55, 110));
+    c.P.push(rock(d,       G - 55, 55, 110));
+    c.P.push(rock(d + 230, G - 55, 55, 110));
+    c.P.push(blitzer(d - 115, G - 30)); c.P.push(blitzer(d + 115, G - 30));
+    c.P.push(barrel(d - 115, G - 87));
+    if (c.nb > 2) c.P.push(blitzer(d + 380, G - 30));
+    c.P.push(cone(d - 380, G - 23));
+  }},
+{ id:'regal', n:'Das Hochregal', f(c){          // drei feste Etagen – jede Etage einzeln abräumen
+    const d = 1180;
+    for (let i = 0; i < 3; i++) {
+      const y = G - 120 - i*150;
+      c.P.push(platform(d, y, 300));
+      c.P.push(crate(d - 100, y - 38));
+      c.P.push(blitzer(d + (i % 2 ? -20 : 60), y - 40));
+      if (i === 1) c.P.push(barrel(d + 110, y - 37));
+    }
+    c.P.push(blitzer(d + 250, G - 30));
+    c.P.push(cone(d - 200, G - 23));
+  }},
+{ id:'nest', n:'Das Nest', f(c){                // Blitzer in der Mulde, Fässer als Deckel
+    const d = 1220;
+    c.P.push(rock(d - 120, G - 45, 60, 90)); c.P.push(rock(d + 120, G - 45, 60, 90));
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(crate(d - 60, G - 28)); c.P.push(crate(d + 60, G - 28));
+    c.P.push(plank(d, G - 65, 240, 18));
+    c.P.push(barrel(d - 60, G - 101)); c.P.push(barrel(d + 60, G - 101));
+    c.P.push(blitzer(d, G - 104));
+    if (c.nb > 2) c.P.push(blitzer(d - 300, G - 30));
+    c.P.push(cone(d + 260, G - 23));
   }}
 ];
 
@@ -687,8 +847,9 @@ function levelName(i) {
 }
 function planIndex(i) {
   const w = levelWorld(i), k = i % LEVELS_PER_WORLD;
-  // jede Welt spielt alle Baupläne genau einmal – aber in eigener Reihenfolge
-  return (k * 7 + w * 11 + Math.floor(w / 3)) % PLANS.length;
+  // 7 und 17 sind teilerfremd zur Bauplan-Zahl: innerhalb einer Welt kommt kein
+  // Bauplan doppelt vor, und jede Welt bekommt eine andere Auswahl aus dem Vorrat.
+  return (k * 7 + w * 17) % PLANS.length;
 }
 function buildLevel(i) {
   const w = levelWorld(i), k = i % LEVELS_PER_WORLD;

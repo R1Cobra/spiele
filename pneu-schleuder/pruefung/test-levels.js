@@ -109,10 +109,15 @@ for (let i = 0; i < TOTAL_LEVELS; i++) {
   minPneu = Math.min(minPneu, def.tires.length); maxPneu = Math.max(maxPneu, def.tires.length);
 }
 
-// jede Welt soll jeden Bauplan genau einmal spielen
+// in einer Welt darf kein Bauplan doppelt vorkommen (25 Levels aus dem Bauplan-Vorrat)
 for (const w in worldPlans) {
   const s = new Set(worldPlans[w]);
   if (s.size !== LEVELS_PER_WORLD) fehler.push('Welt ' + (+w+1) + ': nur ' + s.size + ' verschiedene Baupläne');
+}
+// und jeder Bauplan soll über das ganze Spiel verteilt regelmässig drankommen
+for (let p = 0; p < PLANS.length; p++) {
+  const n = planCount[p] || 0;
+  if (n < 8) fehler.push('Bauplan "' + PLANS[p].n + '" kommt nur ' + n + '× vor');
 }
 // Determinismus: zweimal bauen -> gleiches Ergebnis
 for (const i of [0, 42, 123, 250, 377, 499]) {
@@ -124,7 +129,8 @@ for (const i of [0, 42, 123, 250, 377, 499]) {
 console.log('Baupläne:', PLANS.length, '· Welten:', WORLDS.length, '· Levels:', TOTAL_LEVELS);
 console.log('Teile pro Level:', minTeile + '–' + maxTeile, '· Blitzer:', minBlitz + '–' + maxBlitz, '· Pneus:', minPneu + '–' + maxPneu);
 console.log('höchster Punkt y=' + Math.round(hoechstesTeil), '· weitestes Ziel d=' + Math.round(weitestesTeil), '· nächstes Teil x=' + Math.round(naechstesTeil));
-console.log('Bauplan-Nutzung je 20×:', Object.values(planCount).every(v => v === 20) ? 'ja' : JSON.stringify(planCount));
+const nutzung = Object.values(planCount);
+console.log('Bauplan-Nutzung: ' + Math.min(...nutzung) + '–' + Math.max(...nutzung) + '× pro Bauplan · verschiedene Baupläne pro Welt: ' + LEVELS_PER_WORLD);
 console.log('\nFEHLER: ' + fehler.length);
 fehler.slice(0, 25).forEach(f => console.log('  ✗ ' + f));
 console.log('WARNUNGEN: ' + warn.length);
