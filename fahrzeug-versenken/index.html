@@ -626,25 +626,36 @@ function buildGrid(el, store, seite){
   el.innerHTML = '';
   store.length = 0;
   el.style.gridTemplateColumns = 'var(--lbl) repeat(' + N + ', var(--cell))';
+  /* Jede Beschriftung und jedes Feld bekommt seinen Platz fix zugewiesen.
+     Sonst schiebt der Browser sie beiseite, sobald ein Fahrzeug-SVG
+     (das ebenfalls feste Rasterplätze belegt) darüberliegt. */
   const ecke = document.createElement('div');
   ecke.className = 'lbl col head';
+  ecke.style.gridColumn = '1';
+  ecke.style.gridRow = '1';
   el.appendChild(ecke);
   for(let c = 0; c < N; c++){
     const d = document.createElement('div');
     d.className = 'lbl col head';
     d.textContent = c + 1;
+    d.style.gridColumn = String(c + 2);
+    d.style.gridRow = '1';
     el.appendChild(d);
   }
   for(let r = 0; r < N; r++){
     const rl = document.createElement('div');
     rl.className = 'lbl';
     rl.textContent = String.fromCharCode(65 + r);
+    rl.style.gridColumn = '1';
+    rl.style.gridRow = String(r + 2);
     el.appendChild(rl);
     for(let c = 0; c < N; c++){
       const d = document.createElement('div');
       d.className = 'cell';
       d.dataset.i = idx(r, c);
       d.dataset.seite = seite;
+      d.style.gridColumn = String(c + 2);
+      d.style.gridRow = String(r + 2);
       el.appendChild(d);
       store[idx(r, c)] = d;
     }
