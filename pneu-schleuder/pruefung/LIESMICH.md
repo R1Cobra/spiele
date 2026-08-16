@@ -1,4 +1,4 @@
-# Pneu-Schleuder – automatische Prüfung der 500 Levels
+# Pneu-Schleuder – automatische Prüfung der 600 Levels
 
 Diese vier Skripte prüfen die Levels, ohne dass man sie von Hand durchspielen muss.
 **Nach jeder Änderung an den Bauplänen laufen lassen.**
@@ -20,6 +20,22 @@ Unterschiedlich sind Aussehen, Zähigkeit und Punkte:
 Der Panzer-Blitzer kommt höchstens **einmal pro Level** vor, nie weiter hinten als
 d = 1350 (sonst unfair), und das Level bekommt dafür einen Pneu extra.
 
+## Bauteile
+
+| Bauteil | Leben | Besonderheit |
+|---|---|---|
+| Kiste / Balken | 45 / 38 | Standard-Holz |
+| Stein | 120 | schwer, hält gut |
+| Eis | 26 | zerspringt fast von selbst |
+| Keil (Spitzdach) | 34 / 20 / 90 | Holz / Eis / Stein – rutscht seitlich weg |
+| Fass | 22 | explodiert, Radius 210 |
+| Steinkugel | 110 | rollt und walzt alles nieder |
+| Sandsack | 55 | schwer und weich, schluckt den Schwung |
+| Pneu (Hindernis) | 45 | rollt weg und federt zurück |
+| Stahlträger | 220 | nur schwere Pneus knacken ihn |
+| Fels / Plattform / Erdhügel | – | unzerstörbar (Gelände) |
+| Sprungfeder | – | fest verschraubt, schleudert alles zurück |
+
 Einmalig vorbereiten (nur für die Physik-Prüfungen nötig):
 
 ```bash
@@ -32,12 +48,12 @@ npm install matter-js
 node pruefung/test-levels.js
 ```
 
-Prüft alle 500 Levels: Hat jedes Level mindestens einen Blitzer? Steht nichts
+Prüft alle 600 Levels: Hat jedes Level mindestens einen Blitzer? Steht nichts
 ausserhalb der Welt oder in der Schleuder? Genug Pneus? Kommt in einer Welt kein
 Bauplan doppelt vor und jeder Bauplan im ganzen Spiel oft genug?
 Ist jedes Level reproduzierbar (Level 99 überall gleich)?
 
-Es gibt 48 Baupläne, aber nur 25 Levels pro Welt – jede Welt spielt also eine
+Es gibt 54 Baupläne, aber nur 25 Levels pro Welt – jede Welt spielt also eine
 andere Auswahl davon. Darum fühlt sich keine Welt gleich an wie die vorige.
 Zusätzlich wird geprüft, dass jede der fünf Zielarten wirklich vorkommt.
 
@@ -54,7 +70,7 @@ Kein Level darf von allein einstürzen oder sich selbst einen Blitzer umwerfen.
 
 ```bash
 node pruefung/test-roboter.js          # jedes vierte Level
-node pruefung/test-roboter.js alle     # alle 500 Levels (etwa 5 Minuten)
+node pruefung/test-roboter.js alle     # alle 600 Levels (etwa 90 Sekunden)
 ```
 
 Spielt die Levels tatsächlich durch: Pro Pneu probiert er 70 Schüsse
@@ -65,8 +81,8 @@ mehr. Schafft der Roboter ein Level nicht, heisst das nicht automatisch
 Der Roboter kennt auch die Regel «aus dem Bild geflogen = zerstört», sonst
 meldet er Levels als unlösbar, die man in Wirklichkeit längst gewonnen hat.
 
-Richtwert bei dieser Version (48 Baupläne, 5 Zielarten): **126 von 126**
-(Stichprobe) und **500 von 500** (`alle`).
+Richtwert bei dieser Version (54 Baupläne, 5 Zielarten, 24 Welten):
+**151 von 151** (Stichprobe) und **600 von 600** (`alle`).
 
 ## 4. Grafik – dauert etwa eine Minute
 
@@ -74,9 +90,13 @@ Richtwert bei dieser Version (48 Baupläne, 5 Zielarten): **126 von 126**
 node pruefung/test-grafik.js
 ```
 
-Zeichnet jedes Bauteil aus allen 500 Levels einmal auf ein Schein-Canvas.
+Zeichnet jedes Bauteil aus allen 600 Levels einmal auf ein Schein-Canvas und
+dazu einmal pro Welt die ganze Kulisse (Himmel, Hügel, Silhouetten, Wetter).
 Findet Tippfehler in der Zeichen-Routine, ohne das Spiel zu öffnen. Es sollten
-alle 17 Arten vorkommen und 0 Fehler gemeldet werden.
+alle 21 Bauteil-Arten und alle 24 Kulissen vorkommen, bei 0 Fehlern.
+
+**Achtung:** Der Test prüft nur, dass nichts abstürzt – ob es *schön* aussieht,
+sieht man nur im Spiel.
 
 ## Reichweite der Schleuder
 
@@ -88,7 +108,15 @@ ganz hinten links bei x = 160.
 Vorher (Auszug 130, Tempo 24.05) war bei x = 360 Schluss. Ziele weiter links
 – zum Beispiel im Bauplan «Weitschuss» oder der hohe Blitzer in Level 9 –
 waren dann nur über Kettenreaktionen oder gar nicht zu erwischen.
-**Wer den Auszug ändert, muss danach alle drei Prüfungen laufen lassen.**
+**Wer den Auszug ändert, muss danach alle vier Prüfungen laufen lassen.**
+
+## Welten hinzufügen
+
+`TOTAL_LEVELS` wird aus `WORLDS.length × LEVELS_PER_WORLD` gerechnet – eine neue
+Welt in die Liste `WORLDS` einzutragen ergibt also automatisch 25 neue Levels.
+Braucht die Welt eine eigene Silhouette, kommt sie in `drawSilhouettes` dazu;
+für Wetter gibt es die Schalter `snow`, `ash`, `rain`, `laub`, `fog`, `night`
+und `innen` (drinnen = keine Wolken).
 
 ## Wenn etwas gemeldet wird
 Die Levels entstehen aus den Bauplänen in `index.html` (Abschnitt `PLANS`).

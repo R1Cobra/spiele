@@ -148,7 +148,7 @@
 <!-- Weltenauswahl -->
 <div id="worldScreen" class="overlay hidden">
   <div class="big">Welten</div>
-  <div class="scoreline" id="worldSub">20 Welten · 500 Levels</div>
+  <div class="scoreline" id="worldSub">Welten</div>
   <div id="worldGrid"></div>
   <button class="btn sec" id="worldBackBtn">Zurück</button>
 </div>
@@ -214,7 +214,8 @@ const SLING = { x: WORLD_W - 230, y: 545 };
 // Weltende. Vorher blieb der Pneu bei vollem Zug rund 350 px davor liegen, und
 // hoch stehende Blitzer (z. B. Level 9) waren nur mit exakt 100 % Zug zu holen.
 const MAX_DRAG = 150, POWER = 0.185;
-const LEVELS_PER_WORLD = 25, TOTAL_LEVELS = 500;
+const LEVELS_PER_WORLD = 25;
+let TOTAL_LEVELS = 500;          // wird nach der Welten-Liste aus WORLDS.length gerechnet
 
 let engine, world;
 let tire = null, tireState = 'idle';       // idle | aiming | flight
@@ -303,10 +304,14 @@ const WORLDS = [
   {n:'Baustelle',   sky:['#f0c789','#ffe1b0','#fff3dd'], h1:'#cbb894', h2:'#ab9770', gr:'#a9945f', rd:'#57565a', ln:'#ffd23f', deco:'crane'},
   {n:'Autobahn',    sky:['#8fd3f4','#d8eefb','#f0fbff'], h1:'#b3cfc0', h2:'#8dbba1', gr:'#6aa95c', rd:'#3f434a', ln:'#ffffff', deco:'sign'},
   {n:'Steinbruch',  sky:['#c3cbd3','#e0e7ed','#f3f6f9'], h1:'#a8b0b8', h2:'#8b939c', gr:'#8f8a7e', rd:'#4e5157', ln:'#ffd23f', deco:'mountain'},
+  {n:'Regenstrasse',sky:['#6c7d8c','#93a6b3','#c2ced6'], h1:'#7e909c', h2:'#63757f', gr:'#5b7a55', rd:'#3a3e44', ln:'#ffd23f', deco:'sign', rain:true},
   {n:'Stadt',       sky:['#9ad3f0','#cfe9f8','#eef8ff'], h1:'#aebcc7', h2:'#8c9dab', gr:'#6f9a63', rd:'#44484f', ln:'#ffd23f', deco:'city'},
+  {n:'Parkhaus',    sky:['#5b5f66','#787d85','#9aa0a8'], h1:'#5f646b', h2:'#4a4e55', gr:'#8e9299', rd:'#3c4046', ln:'#ffffff', deco:'garage', innen:true},
   {n:'Winterdorf',  sky:['#b9d6e8','#dceaf3','#f4fafd'], h1:'#e2edf4', h2:'#c6d7e2', gr:'#eef5fa', rd:'#7f8a93', ln:'#ffd23f', deco:'house', snow:true},
   {n:'Hafen',       sky:['#82c9e8','#c2e6f6','#e9f8ff'], h1:'#9bbecd', h2:'#7aa4b6', gr:'#7f8f96', rd:'#495056', ln:'#ffd23f', deco:'crane'},
+  {n:'Küstenstrasse',sky:['#7fc9e8','#bfe6f5','#eaf8ff'], h1:'#9ec9cf', h2:'#7bb0bb', gr:'#d9c48a', rd:'#5c6068', ln:'#ffd23f', deco:'boot'},
   {n:'Waldstrasse', sky:['#94cfe2','#cbe9ee','#eaf8fa'], h1:'#8fbf94', h2:'#6ba372', gr:'#5d9a4f', rd:'#4b4f55', ln:'#ffd23f', deco:'tree'},
+  {n:'Herbstwald',  sky:['#e8b775','#f6d9a8','#fdf0d6'], h1:'#c99a5e', h2:'#a87742', gr:'#8f7a3c', rd:'#4e4a44', ln:'#ffd23f', deco:'tree', laub:true},
   {n:'Wüstenpiste', sky:['#f6d79a','#ffe9bd','#fff6e2'], h1:'#e0c48c', h2:'#c9a86a', gr:'#dcc188', rd:'#6b6152', ln:'#ffd23f', deco:'palm'},
   {n:'Alpenpass',   sky:['#8ecbe8','#c9e6f5','#edf9ff'], h1:'#b7c8d2', h2:'#93a9b6', gr:'#7ba55f', rd:'#4d5359', ln:'#ffd23f', deco:'mountain'},
   {n:'Nebeltal',    sky:['#b8c4cc','#d6dde2','#eef1f3'], h1:'#b4c2c6', h2:'#95a5ab', gr:'#6f9268', rd:'#4a4f54', ln:'#ffd23f', deco:'tree', fog:true},
@@ -315,10 +320,11 @@ const WORLDS = [
   {n:'Nachtstadt',  sky:['#14213d','#1f3157','#33507d'], h1:'#22314a', h2:'#182338', gr:'#2b3b30', rd:'#26292e', ln:'#ffd23f', deco:'city', night:true},
   {n:'Sumpfweg',    sky:['#a9c7ae','#cfe0cd','#e9f2e6'], h1:'#87a184', h2:'#6b8569', gr:'#5c7a4a', rd:'#474b45', ln:'#ffd23f', deco:'tree', fog:true},
   {n:'Vulkan',      sky:['#5a2a26','#94473a','#d3764c'], h1:'#5d3730', h2:'#432722', gr:'#5a4038', rd:'#33302f', ln:'#ffd23f', deco:'mountain', ash:true, wind:0.00012},
-  {n:'Gletscher',   sky:['#a8cfe4','#d3e9f3','#f0fafe'], h1:'#cfe4ee', h2:'#aecbdb', gr:'#e6f2f8', rd:'#8a97a0', ln:'#ffd23f', deco:'mountain', snow:true},
+  {n:'Gletscher',   sky:['#a8cfe4','#d3e9f3','#f0fafe'], h1:'#cfe4ee', h2:'#aecbdb', gr:'#e6f2f8', rd:'#8a97a0', ln:'#ffd23f', deco:'mountain', snow:true, ice:true},
   {n:'Mondbasis',   sky:['#05060f','#0b1024','#141b36'], h1:'#3a3f4c', h2:'#282c37', gr:'#5c5f68', rd:'#3a3d44', ln:'#9fb0bc', deco:'none', night:true, grav:0.42},
   {n:'KMF-Finale',  sky:['#8fd3f4','#ffe9b3','#fff6dd'], h1:'#b8dcc8', h2:'#8fc9a8', gr:'#6fae5e', rd:'#4b4f55', ln:'#ffd23f', deco:'house'}
 ];
+TOTAL_LEVELS = WORLDS.length * LEVELS_PER_WORLD;
 
 // ================= Pneu-Typen =================
 const TIRES = {
@@ -347,7 +353,8 @@ const ZIELE = {
 };
 const IST_ZIEL = k => !!ZIELE[k];
 const VALUE = { crate:50, plank:50, stone:120, ice:60, cone:30, barrel:150,
-                keil:60, kugel:130, civil:0, rock:0, platform:0, huegel:0 };
+                keil:60, kugel:130, stahl:200, sandsack:90, pneuhaufen:70,
+                civil:0, rock:0, platform:0, huegel:0, feder:0 };
 for (const k in ZIELE) VALUE[k] = ZIELE[k].val;
 const G = GROUND_Y;
 
@@ -393,6 +400,22 @@ function keil(d, y, w, h, m) {    // Dreieck / Spitzdach aus Holz, Eis oder Stei
 function kugel(d, y, r) {         // Steinkugel – rollt und räumt alles um, was im Weg steht
   return { body: Bodies.circle(MX(d), y, r, { friction:.35, restitution:.2, density:.0035 }),
     kind:'kugel', hp:110, maxHp:110, w:r*2, h:r*2, r };
+}
+function stahl(d, y, w, h) {      // Stahlträger – hält fast alles aus, nur schwere Pneus knacken ihn
+  return { body: Bodies.rectangle(MX(d), y, w, h, { friction:.5, restitution:.1, density:.0062 }),
+    kind:'stahl', hp:220, maxHp:220, w, h };
+}
+function sandsack(d, y) {         // Sandsack – schwer und weich, schluckt den Schwung
+  return { body: Bodies.rectangle(MX(d), y, 60, 36, { friction:.9, restitution:0, density:.0052 }),
+    kind:'sandsack', hp:55, maxHp:55, w:60, h:36 };
+}
+function pneuhaufen(d, y) {       // alter Pneu – rollt weg und federt zurück
+  return { body: Bodies.circle(MX(d), y, 34, { friction:.7, restitution:.55, density:.0024 }),
+    kind:'pneuhaufen', hp:45, maxHp:45, w:68, h:68, r:34 };
+}
+function feder(d, y) {            // Sprungfeder – fest verschraubt, schleudert alles zurück
+  return { body: Bodies.rectangle(MX(d), y, 64, 30, { isStatic:true, friction:.4, restitution:1.35 }),
+    kind:'feder', hp:1e9, maxHp:1e9, w:64, h:30, solid:true };
 }
 function huegel(d, y, w, h) {     // Gelände: Erdhügel / Plateau (unzerstörbar)
   return { body: Bodies.rectangle(MX(d), y, w, h, { isStatic:true, friction:.9 }),
@@ -956,6 +979,74 @@ const PLANS = [
     c.P.push(crate(d + 390, G - 28)); c.P.push(blitzer(d + 390, G - 86));
     if (c.nb > 3) c.P.push(blitzer(d + 500, G - 30));
     c.P.push(cone(d - 230, G - 23));
+  }},
+
+// -- Hindernisse: Stahl, Sandsäcke, Pneus, Sprungfedern ----------------------
+{ id:'stahlwerk', n:'Das Stahlgerüst', f(c){    // Stahl hält – man muss durch die Öffnung
+    const d = 1180;
+    c.P.push(stahl(d - 90, G - 80, 26, 160)); c.P.push(stahl(d + 90, G - 80, 26, 160));
+    c.P.push(stahl(d, G - 173, 250, 26));
+    c.P.push(blitzer(d, G - 30));
+    c.P.push(crate(d, G - 88));
+    c.P.push(blitzer(d, G - 216));
+    if (c.nb > 2) c.P.push(blitzer(d - 280, G - 30));
+    c.P.push(barrel(d + 210, G - 27));
+    c.P.push(cone(d - 190, G - 23));
+  }},
+{ id:'parkdeck', n:'Das Parkdeck', f(c){        // zwei Etagen, oben und unten je ein Ziel
+    const d = 1180;
+    c.P.push(stahl(d - 150, G - 76, 24, 152)); c.P.push(stahl(d + 150, G - 76, 24, 152));
+    c.P.push(platform(d, G - 162, 360));
+    c.P.push(blitzer(d - 80, G - 30)); c.P.push(blitzer(d + 80, G - 30));
+    c.P.push(crate(d - 80, G - 200));
+    c.P.push(blitzer(d + 60, G - 202));
+    c.P.push(blitzer(d - 80, G - 258));
+    if (c.nb > 3) c.P.push(blitzer(d + 310, G - 30));
+    c.P.push(cone(d - 270, G - 23));
+  }},
+{ id:'sandsackwall', n:'Der Sandsack-Wall', f(c){ // Sandsäcke schlucken den Schwung
+    const d = 1090, t = d + 270;
+    for (let k = 0; k < 3; k++) {
+      const n = 3 - k;
+      for (let i = 0; i < n; i++) c.P.push(sandsack(d + (i - (n-1)/2) * 62, G - 18 - k*36));
+    }
+    c.P.push(blitzer(t, G - 30));
+    c.P.push(crate(t - 70, G - 28)); c.P.push(blitzer(t - 70, G - 86));
+    c.P.push(barrel(t + 90, G - 27));
+    if (c.nb > 2) c.P.push(blitzer(t + 210, G - 30));
+    c.P.push(cone(d - 170, G - 23));
+  }},
+{ id:'pneulager', n:'Das Pneulager', f(c){      // die alten Pneus federn zurück
+    const d = 1060, t = d + 300;
+    for (let i = 0; i < 3; i++) c.P.push(pneuhaufen(d + i*78, G - 34));
+    c.P.push(stone(t - 70, G - 55, 40, 110)); c.P.push(stone(t + 70, G - 55, 40, 110));
+    c.P.push(plank(t, G - 119, 220, 18));
+    c.P.push(blitzer(t, G - 30));
+    c.P.push(blitzer(t, G - 158));
+    if (c.nb > 2) c.P.push(blitzer(t + 230, G - 30));
+    c.P.push(barrel(d - 130, G - 27));
+    c.P.push(cone(d - 210, G - 23));
+  }},
+{ id:'trampolin', n:'Das Sprungbrett', f(c){    // flach auf die Feder – dann fliegt er über die Wand
+    const d = 1040;
+    c.P.push(feder(d, G - 15));
+    c.P.push(rock(d + 180, G - 120, 60, 240));
+    c.P.push(blitzer(d + 320, G - 30));
+    c.P.push(crate(d + 400, G - 28)); c.P.push(blitzer(d + 400, G - 86));
+    if (c.nb > 2) c.P.push(blitzer(d + 500, G - 30));
+    c.P.push(barrel(d + 320, G - 87));
+    c.P.push(cone(d - 150, G - 23));
+  }},
+{ id:'federfalle', n:'Die Federfalle', f(c){    // triff die Feder, und der ganze Stapel hebt ab
+    const d = 1160;
+    c.P.push(feder(d, G - 15));
+    c.P.push(crate(d, G - 58));
+    c.P.push(blitzer(d, G - 116));
+    c.P.push(rock(d - 110, G - 70, 40, 140)); c.P.push(rock(d + 110, G - 70, 40, 140));
+    c.P.push(blitzer(d - 250, G - 30));
+    if (c.nb > 2) c.P.push(blitzer(d + 250, G - 30));
+    c.P.push(barrel(d + 180, G - 27));
+    c.P.push(cone(d - 180, G - 23));
   }}
 ];
 
@@ -980,7 +1071,7 @@ function buildLevel(i) {
 
   // Materialmischung: je weiter hinten, desto mehr Stein / Eis
   const stoneP = Math.min(.62, .06 + diff * .7);
-  const iceP   = (WORLDS[w].snow || w === 17) ? .35 : Math.min(.18, diff * .25);
+  const iceP   = (WORLDS[w].snow || WORLDS[w].ice) ? .35 : Math.min(.18, diff * .25);
   const mat = () => { const r = rnd(); return r < stoneP ? 'stone' : (r < stoneP + iceP ? 'ice' : 'crate'); };
   const sup = () => { const r = rnd(); return r < stoneP * .9 ? 'stone' : (r < stoneP * .9 + iceP * .6 ? 'ice' : 'crate'); };
 
@@ -1069,8 +1160,9 @@ function loadLevel(i) {
 
   // Schneeflocken / Asche
   flakes = [];
-  if (W.snow || W.ash) for (let f = 0; f < 70; f++)
-    flakes.push({ x: Math.random()*WORLD_W, y: Math.random()*WORLD_H, s: 1.5+Math.random()*2.5, v: .4+Math.random()*1.1 });
+  if (W.snow || W.ash || W.rain || W.laub) for (let f = 0; f < (W.rain ? 110 : 70); f++)
+    flakes.push({ x: Math.random()*WORLD_W, y: Math.random()*WORLD_H, s: 1.5+Math.random()*2.5,
+      v: W.rain ? 9 + Math.random()*5 : W.laub ? .8 + Math.random()*1.2 : .4+Math.random()*1.1 });
 
   Events.on(engine, 'collisionStart', onCollision);
   updateHud();
@@ -1150,7 +1242,8 @@ const PART_COLORS = { crate:['#b5793a','#8a5a26'], plank:['#c98d4b','#9c6a30'], 
   blitzer:['#7c8894','#2e6bd6'], civil:['#ffd23f','#4a86c8'],
   ampel:['#3a4149','#37d67a','#e33'], parkuhr:['#3f6fb5','#dbe6f2'],
   tafel:['#d92b2b','#ffffff'], panzer:['#4a5259','#c8ced4','#2e6bd6'],
-  keil:['#c98d4b','#9c6a30'], kugel:['#8b939c','#5f676e'] };
+  keil:['#c98d4b','#9c6a30'], kugel:['#8b939c','#5f676e'],
+  stahl:['#6e7885','#454c56'], sandsack:['#c2ab77','#8d7a4e'], pneuhaufen:['#22262b','#4a4f55'] };
 function destroyPart(info) {
   info.hp = 0;
   const p = info.body.position;
@@ -1346,7 +1439,7 @@ function endLevel(won) {
   }
 
   document.getElementById('endTitle').textContent = won
-    ? (levelIdx === TOTAL_LEVELS - 1 ? 'Alle 500 Levels geschafft! 🏆' : 'Level geschafft! 🎉')
+    ? (levelIdx === TOTAL_LEVELS - 1 ? 'Alle ' + TOTAL_LEVELS + ' Levels geschafft! 🏆' : 'Level geschafft! 🎉')
     : 'Alle Pneus verschossen 😅';
   document.getElementById('endStars').textContent = won ? '⭐'.repeat(st) + '☆'.repeat(3-st) : '☆☆☆';
   document.getElementById('endScore').textContent =
@@ -1423,7 +1516,7 @@ function draw() {
 
   ctx.translate(-camX, 0);
 
-  if (!S.night) { drawCloud(300, 120); drawCloud(750, 80); drawCloud(1250, 150); drawCloud(1700, 100); }
+  if (!S.night && !S.innen) { drawCloud(300, 120); drawCloud(750, 80); drawCloud(1250, 150); drawCloud(1700, 100); }
 
   ctx.fillStyle = S.gr; ctx.fillRect(-300, GROUND_Y, WORLD_W + 800, 40);
   ctx.fillStyle = S.rd; ctx.fillRect(-300, GROUND_Y + 24, WORLD_W + 800, 140);
@@ -1454,6 +1547,22 @@ function draw() {
   if (S.snow || S.ash) {
     ctx.fillStyle = S.ash ? 'rgba(70,60,55,.75)' : 'rgba(255,255,255,.9)';
     for (const f of flakes) { ctx.beginPath(); ctx.arc(f.x + camX, f.y, f.s, 0, 7); ctx.fill(); }
+  }
+  if (S.rain) {
+    ctx.strokeStyle = 'rgba(200,220,235,.55)'; ctx.lineWidth = 2; ctx.lineCap = 'butt';
+    for (const f of flakes) {
+      ctx.beginPath(); ctx.moveTo(f.x + camX, f.y); ctx.lineTo(f.x + camX - 5, f.y + 20); ctx.stroke();
+    }
+  }
+  if (S.laub) {
+    const LC = ['#c9622a','#d89b32','#a8452a','#8f6b2c'];
+    for (let i = 0; i < flakes.length; i++) {
+      const f = flakes[i];
+      ctx.fillStyle = LC[i % LC.length];
+      ctx.save(); ctx.translate(f.x + camX, f.y); ctx.rotate(f.y * .03 + i);
+      ctx.beginPath(); ctx.ellipse(0, 0, f.s * 2.4, f.s * 1.2, 0, 0, 7); ctx.fill();
+      ctx.restore();
+    }
   }
   if (S.fog) { ctx.fillStyle = 'rgba(220,228,232,.28)'; ctx.fillRect(camX - 50, 0, WORLD_W, WORLD_H); }
 
@@ -1522,6 +1631,30 @@ function drawSilhouettes(kind, off, S) {
         ctx.lineTo(x + 34, base - 106); ctx.closePath(); ctx.fill();
       }
       ctx.fillRect(x + 250, base - 20, 60, 20);
+    } else if (kind === 'garage') {        // Parkhaus: Betondecks mit Autos
+      for (let k = 0; k < 3; k++) {
+        const y = base - 44 - k*56;
+        ctx.fillRect(x - 40, y, 400, 12);
+        ctx.fillRect(x - 40, y, 12, 56);
+        ctx.fillRect(x + 348, y, 12, 56);
+        for (let a = 0; a < 3; a++) {
+          const cx2 = x + 40 + a*110 + (k % 2) * 30;
+          ctx.fillRect(cx2, y - 22, 70, 22);
+          ctx.fillRect(cx2 + 14, y - 34, 42, 14);
+        }
+      }
+      ctx.fillRect(x - 40, base - 12, 400, 12);
+    } else if (kind === 'boot') {          // Küste: Segelboote und ein Leuchtturm
+      ctx.beginPath();
+      ctx.moveTo(x, base - 10); ctx.lineTo(x + 130, base - 10);
+      ctx.lineTo(x + 108, base + 14); ctx.lineTo(x + 22, base + 14); ctx.closePath(); ctx.fill();
+      ctx.fillRect(x + 62, base - 108, 7, 98);
+      ctx.beginPath();
+      ctx.moveTo(x + 68, base - 104); ctx.lineTo(x + 132, base - 16); ctx.lineTo(x + 68, base - 16); ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + 300, base); ctx.lineTo(x + 316, base - 150); ctx.lineTo(x + 348, base - 150);
+      ctx.lineTo(x + 364, base); ctx.closePath(); ctx.fill();
+      ctx.fillRect(x + 308, base - 178, 48, 30);
     } else if (kind === 'mountain') {
       ctx.beginPath(); ctx.moveTo(x - 60, base); ctx.lineTo(x + 110, base - 230); ctx.lineTo(x + 280, base); ctx.closePath(); ctx.fill();
       ctx.beginPath(); ctx.moveTo(x + 200, base); ctx.lineTo(x + 320, base - 160); ctx.lineTo(x + 440, base); ctx.closePath(); ctx.fill();
@@ -1735,6 +1868,57 @@ function drawPart(p) {
     ctx.beginPath(); ctx.arc(0, 0, p.r - 1.5, 0, 7); ctx.stroke();
     ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.moveTo(-p.r*.62, 0); ctx.lineTo(p.r*.62, 0); ctx.stroke();
+  } else if (p.kind === 'stahl') {                // Stahlträger mit Nieten
+    ctx.fillStyle = '#6e7885';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 3);
+    ctx.fillStyle = '#8b95a2';
+    if (p.w > p.h) ctx.fillRect(-p.w/2 + 3, -p.h/2 + 3, p.w - 6, 5);
+    else           ctx.fillRect(-p.w/2 + 3, -p.h/2 + 3, 5, p.h - 6);
+    ctx.strokeStyle = '#454c56'; ctx.lineWidth = 3;
+    ctx.strokeRect(-p.w/2 + 2, -p.h/2 + 2, p.w - 4, p.h - 4);
+    ctx.fillStyle = '#3a4048';
+    const lang = Math.max(p.w, p.h), quer = Math.min(p.w, p.h);
+    for (let i = 0; i * 30 < lang - 16; i++) {
+      const o = -lang/2 + 14 + i*30;
+      for (const q of [-quer/2 + 7, quer/2 - 7]) {
+        ctx.beginPath();
+        if (p.w > p.h) ctx.arc(o, q, 2.6, 0, 7); else ctx.arc(q, o, 2.6, 0, 7);
+        ctx.fill();
+      }
+    }
+  } else if (p.kind === 'sandsack') {             // Sandsack – prall und weich
+    ctx.fillStyle = '#c2ab77';
+    rr(-p.w/2, -p.h/2, p.w, p.h, 13);
+    ctx.strokeStyle = '#8d7a4e'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-p.w/2 + 8, 0); ctx.lineTo(p.w/2 - 8, 0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-p.w/2 + 6, -p.h/2 + 8); ctx.lineTo(-p.w/2 + 6, p.h/2 - 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.w/2 - 6, -p.h/2 + 8); ctx.lineTo(p.w/2 - 6, p.h/2 - 8); ctx.stroke();
+  } else if (p.kind === 'pneuhaufen') {           // alter Pneu als Hindernis
+    ctx.fillStyle = '#22262b';
+    ctx.beginPath(); ctx.arc(0, 0, p.r, 0, 7); ctx.fill();
+    ctx.fillStyle = '#4a4f55';
+    ctx.beginPath(); ctx.arc(0, 0, p.r * 0.46, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.20)'; ctx.lineWidth = 3;
+    for (let i = 0; i < 8; i++) {
+      const a = i / 8 * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*p.r*0.66, Math.sin(a)*p.r*0.66);
+      ctx.lineTo(Math.cos(a)*p.r*0.95, Math.sin(a)*p.r*0.95);
+      ctx.stroke();
+    }
+  } else if (p.kind === 'feder') {                // Sprungfeder
+    ctx.fillStyle = '#5b6570';
+    ctx.fillRect(-p.w/2, p.h/2 - 8, p.w, 8);
+    ctx.strokeStyle = '#c8ced4'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 0; i <= 12; i++) {
+      const yy = p.h/2 - 10 - i * ((p.h - 16) / 12);
+      const xx = (i % 2 ? -1 : 1) * (p.w/2 - 10);
+      if (i === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#e03a3a';
+    rr(-p.w/2, -p.h/2, p.w, 8, 3);
   } else if (p.kind === 'huegel') {               // Gelände: Erde mit Grasnarbe
     ctx.fillStyle = '#5a4530';
     rr(-p.w/2, -p.h/2, p.w, p.h, 14);
@@ -1832,7 +2016,8 @@ function buildWorlds() {
   let st = 0, sc = 0;
   for (const k in p.stars) st += p.stars[k];
   for (const k in p.best) sc += p.best[k];
-  $('worldSub').textContent = '20 Welten · 500 Levels   ·   ⭐ ' + st + '/1500   ·   ' + sc + ' Punkte';
+  $('worldSub').textContent = WORLDS.length + ' Welten · ' + TOTAL_LEVELS + ' Levels   ·   ⭐ ' + st +
+    '/' + (TOTAL_LEVELS * 3) + '   ·   ' + sc + ' Punkte';
   WORLDS.forEach((w, wi) => {
     const first = wi * LEVELS_PER_WORLD;
     const open = (p.unlocked || 0) >= first;

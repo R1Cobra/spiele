@@ -25,10 +25,11 @@ const sb = { Matter, console, Math, JSON, Date, parseInt, parseFloat, isNaN, set
       createGain:()=>({gain:{value:0,exponentialRampToValueAtTime(){}},connect(){}}), resume(){} }; } } };
 sb.window.localStorage = sb.localStorage; sb.globalThis = sb;
 vm.createContext(sb);
-vm.runInContext(code + '\n;globalThis.__X={loadLevel,drawPart,breakables,TOTAL_LEVELS,PLANS};', sb, { filename:'ps.js' });
+vm.runInContext(code + '\n;globalThis.__X={loadLevel,drawPart,breakables,TOTAL_LEVELS,PLANS,WORLDS,LEVELS_PER_WORLD};', sb, { filename:'ps.js' });
+vm.runInContext('resize();', sb);
 
 const fehler = [];
-const gesehen = new Set();
+const gesehen = new Set(), kulissen = new Set();
 for (let i = 0; i < sb.__X.TOTAL_LEVELS; i++) {
   try {
     vm.runInContext('loadLevel(' + i + '); globalThis.__T = breakables;', sb);
@@ -37,9 +38,16 @@ for (let i = 0; i < sb.__X.TOTAL_LEVELS; i++) {
       try { vm.runInContext('drawPart(__T[' + sb.__T.indexOf(p) + '])', sb); }
       catch (e) { fehler.push('Level ' + (i+1) + ' · ' + p.kind + ': ' + e.message); }
     }
+    // einmal pro Welt die ganze Kulisse zeichnen (Himmel, Hügel, Silhouetten, Wetter)
+    if (i % sb.__X.LEVELS_PER_WORLD === 0) {
+      kulissen.add(sb.__X.WORLDS[i / sb.__X.LEVELS_PER_WORLD].n);
+      try { vm.runInContext('draw()', sb); }
+      catch (e) { fehler.push('Kulisse ' + sb.__X.WORLDS[i / sb.__X.LEVELS_PER_WORLD].n + ': ' + e.message); }
+    }
   } catch (e) { fehler.push('Level ' + (i+1) + ' laden: ' + e.message); }
 }
 console.log('Gezeichnete Arten (' + gesehen.size + '): ' + [...gesehen].sort().join(', '));
+console.log('Gezeichnete Kulissen (' + kulissen.size + '): ' + [...kulissen].join(', '));
 console.log('Zeichen-Befehle: ' + aufrufe);
 console.log('\nFEHLER: ' + fehler.length);
 [...new Set(fehler)].slice(0, 20).forEach(f => console.log('  ✗ ' + f));
