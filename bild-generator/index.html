@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bild-Generator</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bild-Generator">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root { --bg:#0f172a; --karte:#1e293b; --rand:#334155; --text:#f1f5f9; --grau:#94a3b8; --blau:#38bdf8; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding:max(12px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; align-items:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .kopf { width:100%; max-width:520px; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .kopf h1 { font-size:1.35rem; margin:0; flex:1; }
+  .kopf a { color:var(--grau); text-decoration:none; font-size:.9rem; border:2px solid var(--rand);
+            border-radius:12px; padding:6px 10px; }
+  .buehne { width:100%; max-width:520px; display:flex; justify-content:center; margin-bottom:12px; }
+  canvas { max-width:100%; max-height:58vh; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.45);
+           background:#000; touch-action:manipulation; }
+  .knoepfe { width:100%; max-width:520px; display:flex; gap:8px; margin-bottom:12px; }
+  button {
+    font:inherit; font-weight:600; background:var(--karte); color:var(--text);
+    border:2px solid var(--rand); border-radius:14px; padding:13px 10px; cursor:pointer; flex:1;
+    transition:transform .1s;
+  }
+  button:active { transform:scale(.97); }
+  button.stark { border-color:var(--blau); }
+  .feld { width:100%; max-width:520px; background:var(--karte); border:2px solid var(--rand);
+          border-radius:16px; padding:12px 14px; margin-bottom:10px; }
+  .feld h2 { font-size:.8rem; color:var(--grau); text-transform:uppercase; letter-spacing:.06em; margin:0 0 8px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chips button { flex:0 0 auto; padding:8px 12px; font-size:.9rem; border-radius:11px; }
+  .chips button.an { border-color:var(--blau); background:#0c4a6e; }
+  .farbe { display:inline-flex; gap:2px; margin-right:6px; vertical-align:middle; }
+  .farbe i { width:10px; height:16px; border-radius:3px; display:block; }
+  input[type=text] { font:inherit; font-size:1rem; width:100%; padding:11px 12px; border-radius:12px;
+                     border:2px solid var(--rand); background:#0b1526; color:var(--text); }
+  input[type=text]:focus { outline:none; border-color:var(--blau); }
+  .zeile { display:flex; gap:10px; align-items:center; margin-top:10px; font-size:.9rem; color:var(--grau); }
+  .zeile input[type=range] { flex:1; }
+  label.schalter { display:flex; align-items:center; gap:8px; font-size:.95rem; }
+  label.schalter input { width:20px; height:20px; }
+  p.tipp { width:100%; max-width:520px; color:var(--grau); font-size:.8rem; line-height:1.5; margin:4px 0 0; }
+  p.tipp b { color:#4ade80; font-weight:600; }
+  #meldung { position:fixed; left:50%; bottom:max(24px, env(safe-area-inset-bottom)); transform:translateX(-50%);
+             background:#065f46; color:#fff; padding:10px 16px; border-radius:12px; font-size:.9rem;
+             opacity:0; transition:opacity .3s; pointer-events:none; }
+  #meldung.da { opacity:1; }
+</style>
+</head>
+<body>
+  <div class="kopf">
+    <h1>🎨 Bild-Generator</h1>
+    <a href="../">🎮 Spiele</a>
+  </div>
+
+  <div class="buehne"><canvas id="bild" width="1080" height="1080" aria-label="Erzeugtes Bild"></canvas></div>
+
+  <div class="knoepfe">
+    <button class="stark" id="b-neu">🎲 Neues Bild</button>
+    <button id="b-farbe">🎨 Andere Farben</button>
+    <button class="stark" id="b-sichern">💾 Sichern</button>
+  </div>
+
+  <div class="feld"><h2>Stil</h2><div class="chips" id="stile"></div></div>
+  <div class="feld"><h2>Farben</h2><div class="chips" id="paletten"></div></div>
+  <div class="feld"><h2>Format</h2><div class="chips" id="formate"></div></div>
+  <div class="feld">
+    <h2>Text (optional)</h2>
+    <input type="text" id="text" maxlength="60" placeholder="z. B. Mission erfüllt!" autocomplete="off">
+    <div class="zeile">Grösse <input type="range" id="groesse" min="4" max="18" value="9"></div>
+    <div class="zeile">
+      <label class="schalter"><input type="checkbox" id="logo"> KMF-Logo einfügen</label>
+    </div>
+  </div>
+
+  <p class="tipp">
+    <b>Funktioniert ohne Internet und ohne KI.</b> Jedes Bild wird mit Zufall und Mathematik direkt auf dem Handy gezeichnet.<br>
+    Als App installieren: In Safari unten auf <b>Teilen ⬆︎</b> → <b>«Zum Home-Bildschirm»</b>. Danach funktioniert sie auch im Flugmodus.
+  </p>
+
+  <div id="meldung"></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var cv = $("bild"), cx = cv.getContext("2d");
+
+  /* ---------- Zufall mit Startwert (gleicher Wert = gleiches Bild) ---------- */
+  function rng(seed){
+    return function(){
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var R;
+  function zahl(a, b){ return a + R() * (b - a); }
+  function ganz(a, b){ return Math.floor(zahl(a, b + 1)); }
+  function wahl(arr){ return arr[Math.floor(R() * arr.length)]; }
+
+  /* ---------- Farbpaletten ---------- */
+  var PALETTEN = [
+    { name:"KMF",        f:["#E2231A","#FFC300","#3FA535","#fffaf0","#1b1b1b"] },
+    { name:"Sonnenuntergang", f:["#0d1b2a","#6a2c70","#b83b5e","#f08a5d","#f9ed69"] },
+    { name:"Ozean",      f:["#03045e","#0077b6","#00b4d8","#90e0ef","#caf0f8"] },
+    { name:"Wald",       f:["#081c15","#1b4332","#40916c","#95d5b2","#d8f3dc"] },
+    { name:"Pastell",    f:["#ffd6e0","#ffefcf","#c1f0e0","#c9d6ff","#e6ccff"] },
+    { name:"Neon",       f:["#0b0b1a","#ff2e88","#00f0ff","#b8ff00","#ffe600"] },
+    { name:"Herbst",     f:["#3d1308","#7b2d26","#d1603d","#e9a03b","#f4d58d"] },
+    { name:"Schwarz-Weiss", f:["#000000","#333333","#777777","#bbbbbb","#ffffff"] }
+  ];
+
+  var FORMATE = [
+    { name:"Quadrat", b:1080, h:1080 },
+    { name:"Hochformat (Story)", b:1080, h:1920 },
+    { name:"iPhone-Hintergrund", b:1179, h:2556 },
+    { name:"Querformat", b:1920, h:1080 }
+  ];
+
+  /* ---------- Hilfen ---------- */
+  function mischen(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(R() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function hell(hex){
+    var n = parseInt(hex.slice(1), 16);
+    return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255;
+  }
+  function verlauf(W, H, farben){
+    var g = cx.createLinearGradient(0, 0, W * zahl(0, 1), H);
+    farben.forEach(function(f, i){ g.addColorStop(i / Math.max(1, farben.length - 1), f); });
+    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  }
+
+  /* ---------- Stile ---------- */
+  var STILE = [
+    { name:"Kreise", mal:function(W, H, P){
+        verlauf(W, H, [P[0], P[1]]);
+        var n = ganz(25, 70), m = Math.min(W, H);
+        for (var i = 0; i < n; i++){
+          cx.globalAlpha = zahl(.35, .9);
+          cx.fillStyle = wahl(P.slice(1));
+          cx.beginPath(); cx.arc(zahl(0, W), zahl(0, H), zahl(m * .02, m * .22), 0, 7); cx.fill();
+        }
+        cx.globalAlpha = 1;
+    }},
+    { name:"Wellen", mal:function(W, H, P){
+        cx.fillStyle = P[0]; cx.fillRect(0, 0, W, H);
+        var lagen = ganz(6, 12), freq = zahl(1, 3.5), phase = zahl(0, 6);
+        for (var l = 0; l < lagen; l++){
+          var y0 = H * (l + 1) / (lagen + 1), amp = H * zahl(.02, .07);
+          cx.fillStyle = P[1 + l % (P.length - 1)];
+          cx.beginPath(); cx.moveTo(0, H);
+          for (var x = 0; x <= W; x += 8){
+            cx.lineTo(x, y0 + Math.sin(x / W * Math.PI * 2 * freq + phase + l * .7) * amp
+                          + Math.sin(x / W * Math.PI * 7 + l) * amp * .25);
+          }
+          cx.lineTo(W, H); cx.closePath(); cx.fill();
+        }
+    }},
+    { name:"Mosaik", mal:function(W, H, P){
+        var s = Math.min(W, H) / ganz(6, 14);
+        for (var y = 0; y < H + s; y += s){
+          for (var x = 0; x < W + s; x += s){
+            var a = wahl(P), b = wahl(P);
+            cx.fillStyle = a; cx.fillRect(x, y, s + 1, s + 1);
+            cx.fillStyle = b; cx.beginPath();
+            if (R() < .5){ cx.moveTo(x, y); cx.lineTo(x + s, y); cx.lineTo(x, y + s); }
+            else { cx.moveTo(x + s, y); cx.lineTo(x + s, y + s); cx.lineTo(x, y + s); }
+            cx.closePath(); cx.fill();
+          }
+        }
+    }},
+    { name:"Streifen", mal:function(W, H, P){
+        var d = Math.hypot(W, H), breit = d / ganz(8, 30), farben = mischen(P);
+        cx.save(); cx.translate(W / 2, H / 2); cx.rotate(zahl(-1.2, 1.2));
+        for (var i = -d; i < d; i += breit){
+          cx.fillStyle = farben[Math.abs(Math.round(i / breit)) % farben.length];
+          cx.fillRect(i, -d, breit * zahl(.6, 1.05), d * 2);
+        }
+        cx.restore();
+    }},
+    { name:"Weiche Flecken", mal:function(W, H, P){
+        cx.fillStyle = P[0]; cx.fillRect(0, 0, W, H);
+        var m = Math.max(W, H);
+        for (var i = 0; i < ganz(5, 9); i++){
+          var x = zahl(0, W), y = zahl(0, H), r = zahl(m * .25, m * .6);
+          var g = cx.createRadialGradient(x, y, 0, x, y, r);
+          g.addColorStop(0, wahl(P.slice(1)) + "dd"); g.addColorStop(1, "rgba(0,0,0,0)");
+          cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+        }
+    }},
+    { name:"Weltall", mal:function(W, H, P){
+        var dunkel = P.slice().sort(function(a, b){ return hell(a) - hell(b); });
+        verlauf(W, H, [dunkel[0], "#000000", dunkel[1]]);
+        var m = Math.max(W, H);
+        for (var n = 0; n < 3; n++){
+          var x = zahl(0, W), y = zahl(0, H), g = cx.createRadialGradient(x, y, 0, x, y, m * .4);
+          g.addColorStop(0, wahl(P) + "55"); g.addColorStop(1, "rgba(0,0,0,0)");
+          cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+        }
+        for (var i = 0; i < W * H / 2500; i++){
+          cx.globalAlpha = zahl(.3, 1); cx.fillStyle = R() < .85 ? "#ffffff" : wahl(P);
+          cx.beginPath(); cx.arc(zahl(0, W), zahl(0, H), Math.pow(R(), 4) * 3.5 + .4, 0, 7); cx.fill();
+        }
+        cx.globalAlpha = 1;
+        if (R() < .7){
+          var px = zahl(W * .2, W * .8), py = zahl(H * .2, H * .8), pr = Math.min(W, H) * zahl(.08, .2);
+          var pg = cx.createRadialGradient(px - pr * .4, py - pr * .4, pr * .1, px, py, pr);
+          pg.addColorStop(0, dunkel[4]); pg.addColorStop(1, dunkel[2]);
+          cx.fillStyle = pg; cx.beginPath(); cx.arc(px, py, pr, 0, 7); cx.fill();
+        }
+    }},
+    { name:"Kacheln", mal:function(W, H, P){
+        cx.fillStyle = P[0]; cx.fillRect(0, 0, W, H);
+        var s = Math.min(W, H) / ganz(5, 12);
+        cx.lineWidth = s * zahl(.12, .3); cx.lineCap = "round";
+        for (var y = 0; y < H; y += s){
+          for (var x = 0; x < W; x += s){
+            cx.strokeStyle = wahl(P.slice(1));
+            cx.beginPath();
+            if (R() < .5){
+              cx.arc(x, y, s / 2, 0, Math.PI / 2); cx.moveTo(x + s, y + s / 2);
+              cx.arc(x + s, y + s, s / 2, -Math.PI / 2, -Math.PI, true);
+            } else {
+              cx.arc(x + s, y, s / 2, Math.PI / 2, Math.PI); cx.moveTo(x + s / 2, y + s);
+              cx.arc(x, y + s, s / 2, -Math.PI / 2, 0);
+            }
+            cx.stroke();
+          }
+        }
+    }},
+    { name:"Berge", mal:function(W, H, P){
+        var f = P.slice().sort(function(a, b){ return hell(b) - hell(a); });
+        verlauf(W, H, [f[0], f[1]]);
+        var sr = Math.min(W, H) * zahl(.06, .12);
+        cx.fillStyle = "#ffffff"; cx.globalAlpha = .85;
+        cx.beginPath(); cx.arc(zahl(W * .15, W * .85), zahl(H * .1, H * .35), sr, 0, 7); cx.fill();
+        cx.globalAlpha = 1;
+        var lagen = 5;
+        for (var l = 0; l < lagen; l++){
+          var basis = H * (.4 + l * .12), y = basis;
+          cx.fillStyle = f[Math.min(f.length - 1, l + 1)];
+          if (l === lagen - 1) cx.fillStyle = f[f.length - 1];
+          cx.beginPath(); cx.moveTo(0, H); cx.lineTo(0, y);
+          for (var x = 0; x <= W; x += W / 40){
+            y += zahl(-1, 1) * H * .03;
+            y = Math.max(basis - H * .15, Math.min(basis + H * .08, y));
+            cx.lineTo(x, y);
+          }
+          cx.lineTo(W, H); cx.closePath(); cx.fill();
+        }
+    }},
+    { name:"Linien-Kunst", mal:function(W, H, P){
+        cx.fillStyle = P[0]; cx.fillRect(0, 0, W, H);
+        var m = Math.min(W, H), a = ganz(2, 7), b = ganz(2, 7), d = zahl(0, 3);
+        cx.lineWidth = m / 260;
+        for (var k = 0; k < 4; k++){
+          cx.strokeStyle = P[1 + k % (P.length - 1)]; cx.globalAlpha = .8;
+          var r = m * (.42 - k * .06);
+          cx.beginPath();
+          for (var t = 0; t <= Math.PI * 2 + .01; t += .004){
+            var x = W / 2 + Math.sin(a * t + d + k * .3) * r, y = H / 2 + Math.sin(b * t + k * .2) * r;
+            if (t === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
+          }
+          cx.stroke();
+        }
+        cx.globalAlpha = 1;
+    }}
+  ];
+
+  /* ---------- Zustand (wird auf dem Gerät gemerkt) ---------- */
+  var z = { stil:-1, palette:-1, format:0, seed:Date.now() >>> 0 };
+  try { var alt = JSON.parse(localStorage.getItem("bildgen.einstellung")); if (alt) z = Object.assign(z, alt); } catch(e){}
+  function merken(){
+    try { localStorage.setItem("bildgen.einstellung", JSON.stringify({
+      stil:z.stil, palette:z.palette, format:z.format, text:$("text").value,
+      groesse:$("groesse").value, logo:$("logo").checked })); } catch(e){}
+  }
+  if (z.text) $("text").value = z.text;
+  if (z.groesse) $("groesse").value = z.groesse;
+  if (z.logo) $("logo").checked = true;
+
+  var logoBild = new Image(), logoBereit = false;
+  logoBild.onload = function(){ logoBereit = true; if ($("logo").checked) zeichne(); };
+  logoBild.src = "../kmf-logo.jpg";
+
+  /* ---------- Zeichnen ---------- */
+  function zeichne(){
+    var F = FORMATE[z.format];
+    cv.width = F.b; cv.height = F.h;
+    R = rng(z.seed);
+    var stil = STILE[z.stil >= 0 ? z.stil : Math.floor(R() * STILE.length)];
+    var R2 = rng(z.seed ^ 0x9e3779b9);
+    var pal = PALETTEN[z.palette >= 0 ? z.palette : Math.floor(R2() * PALETTEN.length)].f;
+    cx.globalAlpha = 1;
+    stil.mal(F.b, F.h, pal);
+
+    var W = F.b, H = F.h, m = Math.min(W, H);
+    if ($("logo").checked && logoBereit){
+      var lb = m * .34, lh = lb * logoBild.height / logoBild.width, rand = m * .05;
+      cx.save(); cx.shadowColor = "rgba(0,0,0,.35)"; cx.shadowBlur = m * .02;
+      cx.fillStyle = "#ffffff";
+      cx.fillRect(W / 2 - lb / 2 - rand * .3, rand - rand * .3, lb + rand * .6, lh + rand * .6);
+      cx.restore();
+      cx.drawImage(logoBild, W / 2 - lb / 2, rand, lb, lh);
+    }
+
+    var text = $("text").value.trim();
+    if (text){
+      var gr = m * $("groesse").value / 100;
+      cx.font = "900 " + gr + "px -apple-system, 'Helvetica Neue', Arial, sans-serif";
+      cx.textAlign = "center"; cx.textBaseline = "middle";
+      var zeilen = umbrechen(text, W * .86), zh = gr * 1.15, y0 = H / 2 - (zeilen.length - 1) * zh / 2;
+      cx.lineJoin = "round"; cx.lineWidth = gr * .16; cx.strokeStyle = "rgba(0,0,0,.75)";
+      cx.fillStyle = "#ffffff";
+      zeilen.forEach(function(zl, i){
+        cx.strokeText(zl, W / 2, y0 + i * zh); cx.fillText(zl, W / 2, y0 + i * zh);
+      });
+    }
+  }
+  function umbrechen(text, max){
+    var woerter = text.split(/\s+/), zeilen = [], z1 = "";
+    woerter.forEach(function(w){
+      var probe = z1 ? z1 + " " + w : w;
+      if (cx.measureText(probe).width > max && z1){ zeilen.push(z1); z1 = w; } else z1 = probe;
+    });
+    if (z1) zeilen.push(z1);
+    return zeilen;
+  }
+
+  /* ---------- Auswahl-Knöpfe ---------- */
+  function chips(box, liste, schluessel, mitZufall, inhalt){
+    var el = $(box); el.innerHTML = "";
+    var alle = (mitZufall ? [{ name:"🎲 Zufall", zufall:true }] : []).concat(liste);
+    alle.forEach(function(e, i){
+      var wert = mitZufall ? i - 1 : i;
+      var b = document.createElement("button");
+      b.innerHTML = inhalt && !e.zufall ? inhalt(e) : e.name;
+      if (z[schluessel] === wert) b.className = "an";
+      b.addEventListener("click", function(){ z[schluessel] = wert; chips(box, liste, schluessel, mitZufall, inhalt); merken(); zeichne(); });
+      el.appendChild(b);
+    });
+  }
+  chips("stile", STILE, "stil", true);
+  chips("paletten", PALETTEN, "palette", true, function(p){
+    return "<span class='farbe'>" + p.f.map(function(f){ return "<i style='background:" + f + "'></i>"; }).join("") + "</span>" + p.name;
+  });
+  chips("formate", FORMATE, "format", false);
+
+  $("b-neu").addEventListener("click", function(){ z.seed = (Math.random() * 4294967296) >>> 0; zeichne(); });
+  $("b-farbe").addEventListener("click", function(){
+    var alt = z.palette, neu;
+    do { neu = Math.floor(Math.random() * PALETTEN.length); } while (neu === alt && PALETTEN.length > 1);
+    z.palette = neu;
+    chips("paletten", PALETTEN, "palette", true, function(p){
+      return "<span class='farbe'>" + p.f.map(function(f){ return "<i style='background:" + f + "'></i>"; }).join("") + "</span>" + p.name;
+    });
+    merken(); zeichne();
+  });
+  cv.addEventListener("click", function(){ $("b-neu").click(); });
+  ["text", "groesse"].forEach(function(id){ $(id).addEventListener("input", function(){ merken(); zeichne(); }); });
+  $("logo").addEventListener("change", function(){ merken(); zeichne(); });
+
+  /* ---------- Sichern (iPhone: Teilen-Menü → «Bild sichern») ---------- */
+  function melde(t){ var m = $("meldung"); m.textContent = t; m.classList.add("da"); setTimeout(function(){ m.classList.remove("da"); }, 2600); }
+  $("b-sichern").addEventListener("click", function(){
+    cv.toBlob(async function(blob){
+      var name = "bild-" + z.seed + ".png";
+      var datei = new File([blob], name, { type:"image/png" });
+      if (navigator.canShare && navigator.canShare({ files:[datei] })){
+        try { await navigator.share({ files:[datei] }); return; }
+        catch(e){ if (e && e.name === "AbortError") return; }
+      }
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+      melde("Bild gespeichert");
+    }, "image/png");
+  });
+
+  zeichne();
+
+  /* ---------- Offline-Speicher ---------- */
+  if ("serviceWorker" in navigator){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
